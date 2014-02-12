@@ -8,9 +8,14 @@ js = Bundle(
     'bower_components/ace-builds/src-noconflict/ace.js',
     'bower_components/ace-builds/src-noconflict/mode-matlab.js',
     'bower_components/ace-builds/src-noconflict/theme-solarized_dark.js',
+    'bower_components/ace-builds/src-noconflict/theme-solarized_light.js',
+    'bower_components/jquery/jquery.js',
+    'bower_components/bootstrap/dist/js/bootstrap.min.js',
     filters='jsmin',
     output='gen/packed.js')
-css = Bundle('css/style.css',
+css = Bundle(
+    'bower_components/bootstrap/dist/css/bootstrap.css',
+    'css/style.css',
     filters='cssmin',
     output='gen/packed.css')
 

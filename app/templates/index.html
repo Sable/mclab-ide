@@ -1,21 +1,41 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div id="editor">
+<div class="row">
+<div id="editor" class="col-md-12">
+</div>
+
+<div id="console" class="col-md-12">
+</div>
 </div>
 {% endblock %}
 
-{% block extrajs %}
-
-{% assets 'js_all' %}
-<script src="{{ ASSET_URL }}"></script>
-{% endassets %}
+{% block js %}
 
 <script>
+function resizeAce() {
+  var height = $(window).height();
+  $('#editor').height(3 * height / 4);
+  $('#console').height(height / 4);
+  ace.edit('editor').resize();
+  ace.edit('console').resize();
+}
+$(function() {
   var editor = ace.edit('editor');
   editor.setTheme('ace/theme/solarized_dark');
+  editor.setFontSize(14);
   editor.getSession().setMode('ace/mode/matlab');
   editor.getSession().setUseSoftTabs(true);
+  editor.resize();
+  editor.focus();
+
+  var console = ace.edit('console');
+  console.setTheme('ace/theme/solarized_light');
+  console.setFontSize(14);
+
+  $(window).resize(resizeAce);
+  resizeAce();
+});
 </script>
 
 {% endblock %}
