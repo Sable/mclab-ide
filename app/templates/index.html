@@ -32,6 +32,9 @@ $(function() {
   var console = ace.edit('console');
   console.setTheme('ace/theme/solarized_light');
   console.setFontSize(14);
+  console.setReadOnly(true);
+  console.setHighlightActiveLine(false);
+  console.renderer.setShowGutter(false);
 
   $(window).resize(resizeAce);
   resizeAce();
