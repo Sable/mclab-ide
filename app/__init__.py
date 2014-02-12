@@ -13,9 +13,10 @@ js = Bundle(
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     filters='jsmin',
     output='gen/packed.js')
+
 css = Bundle(
     'bower_components/bootstrap/dist/css/bootstrap.css',
-    'css/style.css',
+    Bundle('less/style.less', filters='less'),
     filters='cssmin',
     output='gen/packed.css')
 
