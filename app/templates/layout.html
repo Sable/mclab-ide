@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}McLab IDE{% endblock %}</title>
+
+    {% assets 'css_all' %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet"/>
+    {% endassets %}
+
+    {% block extrahead %}
+    {% endblock %}
+  </head>
+
+  <body>
+    {% block content %}
+    {% endblock %}
+
+    {% block extrajs %}
+    {% endblock %}
+  </body>
+</html>

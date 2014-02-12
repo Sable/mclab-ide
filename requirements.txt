@@ -1,0 +1,4 @@
+Flask==0.10.1
+Flask-Assets==0.8
+cssmin==0.2.0
+jsmin==2.0.9

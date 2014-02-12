@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="editor">
+</div>
+{% endblock %}
+
+{% block extrajs %}
+
+{% assets 'js_all' %}
+<script src="{{ ASSET_URL }}"></script>
+{% endassets %}
+
+<script>
+  var editor = ace.edit('editor');
+  editor.setTheme('ace/theme/solarized_dark');
+  editor.getSession().setMode('ace/mode/matlab');
+  editor.getSession().setUseSoftTabs(true);
+</script>
+
+{% endblock %}
