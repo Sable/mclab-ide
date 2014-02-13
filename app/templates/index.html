@@ -20,6 +20,26 @@ function resizeAce() {
   ace.edit('editor').resize();
   ace.edit('console').resize();
 }
+
+function tryParse(editor, console) {
+  $.ajax({
+    url: '/parse',
+    method: 'POST',
+    contentType: 'text/plain',
+    data: editor.getValue(),
+    dataType: 'json',
+    success: function (data) {
+      if (data.errors) {
+        console.setValue(
+          data.errors.map(function (err) {
+            return '  [' + err.line + ', ' + err.col + '] ' + err.message;
+          }).join('\n'));
+      } else {
+        console.setValue('');
+      }
+    },
+  });
+}
 $(function() {
   var editor = ace.edit('editor');
   editor.setTheme('ace/theme/solarized_dark');
@@ -38,6 +58,23 @@ $(function() {
 
   $(window).resize(resizeAce);
   resizeAce();
+
+  var typingTimer = null;
+  var doneTypingInterval = 1000;
+
+  //on keyup, start the countdown
+  editor.on('change', function(){
+    if (typingTimer != null) {
+      clearTimeout(typingTimer);
+      typingTimer = null;
+    }
+    typingTimer = setTimeout(doneTyping, doneTypingInterval);
+  });
+
+  function doneTyping() {
+    tryParse(editor, console);
+    typingTimer = null;
+  }
 });
 </script>
 
