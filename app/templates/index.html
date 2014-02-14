@@ -30,12 +30,18 @@ function tryParse(editor, console) {
     dataType: 'json',
     success: function (data) {
       if (data.errors) {
-        console.setValue(
+        editor.getSession().setAnnotations(
           data.errors.map(function (err) {
-            return '  [' + err.line + ', ' + err.col + '] ' + err.message;
-          }).join('\n'));
+            return {
+              row: err.line - 1,
+              column: err.col - 1,
+              text: err.message,
+              type: 'error'
+            }
+          })
+        );
       } else {
-        console.setValue('');
+        editor.getSession().clearAnnotations();
       }
     },
   });
