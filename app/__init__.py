@@ -14,6 +14,7 @@ js = Bundle(
     'bower_components/ace-builds/src-noconflict/theme-solarized_light.js',
     'bower_components/jquery/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
+    'js/main.js',
     filters='jsmin',
     output='gen/packed.js')
 
