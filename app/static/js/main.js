@@ -1,70 +1,74 @@
-function resizeAce() {
-  var height = $(window).height();
-  $('#editor').height(3 * height / 4);
-  $('#console').height(height / 4);
-  ace.edit('editor').resize();
-  ace.edit('console').resize();
+function IDE() {
+  this.editor = ace.edit('editor');
+  this.editor.setTheme('ace/theme/solarized_dark');
+  this.editor.setFontSize(14);
+  this.editor.getSession().setMode('ace/mode/matlab');
+  this.editor.getSession().setUseSoftTabs(true);
+  this.editor.resize();
+  this.editor.focus();
+
+  this.console = ace.edit('console');
+  this.console.setTheme('ace/theme/solarized_light');
+  this.console.setFontSize(14);
+  this.console.setReadOnly(true);
+  this.console.setHighlightActiveLine(false);
+  this.console.renderer.setShowGutter(false);
+ 
+  $(window).resize(this.resizeAce.bind(this));
+  this.resizeAce();
 }
 
-function tryParse(editor, console) {
+IDE.prototype.resizeAce = function() {
+    var height = $(window).height();
+    $('#editor').height(3 * height / 4);
+    $('#console').height(height / 4);
+    this.editor.resize();
+    this.console.resize();
+};
+
+IDE.prototype.overlayErrors = function(errors) {
+  this.editor.getSession().setAnnotations(
+    errors.map(function (err) {
+      return {
+        row: err.line - 1,
+        column: err.col - 1,
+        text: err.message,
+        type: 'error'
+      };
+    })
+  );
+};
+
+IDE.prototype.tryParse = function() {
   $.ajax({
     url: '/parse',
     method: 'POST',
     contentType: 'text/plain',
-    data: editor.getValue(),
+    data: this.editor.getValue(),
     dataType: 'json',
-    success: function (data) {
-      if (data.errors) {
-        editor.getSession().setAnnotations(
-          data.errors.map(function (err) {
-            return {
-              row: err.line - 1,
-              column: err.col - 1,
-              text: err.message,
-              type: 'error'
-            }
-          })
-        );
-      } else {
-        editor.getSession().clearAnnotations();
-      }
-    },
-  });
-}
+    success: (function (data) { this.overlayErrors(data.errors); }).bind(this),
+  })
+};
 
-$(function() {
-  var editor = ace.edit('editor');
-  editor.setTheme('ace/theme/solarized_dark');
-  editor.setFontSize(14);
-  editor.getSession().setMode('ace/mode/matlab');
-  editor.getSession().setUseSoftTabs(true);
-  editor.resize();
-  editor.focus();
-
-  var console = ace.edit('console');
-  console.setTheme('ace/theme/solarized_light');
-  console.setFontSize(14);
-  console.setReadOnly(true);
-  console.setHighlightActiveLine(false);
-  console.renderer.setShowGutter(false);
- 
-  $(window).resize(resizeAce);
-  resizeAce();
-
+IDE.prototype.startSyntaxChecker = function() {
   var typingTimer = null;
   var doneTypingInterval = 1000;
 
-  //on keyup, start the countdown
-  editor.on('change', function(){
+  var doneTyping = (function() {
+    this.tryParse();
+    typingTimer = null;
+  }).bind(this);
+
+  this.editor.on('change', function() {
     if (typingTimer != null) {
       clearTimeout(typingTimer);
       typingTimer = null;
     }
     typingTimer = setTimeout(doneTyping, doneTypingInterval);
   });
+};
 
-  function doneTyping() {
-    tryParse(editor, console);
-    typingTimer = null;
-  }
+$(function() {
+  var ide = new IDE();
+  ide.startSyntaxChecker();
 }); 
