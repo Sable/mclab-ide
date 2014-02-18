@@ -1,8 +1,12 @@
+import json
+import os
+
 from flask import Flask, render_template, request
 from flask.ext.assets import Environment, Bundle
 import requests
 
 MCLABAAS_URL = 'http://localhost:4242'
+WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
 
 app = Flask(__name__)
 assets = Environment(app)
@@ -14,12 +18,14 @@ js = Bundle(
     'bower_components/ace-builds/src-noconflict/theme-solarized_light.js',
     'bower_components/jquery/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
+    'bower_components/jqtree/tree.jquery.js',
     'js/main.js',
     filters='jsmin',
     output='gen/packed.js')
 
 css = Bundle(
     'bower_components/bootstrap/dist/css/bootstrap.css',
+    'bower_components/jqtree/jqtree.css',
     Bundle('less/style.less', filters='less'),
     filters='cssmin',
     output='gen/packed.css')
@@ -34,6 +40,26 @@ def index():
 @app.route('/parse', methods=['POST'])
 def parse():
     return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
+
+def get_projects_tree(dir=WORKSPACE_DIR):
+    projects = []
+    for project in os.listdir(dir):
+        abspath = os.path.join(dir, project)
+        node = {'label': project}
+        if os.path.isdir(abspath):
+            node['children'] = get_projects_tree(abspath)
+        projects.append(node)
+    return projects
+
+@app.route('/projects', methods=['GET'])
+def projects():
+    return json.dumps(get_projects_tree())
+
+@app.route('/read', methods=['GET'])
+def read():
+    path = request.args['path']
+    with open(os.path.join(WORKSPACE_DIR, path)) as f:
+        return f.read()
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -4,7 +4,7 @@ function TabbedEditor(id, aceId) {
   this.editor = ace.edit(aceId);
   this.editor.setTheme('ace/theme/solarized_dark');
   this.editor.setFontSize(14);
-  this.editor.setSession(this.newSession());
+  this.editor.setSession(this.newSession(''));
   this.editor.resize();
   this.editor.focus();
 
@@ -22,12 +22,31 @@ function TabbedEditor(id, aceId) {
     self.selectTab($(this));
   });
 
-  this.el.find('li.editor-add-file').on('click', function () {
+  this.el.find('ul.editor-tabs').on('dblclick', 'li', function () {
+    if ($(this).hasClass('editor-add-file')) {
+      return;
+    }
+    self.closeTab($(this));
+  });
+
+  this.getNewTabButton().on('click', function () {
     var filename = prompt('Name: ');
     if (/[^\s]/.test(filename)) {
-      self.selectTab(self.createTabBefore($(this), filename));
+      self.selectTab(self.createTab(filename));
     }
   });
+}
+
+TabbedEditor.prototype.getNewTabButton = function() {
+  return this.el.find('li.editor-add-file').first();
+}
+
+TabbedEditor.prototype.getTabByName = function(name) {
+  return this.el.find('ul.editor-tabs li:contains("' + name + '")').first();
+};
+
+TabbedEditor.prototype.closeTab = function(tab) {
+  tab.remove();
 }
 
 TabbedEditor.prototype.selectTab = function(tab) {
@@ -37,16 +56,19 @@ TabbedEditor.prototype.selectTab = function(tab) {
   this.editor.setSession(this.sessions[filename]);
 }
 
-TabbedEditor.prototype.createTabBefore = function(tab, filename) {
+TabbedEditor.prototype.createTab = function(filename, contents) {
+  if (contents === undefined) {
+    contents = '';
+  }
   var newTab = $('<li>').append(
     $('<a>').attr('href', '#').text(filename));
-  newTab.insertBefore(tab);
-  this.sessions[filename] = this.newSession();
+  newTab.insertBefore(this.getNewTabButton());
+  this.sessions[filename] = this.newSession(contents);
   return newTab;
 }
 
-TabbedEditor.prototype.newSession = function() {
-  var session = ace.createEditSession('', 'ace/mode/matlab');
+TabbedEditor.prototype.newSession = function(text) {
+  var session = ace.createEditSession(text, 'ace/mode/matlab');
   session.setUseSoftTabs(true);
   return session;
 }
@@ -115,4 +137,29 @@ $(function() {
   console.setReadOnly(true);
   console.setHighlightActiveLine(false);
   console.renderer.setShowGutter(false);
+
+  $('#projects').tree({
+    dataUrl: '/projects',
+    selectable: false,
+  });
+  $('#projects').on('tree.dblclick', function(e) {
+    if (e.node.children.length > 0) {
+      return;
+    }
+    var parts = [];
+    var node = e.node;
+    while (node.name !== undefined) {
+      parts.unshift(node.name);
+      node = node.parent;
+    }
+    var path = parts.join('/');
+    var tab = editor.getTabByName(path);
+    if (tab.length !== 0) {
+      editor.selectTab(tab);
+      return;
+    }
+    $.get('/read?path=' + encodeURIComponent(path), function (data) {
+      editor.selectTab(editor.createTab(path, data));
+    });
+  });
 }); 
