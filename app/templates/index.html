@@ -2,10 +2,12 @@
 
 {% block content %}
 <div class="row">
-<ul id="file-switcher" class="nav nav-tabs">
-  <li id="add-file"> &nbsp; <span class="glyphicon glyphicon-plus"></span></li>
-</ul>
-<div id="editor" class="col-md-12">
+<div id="editor">
+  <ul class="editor-tabs nav nav-tabs">
+    <li class="editor-add-file"> &nbsp; <span class="glyphicon glyphicon-plus"></span></li>
+  </ul>
+  <div id="editor-buffer" class="col-md-12">
+  </div>
 </div>
 
 <div id="console" class="col-md-12">
