@@ -15,19 +15,25 @@ function TabbedEditor(id, aceId) {
 
   var self = this;
 
-  this.el.find('.editor-tabs').on('click', 'li', function () {
+  this.el.find('ul.editor-tabs').on('click', 'li', function () {
+    if ($(this).hasClass('editor-add-file')) {
+      return;
+    }
     self.selectTab($(this));
   });
 
-  this.el.find('.editor-add-file').on('click', function () {
-    self.selectTab(self.createTabBefore($(this), prompt('Name: ')));
+  this.el.find('li.editor-add-file').on('click', function () {
+    var filename = prompt('Name: ');
+    if (/[^\s]/.test(filename)) {
+      self.selectTab(self.createTabBefore($(this), filename));
+    }
   });
 }
 
 TabbedEditor.prototype.selectTab = function(tab) {
   tab.siblings('.active').removeClass('active');
   tab.addClass('active');
-  var filename = tab.first('a').text();
+  var filename = tab.first().text();
   this.editor.setSession(this.sessions[filename]);
 }
 
