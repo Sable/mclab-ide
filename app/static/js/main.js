@@ -17,7 +17,7 @@ Tab.prototype.unselect = function() {
 
 Tab.prototype.select = function() {
   this.li.addClass('active');
-  this.getSiblings().each(function (tab) { tab.unselect(); });
+  this.getSiblings().each(function (i, tab) { tab.unselect(); });
   this.editor.editor.setSession(this.session);
 };
 
@@ -44,8 +44,9 @@ function TabbedEditor(id, aceId) {
     .on('click', 'li:not(.editor-add-file)', function () {
       $(this).data('tab').select();
     })
-    .on('dblclick', 'li:not(.editor-add-file)', function() {
-      $(this).data('tab').close();
+    .on('click', 'span.glyphicon-remove', function() {
+      $(this).parents('li').first().data('tab').close();
+      return false;
     });
 
   this.newTabButton = this.el.find('.editor-add-file').first();
@@ -66,11 +67,16 @@ TabbedEditor.prototype.hasTabLabeled = function(name) {
   return name in this.tabs;
 }
 
+var makeIcon = function(icon) {
+  return $('<span>').addClass('glyphicon glyphicon-' + icon);
+}
+
 TabbedEditor.prototype.createTab = function(filename, contents) {
   if (contents === undefined) {
     contents = '';
   }
-  var li = $('<li>').append($('<a>').attr('href', '#').text(filename));
+  var li = $('<li>').append($('<a>').attr('href', '#').append(
+    filename, '&nbsp;', makeIcon('remove')));
   li.insertBefore(this.newTabButton);
   this.tabs[filename] = new Tab(li, this.newSession(contents), this);
   return this.tabs[filename];
