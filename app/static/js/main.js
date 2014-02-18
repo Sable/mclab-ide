@@ -1,3 +1,30 @@
+function Tab(li, session, editor) {
+  this.li = li;
+  this.li.data('tab', this);
+  this.session = session;
+  this.editor = editor;
+};
+
+Tab.prototype.getSiblings = function() {
+  return this.li.siblings().map(function (i, li) {
+    return $(li).data('tab');
+  });
+};
+
+Tab.prototype.unselect = function() {
+  this.li.removeClass('active');
+};
+
+Tab.prototype.select = function() {
+  this.li.addClass('active');
+  this.getSiblings().each(function (tab) { tab.unselect(); });
+  this.editor.editor.setSession(this.session);
+};
+
+Tab.prototype.close = function() {
+  this.li.remove();
+};
+
 function TabbedEditor(id, aceId) {
   this.el = $('#' + id);
   this.editor_el = $('#' + aceId);
@@ -11,60 +38,42 @@ function TabbedEditor(id, aceId) {
   $(window).resize(this.resizeAce.bind(this));
   this.resizeAce();
 
-  this.sessions = {};
+  this.tabs = {};
 
-  var self = this;
+  this.el.find('ul.editor-tabs')
+    .on('click', 'li:not(.editor-add-file)', function () {
+      $(this).data('tab').select();
+    })
+    .on('dblclick', 'li:not(.editor-add-file)', function() {
+      $(this).data('tab').close();
+    });
 
-  this.el.find('ul.editor-tabs').on('click', 'li', function () {
-    if ($(this).hasClass('editor-add-file')) {
-      return;
-    }
-    self.selectTab($(this));
-  });
-
-  this.el.find('ul.editor-tabs').on('dblclick', 'li', function () {
-    if ($(this).hasClass('editor-add-file')) {
-      return;
-    }
-    self.closeTab($(this));
-  });
-
-  this.getNewTabButton().on('click', function () {
+  this.newTabButton = this.el.find('.editor-add-file').first();
+  this.newTabButton.on('click', (function () {
     var filename = prompt('Name: ');
     if (/[^\s]/.test(filename)) {
-      self.selectTab(self.createTab(filename));
+      this.createTab(filename).select();
     }
-  });
-}
-
-TabbedEditor.prototype.getNewTabButton = function() {
-  return this.el.find('li.editor-add-file').first();
-}
-
-TabbedEditor.prototype.getTabByName = function(name) {
-  return this.el.find('ul.editor-tabs li:contains("' + name + '")').first();
+  }).bind(this));
 };
 
-TabbedEditor.prototype.closeTab = function(tab) {
-  tab.remove();
-}
 
-TabbedEditor.prototype.selectTab = function(tab) {
-  tab.siblings('.active').removeClass('active');
-  tab.addClass('active');
-  var filename = tab.first().text();
-  this.editor.setSession(this.sessions[filename]);
+TabbedEditor.prototype.getTabLabeled = function(name) {
+  return this.tabs[name];
+};
+
+TabbedEditor.prototype.hasTabLabeled = function(name) {
+  return name in this.tabs;
 }
 
 TabbedEditor.prototype.createTab = function(filename, contents) {
   if (contents === undefined) {
     contents = '';
   }
-  var newTab = $('<li>').append(
-    $('<a>').attr('href', '#').text(filename));
-  newTab.insertBefore(this.getNewTabButton());
-  this.sessions[filename] = this.newSession(contents);
-  return newTab;
+  var li = $('<li>').append($('<a>').attr('href', '#').text(filename));
+  li.insertBefore(this.newTabButton);
+  this.tabs[filename] = new Tab(li, this.newSession(contents), this);
+  return this.tabs[filename];
 }
 
 TabbedEditor.prototype.newSession = function(text) {
@@ -127,6 +136,15 @@ TabbedEditor.prototype.startSyntaxChecker = function() {
   });
 };
 
+var getPathFromTreeNode = function (node) {
+  var parts = [];
+  while (node.name !== undefined) {
+    parts.unshift(node.name);
+    node = node.parent;
+  }
+  return parts.join('/'); 
+}
+
 $(function() {
   var editor = new TabbedEditor('editor', 'editor-buffer');
   editor.startSyntaxChecker();
@@ -146,20 +164,13 @@ $(function() {
     if (e.node.children.length > 0) {
       return;
     }
-    var parts = [];
-    var node = e.node;
-    while (node.name !== undefined) {
-      parts.unshift(node.name);
-      node = node.parent;
+    var path = getPathFromTreeNode(e.node);
+    if (editor.hasTabLabeled(path)) {
+      editor.getTabLabeled(path).select();
+    } else {
+      $.get('/read?path=' + encodeURIComponent(path), function (data) {
+        editor.createTab(path, data).select();
+      });
     }
-    var path = parts.join('/');
-    var tab = editor.getTabByName(path);
-    if (tab.length !== 0) {
-      editor.selectTab(tab);
-      return;
-    }
-    $.get('/read?path=' + encodeURIComponent(path), function (data) {
-      editor.selectTab(editor.createTab(path, data));
-    });
   });
 }); 
