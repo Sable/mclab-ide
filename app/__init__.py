@@ -61,5 +61,12 @@ def read():
     with open(os.path.join(WORKSPACE_DIR, path)) as f:
         return f.read()
 
+@app.route('/write', methods=['POST'])
+def write():
+    path = request.data['path']
+    contents = request.data['contents']
+    with open(os.path.join(WORKSPACE_DIR, path), 'w') as f:
+        f.write(contents)
+
 if __name__ == '__main__':
     app.run(debug=True)

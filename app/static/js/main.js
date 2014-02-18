@@ -114,14 +114,9 @@ TabbedEditor.prototype.overlayErrors = function(errors) {
 };
 
 TabbedEditor.prototype.tryParse = function() {
-  $.ajax({
-    url: '/parse',
-    method: 'POST',
-    contentType: 'text/plain',
-    data: this.editor.getValue(),
-    dataType: 'json',
-    success: (function (data) { this.overlayErrors(data.errors); }).bind(this),
-  })
+  Ajax.parseCode(this.editor.getValue(), (function (data) {
+    this.overlayErrors(data.errors);
+  }).bind(this));
 };
 
 TabbedEditor.prototype.startSyntaxChecker = function() {
@@ -151,6 +146,28 @@ var getPathFromTreeNode = function (node) {
   return parts.join('/'); 
 }
 
+var Ajax = {
+  parseCode: function(code, callback) {
+    $.ajax({
+      url: '/parse',
+      method: 'POST',
+      contentType: 'text/plain',
+      data: code,
+      dataType: 'json',
+      success: callback,
+    });
+  },
+  readFile: function(path, callback) {
+    $.get('/read?path=' + encodeURIComponent(path), callback);
+  },
+  writeFile: function(path, contents) {
+    $.post({
+      url: '/write',
+      data: {'path': path, 'contents': contents}
+    });
+  },
+};
+
 $(function() {
   var editor = new TabbedEditor('editor', 'editor-buffer');
   editor.startSyntaxChecker();
@@ -174,7 +191,7 @@ $(function() {
     if (editor.hasTabLabeled(path)) {
       editor.getTabLabeled(path).select();
     } else {
-      $.get('/read?path=' + encodeURIComponent(path), function (data) {
+      Ajax.readFile(path, function (data) {
         editor.createTab(path, data).select();
       });
     }
