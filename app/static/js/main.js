@@ -210,6 +210,13 @@ $(function() {
   $('#projects').tree({
     dataUrl: '/projects',
     selectable: false,
+    openedIcon: makeIcon('folder-open').prop('outerHTML'),
+    closedIcon: makeIcon('folder-close').prop('outerHTML'),
+    onCreateLi: function(node, li) {
+      if (node.children.length === 0) {
+        li.find('.jqtree-title').before(makeIcon('file'));
+      }
+    },
   });
   $('#projects').on('tree.dblclick', function(e) {
     if (e.node.children.length > 0) {
