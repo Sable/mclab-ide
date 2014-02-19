@@ -12,6 +12,21 @@ Tab.prototype.getSiblings = function() {
   });
 };
 
+Tab.prototype.getClosestTab = function() {
+  var tab = this.li.prev('li');
+  if (tab.length === 0) {
+    tab = this.li.next('li');
+  }
+  if (tab.length !== 0) {
+    return tab.data('tab') || null;
+  }
+  return null;
+}
+
+Tab.prototype.isSelected = function() {
+  return this.li.hasClass('active');
+};
+
 Tab.prototype.unselect = function() {
   this.li.removeClass('active');
 };
@@ -23,6 +38,13 @@ Tab.prototype.select = function() {
 };
 
 Tab.prototype.close = function() {
+  if (this.isSelected()) {
+    var tab = this.getClosestTab();
+    if (tab !== null) {
+      tab.select();
+    }
+  }
+
   this.editor.removeTabLabeled(this.label);
   this.li.remove();
 };
