@@ -210,11 +210,16 @@ $(function() {
   $('#projects').tree({
     dataUrl: '/projects',
     selectable: false,
+    slide: false,
     openedIcon: makeIcon('folder-open').prop('outerHTML'),
     closedIcon: makeIcon('folder-close').prop('outerHTML'),
     onCreateLi: function(node, li) {
       if (node.children.length === 0) {
-        li.find('.jqtree-title').before(makeIcon('file'));
+        li.find('.jqtree-title').before(
+          $('<a>')
+            .addClass('jqtree_common jqtree-toggler')
+            .append(makeIcon('file'))
+        );
       }
     },
   });
