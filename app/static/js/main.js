@@ -1,5 +1,6 @@
-function Tab(li, session, editor) {
+function Tab(li, label, session, editor) {
   this.li = li;
+  this.label = label;
   this.li.data('tab', this);
   this.session = session;
   this.editor = editor;
@@ -22,6 +23,7 @@ Tab.prototype.select = function() {
 };
 
 Tab.prototype.close = function() {
+  this.editor.removeTabLabeled(this.label);
   this.li.remove();
 };
 
@@ -67,6 +69,10 @@ TabbedEditor.prototype.hasTabLabeled = function(name) {
   return name in this.tabs;
 }
 
+TabbedEditor.prototype.removeTabLabeled = function(name) {
+  delete this.tabs[name];
+}
+
 var makeIcon = function(icon) {
   return $('<span>').addClass('glyphicon glyphicon-' + icon);
 }
@@ -78,7 +84,7 @@ TabbedEditor.prototype.createTab = function(filename, contents) {
   var li = $('<li>').append($('<a>').attr('href', '#').append(
     filename, '&nbsp;', makeIcon('remove')));
   li.insertBefore(this.newTabButton);
-  this.tabs[filename] = new Tab(li, this.newSession(contents), this);
+  this.tabs[filename] = new Tab(li, filename, this.newSession(contents), this);
   return this.tabs[filename];
 }
 
@@ -172,12 +178,12 @@ $(function() {
   var editor = new TabbedEditor('editor', 'editor-buffer');
   editor.startSyntaxChecker();
 
-  var console = ace.edit('console');
-  console.setTheme('ace/theme/solarized_light');
-  console.setFontSize(14);
-  console.setReadOnly(true);
-  console.setHighlightActiveLine(false);
-  console.renderer.setShowGutter(false);
+  var consolePane = ace.edit('console');
+  consolePane.setTheme('ace/theme/solarized_light');
+  consolePane.setFontSize(14);
+  consolePane.setReadOnly(true);
+  consolePane.setHighlightActiveLine(false);
+  consolePane.renderer.setShowGutter(false);
 
   $('#projects').tree({
     dataUrl: '/projects',
