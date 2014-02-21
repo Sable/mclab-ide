@@ -85,7 +85,7 @@ mclab.editor.TabbedEditor = function(id, aceId) {
   this.newTabButton = this.el.find('.editor-add-file').first();
   this.newTabButton.on('click', (function () {
     var filename = prompt('Name: ');
-    if (/[^\s]/.test(filename)) {
+    if (filename !== null && /[^\s]/.test(filename)) {
       this.createTab(filename).select();
     }
   }).bind(this));
