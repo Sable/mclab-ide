@@ -38,6 +38,7 @@ mclab.editor.Tab.prototype.select = function() {
   this.li.addClass('active');
   this.getSiblings().each(function (i, tab) { tab.unselect(); });
   this.editor.editor.setSession(this.session);
+  this.editor.show();
 };
 
 mclab.editor.Tab.prototype.close = function() {
@@ -50,6 +51,10 @@ mclab.editor.Tab.prototype.close = function() {
 
   this.editor.removeTabLabeled(this.label);
   this.li.remove();
+
+  if (this.editor.getNumTabs() === 0) {
+    this.editor.hide();
+  }
 };
 
 mclab.editor.TabbedEditor = function(id, aceId) {
@@ -58,6 +63,7 @@ mclab.editor.TabbedEditor = function(id, aceId) {
   this.editor = ace.edit(aceId);
   this.editor.setTheme('ace/theme/solarized_dark');
   this.editor.setFontSize(14);
+  this.editor.setShowPrintMargin(false);
   this.editor.setSession(this.newSession(''));
   this.editor.resize();
   this.editor.focus();
@@ -83,8 +89,21 @@ mclab.editor.TabbedEditor = function(id, aceId) {
       this.createTab(filename).select();
     }
   }).bind(this));
+
+  this.hide();
 };
 
+mclab.editor.TabbedEditor.prototype.hide = function() {
+  this.editor_el.css('visibility', 'hidden');
+};
+
+mclab.editor.TabbedEditor.prototype.show = function() {
+  this.editor_el.css('visibility', 'visible');
+};
+
+mclab.editor.TabbedEditor.prototype.getNumTabs = function(name) {
+  return Object.keys(this.tabs).length;
+};
 
 mclab.editor.TabbedEditor.prototype.getTabLabeled = function(name) {
   return this.tabs[name];
@@ -92,11 +111,11 @@ mclab.editor.TabbedEditor.prototype.getTabLabeled = function(name) {
 
 mclab.editor.TabbedEditor.prototype.hasTabLabeled = function(name) {
   return name in this.tabs;
-}
+};
 
 mclab.editor.TabbedEditor.prototype.removeTabLabeled = function(name) {
   delete this.tabs[name];
-}
+};
 
 mclab.editor.TabbedEditor.prototype.createTab = function(filename, contents) {
   if (contents === undefined) {
@@ -107,13 +126,13 @@ mclab.editor.TabbedEditor.prototype.createTab = function(filename, contents) {
   li.insertBefore(this.newTabButton);
   this.tabs[filename] = new mclab.editor.Tab(li, filename, this.newSession(contents), this);
   return this.tabs[filename];
-}
+};
 
 mclab.editor.TabbedEditor.prototype.newSession = function(text) {
   var session = ace.createEditSession(text, 'ace/mode/matlab');
   session.setUseSoftTabs(true);
   return session;
-}
+};
 
 mclab.editor.TabbedEditor.prototype.resizeAce = function() {
     var height = $(window).height();
