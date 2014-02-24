@@ -1,7 +1,17 @@
-@sidebar-width: 200px;
-@black: #000;
-@grey: #999;
+@lightGrey: #ddd;
 @white: #fff;
+
+@sidebar-width: 200px;
+@sidebar-color: @white;
+
+.disable-scrolling() {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  .disable-scrolling;
+}
 
 #wrapper {
   padding-left: @sidebar-width;
@@ -13,7 +23,10 @@
   margin-left: -@sidebar-width;
   left: @sidebar-width;
   width: @sidebar-width;
-  background: @grey;
+  background: @sidebar-color;
+  border-right: 1px;
+  border-style: none solid none none;
+  border-color: @lightGrey;
   position: fixed;
   height: 100%;
   overflow-y: auto;
@@ -23,50 +36,6 @@
 
 #page-content-wrapper {
   width: 100%;
-}
-
-.sidebar-nav {
-  position: absolute;
-  top: 0;
-  width: @sidebar-width;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  li {
-    line-height: 40px;
-    text-indent: 20px;
-    a { 
-      color: @grey;
-      display: block;
-      text-decoration: none;
-
-      &:hover {
-        color: @white;
-        background: rgba(255, 255, 255, 0.2);
-        text-decoration: none;
-      }
-
-      &:active, &:focus {
-        text-decoration: none;
-      }
-    }
-  }
-
-  & > .sidebar-brand {
-    height: 65px;
-    line-height: 60px;
-    font-size: 18px;
-
-    a {
-      color: @grey;
-
-      &:hover {
-        color: @white;
-        background: none;
-      }
-    }
-  }
 }
 
 .inset {
