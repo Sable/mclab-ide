@@ -17,5 +17,7 @@ mclab.ajax.readFile = function(path, callback) {
 };
 
 mclab.ajax.writeFile = function(path, contents) {
-  $.post('/write', {'path': path, 'contents': contents});
+  $.post('/write', {'path': path, 'contents': contents}, function (data) {
+    mclab.utils.flashSuccess('File ' + path + ' saved.');
+  });
 };

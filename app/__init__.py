@@ -19,6 +19,7 @@ js = Bundle(
     'bower_components/jquery/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/jqtree/tree.jquery.js',
+    'bower_components/pnotify/jquery.pnotify.min.js',
     'js/utils.js',
     'js/ajax.js',
     'js/tree.js',
@@ -30,6 +31,7 @@ js = Bundle(
 css = Bundle(
     'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/jqtree/jqtree.css',
+    'bower_components/pnotify/jquery.pnotify.default.css',
     Bundle('less/style.less', filters='less'),
     filters='cssmin',
     output='gen/packed.css')
