@@ -24,8 +24,10 @@ mclab.tree.Tree = function(id, dataUrl) {
 }
 
 mclab.tree.Tree.prototype.onFileSelect = function(callback) {
+  var self = this;
   this.el.on('tree.dblclick', function (e) {
     if (e.node.children.length > 0) {
+      self.el.tree('toggle', e.node, false);
       return;
     }
     var parts = [];
