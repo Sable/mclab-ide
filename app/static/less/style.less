@@ -9,8 +9,18 @@
   overflow: hidden;
 }
 
+.disable-select() {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 body {
   .disable-scrolling;
+}
+
+#projects {
+  .disable-select;
 }
 
 #wrapper {

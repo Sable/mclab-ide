@@ -8,6 +8,7 @@ mclab.tree.Tree = function(id, dataUrl) {
     dataUrl: this.dataUrl,
     selectable: false,
     slide: false,
+    useContextMenu: false,
     openedIcon: mclab.utils.makeIcon('folder-open').prop('outerHTML'),
     closedIcon: mclab.utils.makeIcon('folder-close').prop('outerHTML'),
     onCreateLi: function(node, li) {
