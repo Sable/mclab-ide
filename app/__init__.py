@@ -23,6 +23,7 @@ js = Bundle(
     'js/utils.js',
     'js/ajax.js',
     'js/tree.js',
+    'js/tabs.js',
     'js/editor.js',
     'js/main.js',
     filters='jsmin',
