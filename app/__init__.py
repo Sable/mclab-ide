@@ -69,10 +69,11 @@ def read():
 
 @app.route('/write', methods=['POST'])
 def write():
-    path = request.data['path']
-    contents = request.data['contents']
+    path = request.form['path']
+    contents = request.form['contents']
     with open(os.path.join(WORKSPACE_DIR, path), 'w') as f:
         f.write(contents)
+    return json.dumps({'status': 'OK'})
 
 if __name__ == '__main__':
     app.run(debug=True)
