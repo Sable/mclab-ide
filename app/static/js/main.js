@@ -7,6 +7,7 @@ $(function() {
   consolePane.setFontSize(14);
   consolePane.setReadOnly(true);
   consolePane.setHighlightActiveLine(false);
+  consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
   var tree = new mclab.tree.Tree('projects', '/projects');
