@@ -68,13 +68,25 @@ mclab.editor.TabbedEditor = function(id, aceId) {
   this.editor.resize();
   this.editor.focus();
 
+  this.editor.commands.addCommand({
+    name: 'save',
+    bindKey: {
+      win: 'Ctrl-S',
+      mac: 'Command-S',
+    },
+    exec: (function() {
+      var tab = this.getSelectedTab();
+      mclab.ajax.writeFile(tab.label, this.editor.getValue());
+    }).bind(this),
+  });
+
   $(window).resize(this.resizeAce.bind(this));
   this.resizeAce();
 
   this.tabs = {};
 
   this.el.find('ul.editor-tabs')
-    .on('click', 'li:not(.editor-add-file)', function () {
+    .on('click', 'li:not(.editor-add-file)', function() {
       $(this).data('tab').select();
     })
     .on('click', 'span.glyphicon-remove', function() {
@@ -115,6 +127,10 @@ mclab.editor.TabbedEditor.prototype.hasTabLabeled = function(name) {
 
 mclab.editor.TabbedEditor.prototype.removeTabLabeled = function(name) {
   delete this.tabs[name];
+};
+
+mclab.editor.TabbedEditor.prototype.getSelectedTab = function() {
+  return this.el.find('ul.editor-tabs li.active').data('tab');
 };
 
 mclab.editor.TabbedEditor.prototype.createTab = function(filename, contents) {
