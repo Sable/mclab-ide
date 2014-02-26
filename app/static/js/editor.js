@@ -26,8 +26,35 @@ mclab.editor.Editor = function(id, aceId) {
   $(window).resize(this.resizeAce.bind(this));
   this.resizeAce();
 
-  this.tabs = new mclab.editor.TabManager(this);
+  var ul = this.el.find('ul.editor-tabs').first();
+  this.sessions = {};
+  this.tabs = new mclab.editor.TabManager(ul)
+    .on('all_tabs_closed', this.hide.bind(this))
+    .on('tab_select', (function (e, path) {
+      if (!(path in this.sessions)) {
+        this.sessions[path] = this.newSession('');
+      }
+      this.editor.setSession(this.sessions[path]);
+      this.show();
+    }).bind(this));
   this.hide();
+};
+
+mclab.editor.Editor.prototype.openFile = function(path) {
+  if (this.tabs.hasTabLabeled(path)) {
+    this.tabs.getTabLabeled(path).select();
+    return;
+  }
+  mclab.ajax.readFile(path, (function (contents) {
+    this.sessions[path] = this.newSession(contents);
+    this.tabs.createTab(path).select();
+  }).bind(this));
+}
+
+mclab.editor.Editor.prototype.newSession = function(text) {
+  var session = ace.createEditSession(text, 'ace/mode/matlab');
+  session.setUseSoftTabs(true);
+  return session;
 };
 
 mclab.editor.Editor.prototype.hide = function() {

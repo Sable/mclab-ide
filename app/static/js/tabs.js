@@ -1,11 +1,10 @@
 mclab = window.mclab || {};
 mclab.editor = mclab.editor || {};
 
-mclab.editor.Tab = function (li, label, session, manager) {
+mclab.editor.Tab = function (li, label, manager) {
   this.li = li;
   this.label = label;
   this.li.data('tab', this);
-  this.session = session;
   this.manager = manager;
 };
 
@@ -37,8 +36,7 @@ mclab.editor.Tab.prototype.unselect = function() {
 mclab.editor.Tab.prototype.select = function() {
   this.li.addClass('active');
   this.getSiblings().each(function (i, tab) { tab.unselect(); });
-  this.manager.editor.editor.setSession(this.session);
-  this.manager.editor.show();
+  this.manager.trigger('tab_select', this.label);
 };
 
 mclab.editor.Tab.prototype.close = function() {
@@ -53,16 +51,15 @@ mclab.editor.Tab.prototype.close = function() {
   this.li.remove();
 
   if (this.manager.getNumTabs() === 0) {
-    this.manager.editor.hide();
+    this.manager.trigger('all_tabs_closed');
   }
 };
 
-mclab.editor.TabManager = function(editor) {
-  this.editor = editor;
-  this.el = editor.el;
+mclab.editor.TabManager = function(ul) {
+  this.ul = ul;
   this.tabs = {};
 
-  this.el.find('ul.editor-tabs')
+  this.ul
     .on('click', 'li:not(.editor-add-file)', function() {
       $(this).data('tab').select();
     })
@@ -71,13 +68,23 @@ mclab.editor.TabManager = function(editor) {
       return false;
     });
 
-  this.newTabButton = this.el.find('.editor-add-file').first();
+  this.newTabButton = this.ul.find('.editor-add-file').first();
   this.newTabButton.on('click', (function () {
     var filename = prompt('Name: ');
     if (filename !== null && /[^\s]/.test(filename)) {
       this.createTab(filename).select();
     }
   }).bind(this));
+};
+
+
+mclab.editor.TabManager.prototype.on = function(event, callback) {
+  this.ul.on(event, callback);
+  return this;
+};
+
+mclab.editor.TabManager.prototype.trigger = function(event, arg) {
+  this.ul.trigger(event, arg);
 };
 
 mclab.editor.TabManager.prototype.getNumTabs = function(name) {
@@ -97,33 +104,15 @@ mclab.editor.TabManager.prototype.removeTabLabeled = function(name) {
 };
 
 mclab.editor.TabManager.prototype.getSelectedTab = function() {
-  return this.el.find('ul.editor-tabs li.active').data('tab');
+  return this.ul.find('li.active').data('tab');
 };
 
 mclab.editor.TabManager.prototype.createTab = function(filename, contents) {
-  if (contents === undefined) {
-    contents = '';
-  }
   var li = $('<li>').append($('<a>').attr('href', '#').append(
     filename, '&nbsp;', mclab.utils.makeIcon('remove')));
   li.insertBefore(this.newTabButton);
-  this.tabs[filename] = new mclab.editor.Tab(li, filename, this.newSession(contents), this);
+  this.tabs[filename] = new mclab.editor.Tab(li, filename, this);
+  this.trigger('tab_create', this.tabs[filename]);
   return this.tabs[filename];
 };
 
-mclab.editor.TabManager.prototype.newSession = function(text) {
-  var session = ace.createEditSession(text, 'ace/mode/matlab');
-  session.setUseSoftTabs(true);
-  return session;
-};
-
-mclab.editor.TabManager.prototype.openFile = function(path) {
-  if (this.hasTabLabeled(path)) {
-    this.getTabLabeled(path).select();
-    return;
-  }
-  var self = this;
-  mclab.ajax.readFile(path, function (data) {
-    self.createTab(path, data).select();
-  });
-};

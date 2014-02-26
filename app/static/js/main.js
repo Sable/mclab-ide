@@ -11,5 +11,5 @@ $(function() {
   consolePane.renderer.setShowGutter(false);
 
   var tree = new mclab.tree.Tree('projects', '/projects');
-  tree.onFileSelect(function(path) { editor.tabs.openFile(path); });
+  tree.onFileSelect(function(path) { editor.openFile(path); });
 }); 
