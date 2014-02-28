@@ -1,28 +1,32 @@
-mclab = window.mclab || {};
-mclab.utils = mclab.utils || {};
+ide.utils = (function() {
+  var makeIcon = function(icon) {
+    return $('<span>').addClass('glyphicon glyphicon-' + icon);
+  };
 
-mclab.utils.makeIcon = function(icon) {
-  return $('<span>').addClass('glyphicon glyphicon-' + icon);
-};
+  var flashSuccess = function(text ) {
+    flashNotification('success', 'Success!', text);
+  };
 
-mclab.utils.flashSuccess = function(text) {
-  mclab.utils.flashNotification('success', 'Success!', text);
-}
+  var flashError = function(text) {
+    flashNotification('error', 'Something went wrong.', text);
+  };
 
-mclab.utils.flashError = function(text) {
-  mclab.utils.flashNotification('error', 'Something went wrong.', text);
-}
+  var flashNotification = function(type, title, text) {
+    $.pnotify({
+      title: title,
+      text: text,
+      type: type,
+      delay: 2000
+    });
+  };
 
-mclab.utils.flashNotification = function(type, title, text) {
-  $.pnotify({
-    title: title,
-    text: text,
-    type: type,
-    delay: 2000
-  });
-}
-
-$(function() {
-  $.pnotify.defaults.styling = 'bootstrap3';
-  $.pnotify.defaults.history = false;
-});
+  return {
+    makeIcon: makeIcon,
+    flashSuccess: flashSuccess,
+    flashError: flashError,
+    init: function() {
+      $.pnotify.defaults.styling = 'bootstrap3';
+      $.pnotify.defaults.history = false;
+    },
+  };
+})();

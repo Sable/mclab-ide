@@ -1,5 +1,9 @@
-$(function() {
-  var editor = new mclab.editor.Editor('editor', 'editor-buffer');
+var ide = {};
+
+ide.init = function() {
+  ide.utils.init();
+
+  var editor = new ide.editor.Editor('editor', 'editor-buffer');
   editor.startSyntaxChecker();
 
   var consolePane = ace.edit('console');
@@ -10,6 +14,6 @@ $(function() {
   consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
-  var tree = new mclab.tree.Tree('projects', '/projects');
+  var tree = new ide.tree.Tree('projects', '/projects');
   tree.onFileSelect(function(path) { editor.openFile(path); });
-}); 
+}; 

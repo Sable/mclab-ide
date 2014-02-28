@@ -11,12 +11,12 @@ js = Bundle(
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/jqtree/tree.jquery.js',
     'bower_components/pnotify/jquery.pnotify.min.js',
+    'js/ide.js',
     'js/utils.js',
     'js/ajax.js',
     'js/tree.js',
     'js/tabs.js',
     'js/editor.js',
-    'js/main.js',
     filters='jsmin',
     output='gen/packed.js')
 
