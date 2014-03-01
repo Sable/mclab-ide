@@ -3,6 +3,8 @@ package mclab.ide.callgraph;
 import mclint.util.AstUtil;
 import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
+import natlab.toolkits.filehandling.FunctionOrScriptQuery;
+import natlab.toolkits.path.FileEnvironment;
 import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
 import ast.ASTNode;
@@ -18,8 +20,9 @@ import ast.Stmt;
 import ast.StringLiteralExpr;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
-  public static void instrument(ASTNode<?> node) {
-    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node);
+  public static void instrument(Program node, FileEnvironment environment) {
+    FunctionOrScriptQuery query = environment.getFunctionOrScriptQuery(node.getFile());
+    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, query);
     kindAnalysis.analyze();
     node.analyze(new CallgraphTransformer(kindAnalysis));
   }
