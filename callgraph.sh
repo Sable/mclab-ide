@@ -2,14 +2,10 @@
 set -e
 
 USAGE="
-usage: callgraph.sh --project-dir=dir --entry-point=expr [--target-dir=dir]
+usage: callgraph.sh project-dir entry-point
 
---project-dir DIR      Top level project directory to instrument.
-                       Required.
---entry-point EXPR     MATLAB expression to start evaluating.
-                       Required.
---target-dir DIR       Directory in which to place instrumented code.
-                       Defaults to '\$project-dir_instrumented'
+project-dir     Top level project directory to instrument.
+entry-point     MATLAB expression to start evaluating.
 "
 
 function main {
@@ -29,45 +25,15 @@ function main {
   cat $log_file
 }
 
-
-
-function getarg {
-  echo "$1" | cut -d= -f2
-}
-
-project_dir=''
-target_dir=''
-entry_point=''
-
-while test $# != 0; do
-  case "$1" in
-  --project-dir*)
-    project_dir=$(getarg "$1")
-    ;;
-  --target-dir*)
-    target_dir=$(getarg "$1")
-    ;;
-  --entry-point*)
-    entry_point=$(getarg "$1")
-    ;;
-  *)
-    echo "unrecognized argument: $1"
-    echo "$USAGE"
-    exit 1
-    ;;
-  esac
-  shift
-done
-
-if [ -z "$project_dir" ] || [ -z "$entry_point" ]; then
+if [ "$#" -ne "2" ] || [ ! -d "$1" ]; then
   echo "$USAGE"
   exit 1
 fi
 
-if [ -z "$target_dir" ]; then
-  target_dir="$project_dir""_instrumented"
-fi
+project_dir=$1
+entry_point=$2
 
 log_file=$(mktemp -t "$0")
+target_dir=$(mktemp -dt "$0")
 
 main "$project_dir" "$target_dir" "$log_file" "$entry_point"
