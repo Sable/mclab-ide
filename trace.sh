@@ -17,7 +17,8 @@ function main {
   entry_point=$4
 
   natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  java -cp $natlabjar:bin mclab.ide.callgraph.Instrument $project_dir $target_dir
+  callgraphbin=$HOME/code/java/mclab-ide-support/bin
+  java -cp $natlabjar:$callgraphbin mclab.ide.callgraph.Instrument $project_dir $target_dir
 
   cd $target_dir
   matlab >/dev/null -nojvm -r "mclab_callgraph_init('$log_file'); $entry_point; exit"
@@ -33,7 +34,7 @@ fi
 project_dir=$1
 entry_point=$2
 
-log_file=$(mktemp -t "$0")
-target_dir=$(mktemp -dt "$0")
+log_file=$(mktemp -t $(basename $0))
+target_dir=$(mktemp -dt $(basename $0))
 
 main "$project_dir" "$target_dir" "$log_file" "$entry_point"
