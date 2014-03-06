@@ -21,7 +21,10 @@ def parse():
 
 class ProjectConverter(BaseConverter):
     def to_python(self, value):
-        return Project(value)
+        project = Project(value)
+        if not project.exists():
+            abort(404)
+        return project
 
     def to_url(self, value):
         return BaseConverter.to_url(value.name)
@@ -31,8 +34,6 @@ app.url_map.converters['project'] = ProjectConverter
 
 @app.route('/project/<project:project>/')
 def project(project):
-    if not project.exists():
-        abort(404)
     return render_template('project.html')
 
 
