@@ -10,8 +10,8 @@
   <tr><td>Project</td><td></td></tr>
   {% for project in projects %}
   <tr>
-  <td><a href="/project/{{ project }}">{{ project }}</a></td>
-  <td><button name="delete" type="submit" value="{{ project }}" class="btn btn-xs btn-danger">
+  <td><a href="/project/{{ project.name }}">{{ project.name }}</a></td>
+  <td><button name="delete" type="submit" value="{{ project.name }}" class="btn btn-xs btn-danger">
     Delete <span class="glyphicon glyphicon-trash"></span>
   </button></td>
   </tr>
