@@ -3,7 +3,7 @@ import os
 import json
 
 from werkzeug.routing import BaseConverter
-from flask import render_template, request
+from flask import render_template, request, abort
 import requests
 
 from ide import app
@@ -33,6 +33,9 @@ class Project(object):
     def __init__(self, name):
         self.name = name
         self.root = os.path.join(WORKSPACE_DIR, self.name)
+
+    def exists(self):
+        return os.path.exists(self.root)
 
     def tree(self, start=None):
         if start is None:
@@ -72,6 +75,8 @@ app.url_map.converters['project'] = ProjectConverter
 
 @app.route('/project/<project:project>/')
 def project(project):
+    if not project.exists():
+        abort(404)
     return render_template('project.html')
 
 @app.route('/project/<project:project>/tree', methods=['GET'])
