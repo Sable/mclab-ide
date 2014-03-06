@@ -11,11 +11,12 @@ ide.ajax = (function() {
   };
 
   var readFile = function(path, callback) {
-    $.get('/read?path=' + encodeURIComponent(path), callback);
+    params = {project: ide.project, path: path};
+    $.get('/read?' + $.param(params), callback);
   };
 
   var writeFile = function(path, contents) {
-    $.post('/write', {'path': path, 'contents': contents}, function (data) {
+    $.post('/write', {project: ide.project, path: path, contents: contents}, function (data) {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
   };

@@ -15,22 +15,12 @@
 </head>
 
 <body>
-  <div id="wrapper">
+  {% block content %}{% endblock %}
 
-  <!-- Sidebar -->
-  <div id="sidebar-wrapper">
-    {% block sidebar %}{% endblock %}
-  </div>
-
-  <!-- Page content -->
-  <div id="page-content-wrapper">
-    <!-- Keep all page content within the page-content inset div! -->
-    <div class="page-content inset">
-    {% block content %}{% endblock %}
-    </div>
-  </div>
-  </div>
-
- {% block js %}{% endblock %}
+ 
+  {% assets 'js_libs' %}
+  <script src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+  {% block js %}{% endblock %}
 </body>
 </html>

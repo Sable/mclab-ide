@@ -1,31 +1,24 @@
 {% extends "layout.html" %}
 
-{% block sidebar %}
-<div id="projects"></div>
-{% endblock %}
-
 {% block content %}
-<div class="row">
-<div id="editor">
-  <ul class="editor-tabs nav nav-tabs">
-  <li class="editor-add-file">
-    <a href="#"><span class="glyphicon glyphicon-plus"></span></a>
-  </li>
-  </ul>
-  <div id="editor-buffer" class="col-md-12">
-  </div>
+<div class="container"/>
+<div class="row" />
+
+<h1>McLab IDE</h1>
+
+<table class="table">
+  <tr><td>Project</td><td></td></tr>
+  {% for project in projects %}
+  <tr>
+  <td><a href="/project/{{ project }}">{{ project }}</a></td>
+  <td><button name="delete" type="submit" value="{{ project }}" class="btn btn-xs btn-danger">
+    Delete <span class="glyphicon glyphicon-trash"></span>
+  </button></td>
+  </tr>
+  {% endfor %}
+</table>
+
+</div>
 </div>
 
-<div id="console" class="col-md-12">
-</div>
-</div>
-{% endblock %}
-
-{% block js %}
-  {% assets 'js_all' %}
-  <script src="{{ ASSET_URL }}"></script>
-  {% endassets %}
-  <script>
-    ide.init();
-  </script>
 {% endblock %}

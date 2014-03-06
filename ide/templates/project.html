@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="wrapper">
+
+<div id="sidebar-wrapper">
+  <div id="projects"></div>
+</div>
+
+<div id="page-content-wrapper">
+  <div class="page-content inset">
+
+    <div class="row">
+    <div id="editor">
+      <ul class="editor-tabs nav nav-tabs">
+      <li class="editor-add-file">
+        <a href="#"><span class="glyphicon glyphicon-plus"></span></a>
+      </li>
+      </ul>
+      <div id="editor-buffer" class="col-md-12">
+      </div>
+    </div>
+
+    <div id="console" class="col-md-12">
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block js %}
+  {% assets 'js_ace', 'js_app' %}
+  <script src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+  <script>
+    ide.init('{{ project }}');
+  </script>
+{% endblock %}

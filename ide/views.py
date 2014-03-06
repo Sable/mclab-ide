@@ -11,36 +11,46 @@ WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', projects=os.listdir(WORKSPACE_DIR))
+
+@app.route('/project/<name>')
+def project(name):
+    return render_template('project.html', project=name)
 
 @app.route('/parse', methods=['POST'])
 def parse():
     return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
 
-def get_projects_tree(dir=WORKSPACE_DIR):
+def directory_tree(dir):
     projects = []
     for project in os.listdir(dir):
         abspath = os.path.join(dir, project)
         node = {'label': project}
         if os.path.isdir(abspath):
-            node['children'] = get_projects_tree(abspath)
+            node['children'] = directory_tree(abspath)
         projects.append(node)
     return projects
 
-@app.route('/projects', methods=['GET'])
+def get_project_path(project, path=''):
+    return os.path.join(WORKSPACE_DIR, project, path)
+
+@app.route('/tree', methods=['GET'])
 def projects():
-    return json.dumps(get_projects_tree())
+    directory = get_project_path(request.args['project'])
+    return json.dumps(directory_tree(directory))
 
 @app.route('/read', methods=['GET'])
 def read():
+    project = request.args['project']
     path = request.args['path']
-    with open(os.path.join(WORKSPACE_DIR, path)) as f:
+    with open(get_project_path(project, path)) as f:
         return f.read()
 
 @app.route('/write', methods=['POST'])
 def write():
+    project = request.form['project']
     path = request.form['path']
     contents = request.form['contents']
-    with open(os.path.join(WORKSPACE_DIR, path), 'w') as f:
+    with open(get_project_path(project, path), 'w') as f:
         f.write(contents)
     return json.dumps({'status': 'OK'})
