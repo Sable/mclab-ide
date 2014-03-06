@@ -5,7 +5,6 @@ import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
 import natlab.toolkits.filehandling.FunctionOrScriptQuery;
 import natlab.toolkits.path.FileEnvironment;
-import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
 import ast.ASTNode;
 import ast.Expr;
@@ -20,32 +19,31 @@ import ast.Stmt;
 import ast.StringLiteralExpr;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
-  public static void instrument(Program node, FileEnvironment environment) {
+  public static void instrument(Program node, FileEnvironment environment, String relativePath) {
     FunctionOrScriptQuery query = environment.getFunctionOrScriptQuery(node.getFile());
     VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, query);
     kindAnalysis.analyze();
-    node.analyze(new CallgraphTransformer(kindAnalysis));
+    node.analyze(new CallgraphTransformer(kindAnalysis, relativePath));
   }
   
   private VFAnalysis kindAnalysis;
+  private String relativePath;
 
-  private CallgraphTransformer(VFAnalysis kindAnalysis) {
+  private CallgraphTransformer(VFAnalysis kindAnalysis, String relativePath) {
     this.kindAnalysis = kindAnalysis;
+    this.relativePath = relativePath;
   }
   
-  private static String getFullPath(ASTNode node) {
-    return NodeFinder.findParent(Program.class, node).getFile().getPath();
+  private String identifier(ASTNode node, String id) {
+    return String.format("%s@%s:%d,%d", id, relativePath, node.getStartLine(), node.getStartColumn());
+  }
+
+  private String identifier(Name name) {
+    return identifier(name, name.getID());
   }
   
-  private static String identifier(Name name) {
-    return String.format("%s@%s:%d,%d",
-        name.getID(), getFullPath(name), name.getStartLine(), name.getStartColumn());
-  }
-  
-  private static String identifier(Function function) {
-    return String.format("%s@%s:%d,%d",
-        function.getName(), getFullPath(function),
-        function.getStartLine(), function.getStartColumn());
+  private String identifier(Function function) {
+    return identifier(function, function.getName());
   }
   
   private static Name getTarget(ParameterizedExpr call) {
@@ -66,7 +64,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return list;
   }
 
-  private static Expr wrapWithTraceCall(ParameterizedExpr call) {
+  private Expr wrapWithTraceCall(ParameterizedExpr call) {
     Name target = getTarget(call);
     return new ParameterizedExpr(
         new NameExpr(new Name("mclab_callgraph_log_then_run")),
@@ -80,7 +78,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   }
   
-  private static Stmt functionEntryLogStmt(Function f) {
+  private Stmt functionEntryLogStmt(Function f) {
     return new ExprStmt(
         new ParameterizedExpr(
             new NameExpr(new Name("mclab_callgraph_log")),

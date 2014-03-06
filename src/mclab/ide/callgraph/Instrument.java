@@ -50,7 +50,7 @@ public class Instrument {
           if (environment == null) {
             environment = new FileEnvironment(program.getFile());
           }
-          CallgraphTransformer.instrument(program, environment);
+          CallgraphTransformer.instrument(program, environment, relativePath.toString());
           Files.write(targetPath, program.getPrettyPrinted().getBytes("utf-8"));
         } else {
           Files.copy(absolutePath, targetPath);
