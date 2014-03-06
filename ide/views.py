@@ -46,11 +46,21 @@ def read():
     with open(get_project_path(project, path)) as f:
         return f.read()
 
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST or not os.path.isdir(path):
+            raise
+
 @app.route('/write', methods=['POST'])
 def write():
     project = request.form['project']
     path = request.form['path']
     contents = request.form['contents']
-    with open(get_project_path(project, path), 'w') as f:
+
+    project_path = get_project_path(project, path)
+    mkdir_p(os.path.dirname(project_path))
+    with open(project_path, 'w') as f:
         f.write(contents)
     return json.dumps({'status': 'OK'})
