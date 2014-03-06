@@ -1,6 +1,8 @@
+import errno
 import os
 import json
 
+from werkzeug.routing import BaseConverter
 from flask import render_template, request
 import requests
 
@@ -13,38 +15,11 @@ WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
 def index():
     return render_template('index.html', projects=os.listdir(WORKSPACE_DIR))
 
-@app.route('/project/<name>')
-def project(name):
-    return render_template('project.html', project=name)
 
 @app.route('/parse', methods=['POST'])
 def parse():
     return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
 
-def directory_tree(dir):
-    projects = []
-    for project in os.listdir(dir):
-        abspath = os.path.join(dir, project)
-        node = {'label': project}
-        if os.path.isdir(abspath):
-            node['children'] = directory_tree(abspath)
-        projects.append(node)
-    return projects
-
-def get_project_path(project, path=''):
-    return os.path.join(WORKSPACE_DIR, project, path)
-
-@app.route('/tree', methods=['GET'])
-def projects():
-    directory = get_project_path(request.args['project'])
-    return json.dumps(directory_tree(directory))
-
-@app.route('/read', methods=['GET'])
-def read():
-    project = request.args['project']
-    path = request.args['path']
-    with open(get_project_path(project, path)) as f:
-        return f.read()
 
 def mkdir_p(path):
     try:
@@ -53,14 +28,61 @@ def mkdir_p(path):
         if e.errno != errno.EEXIST or not os.path.isdir(path):
             raise
 
-@app.route('/write', methods=['POST'])
-def write():
-    project = request.form['project']
-    path = request.form['path']
-    contents = request.form['contents']
 
-    project_path = get_project_path(project, path)
-    mkdir_p(os.path.dirname(project_path))
-    with open(project_path, 'w') as f:
-        f.write(contents)
+class Project(object):
+    def __init__(self, name):
+        self.name = name
+        self.root = os.path.join(WORKSPACE_DIR, self.name)
+
+    def tree(self, start=None):
+        if start is None:
+            start = self.root
+        dirs = []
+        for dir in os.listdir(start):
+            abspath = os.path.join(start, dir)
+            node = {'label': dir}
+            if os.path.isdir(abspath):
+                node['children'] = self.tree(abspath)
+            dirs.append(node)
+        return dirs
+
+    def path(self, file):
+        return os.path.join(self.root, file)
+
+    def read_file(self, file):
+        with open(self.path(file)) as f:
+            return f.read()
+
+    def write_file(self, file, contents):
+        path = self.path(file)
+        mkdir_p(os.path.dirname(path))
+        with open(path, 'w') as f:
+            f.write(contents)
+
+
+class ProjectConverter(BaseConverter):
+    def to_python(self, value):
+        return Project(value)
+
+    def to_url(self, value):
+        return BaseConverter.to_url(value.name)
+
+app.url_map.converters['project'] = ProjectConverter
+
+
+@app.route('/project/<project:project>/')
+def project(project):
+    return render_template('project.html')
+
+@app.route('/project/<project:project>/tree', methods=['GET'])
+def tree(project):
+    return json.dumps(project.tree())
+
+@app.route('/project/<project:project>/read', methods=['GET'])
+def read(project):
+    return project.read_file(request.args['path'])
+
+@app.route('/project/<project:project>/write', methods=['POST'])
+def write(project):
+    project.write_file(request.form['path'], request.form['contents'])
     return json.dumps({'status': 'OK'})

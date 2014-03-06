@@ -1,8 +1,7 @@
 var ide = {};
 
-ide.init = function(project) {
+ide.init = function() {
   ide.utils.init();
-  ide.project = project;
 
   var editor = new ide.editor.Editor('editor', 'editor-buffer');
   editor.startSyntaxChecker();
@@ -15,6 +14,6 @@ ide.init = function(project) {
   consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
-  var tree = new ide.tree.Tree('projects', '/tree?project=' + encodeURIComponent(project));
+  var tree = new ide.tree.Tree('projects', 'tree');
   tree.onFileSelect(function(path) { editor.openFile(path); });
 }; 
