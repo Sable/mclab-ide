@@ -21,11 +21,27 @@ ide.editor = (function() {
       }).bind(this),
     });
 
+    this.editor.on('click', (function(e) {
+      var position = e.getDocumentPosition();
+      var token = this.editor.getSession()
+          .getTokenAt(position.row, position.column);
+      var line = position.row + 1;
+      var col = token.start + 1;
+      var file = this.tabs.getSelectedTab().label;
+      var id = token.value + '@' + file + ':' + line + ',' + col;
+
+      if (!this.possibleFunctionCall(line, col)) {
+        return;
+      }
+      console.log(id);
+    }).bind(this));
+
     $(window).resize(this.resizeAce.bind(this));
     this.resizeAce();
 
     var ul = this.el.find('ul.editor-tabs').first();
     this.sessions = {};
+    this.asts = {};
     this.tabs = new ide.tabs.TabManager(ul)
       .on('all_tabs_closed', this.hide.bind(this))
       .on('tab_select', (function (e, path) {
@@ -38,6 +54,27 @@ ide.editor = (function() {
     this.hide();
   };
 
+  Editor.prototype.possibleFunctionCall = function(row, column) {
+    // TODO(isbadawi): Get correct kind information.
+    // Here, I'm counting kind BOT as a possible function call.
+    // This is because I'm parsing files in isolation, so the kind
+    // analysis doesn't know about the sibling functions. Long term,
+    // should have an AST for the whole project.
+    var kind = this.getAst()
+        .find('NameExpr[line="' + row + '"][col="' + column + '"]')
+        .first()
+        .attr('kind');
+    return kind === 'FUN' || kind === 'BOT';
+  };
+
+  Editor.prototype.getAst = function() {
+    var currentFile = this.tabs.getSelectedTab().label;
+    if (!(currentFile in this.asts)) {
+      return $();
+    }
+    return this.asts[currentFile];
+  };
+
   Editor.prototype.openFile = function(path) {
     if (this.tabs.hasTabLabeled(path)) {
       this.tabs.getTabLabeled(path).select();
@@ -46,6 +83,7 @@ ide.editor = (function() {
     ide.ajax.readFile(path, (function (contents) {
       this.sessions[path] = this.newSession(contents);
       this.tabs.createTab(path).select();
+      this.tryParse();
     }).bind(this));
   }
 
@@ -90,6 +128,9 @@ ide.editor = (function() {
 
   Editor.prototype.tryParse = function() {
     ide.ajax.parseCode(this.editor.getValue(), (function (data) {
+      if (data.ast) {
+        this.asts[this.tabs.getSelectedTab().label] = $($.parseXML(data.ast));
+      }
       this.overlayErrors(data.errors);
     }).bind(this));
   };
