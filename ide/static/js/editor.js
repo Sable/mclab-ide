@@ -47,9 +47,9 @@ ide.editor = (function() {
 
   Editor.prototype.jumpTo = function(file, line, col) {
     console.log('Jumping to ' + JSON.stringify(arguments));
-    this.openFile(file);
-    this.editor.clearSelection();
-    this.editor.moveCursorTo(line - 1, col - 1);
+    this.openFile(file, (function() {
+      this.editor.getSelection().moveTo(line - 1, col - 1);
+    }).bind(this));
   };
 
   Editor.prototype.onFunctionCallClicked = function(callback) {
@@ -93,15 +93,21 @@ ide.editor = (function() {
     return this.asts[currentFile];
   };
 
-  Editor.prototype.openFile = function(path) {
+  Editor.prototype.openFile = function(path, callback) {
     if (this.tabs.hasTabLabeled(path)) {
       this.tabs.getTabLabeled(path).select();
+      if (callback) {
+        callback();
+      }
       return;
     }
     ide.ajax.readFile(path, (function (contents) {
       this.sessions[path] = this.newSession(contents);
       this.tabs.createTab(path).select();
       this.tryParse();
+      if (callback) {
+        callback();
+      }
     }).bind(this));
   }
 
