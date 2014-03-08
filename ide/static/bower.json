@@ -15,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "ace-builds": "~1.1.1",
+    "ace-builds": "master",
     "bootstrap": "~3.1.0",
     "jquery": "~2.1.0",
     "jqtree": "~0.19.0",
