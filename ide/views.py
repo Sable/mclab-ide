@@ -51,3 +51,10 @@ def read(project):
 def write(project):
     project.write_file(request.form['path'], request.form['contents'])
     return json.dumps({'status': 'OK'})
+
+
+@app.route('/project/<project:project>/callgraph', methods=['POST'])
+def callgraph(project):
+    params = {'project': project.root,
+              'expression': request.form['expression']}
+    return requests.post(MCLABAAS_URL + '/callgraph', data=params).text

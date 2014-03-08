@@ -21,9 +21,24 @@ ide.ajax = (function() {
     });
   };
 
+  var getCallGraph = function(expression, callback) {
+     $.ajax({
+      url: 'callgraph',
+      method: 'POST',
+      data: {expression: expression},
+      dataType: 'json',
+      success: function (data) {
+        if ('callgraph' in data) {
+          callback(data.callgraph);
+        }
+      }
+    }); 
+  };
+
   return {
     parseCode: parseCode,
     readFile: readFile,
     writeFile: writeFile,
+    getCallGraph: getCallGraph,
   };
 })();

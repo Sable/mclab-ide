@@ -21,21 +21,6 @@ ide.editor = (function() {
       }).bind(this),
     });
 
-    this.editor.on('click', (function(e) {
-      var position = e.getDocumentPosition();
-      var token = this.editor.getSession()
-          .getTokenAt(position.row, position.column);
-      var line = position.row + 1;
-      var col = token.start + 1;
-      var file = this.tabs.getSelectedTab().label;
-      var id = token.value + '@' + file + ':' + line + ',' + col;
-
-      if (!this.possibleFunctionCall(line, col)) {
-        return;
-      }
-      console.log(id);
-    }).bind(this));
-
     $(window).resize(this.resizeAce.bind(this));
     this.resizeAce();
 
@@ -53,6 +38,39 @@ ide.editor = (function() {
       }).bind(this));
     this.hide();
   };
+
+  Editor.prototype.jumpToId = function(id) {
+    var pattern = /(.*)+@(.*)+:(\d+),(\d+)/;
+    var match = id.match(pattern);
+    this.jumpTo(match[2], parseInt(match[3], 10), parseInt(match[4], 10));
+  }
+
+  Editor.prototype.jumpTo = function(file, line, col) {
+    console.log('Jumping to ' + JSON.stringify(arguments));
+    this.openFile(file);
+    this.editor.clearSelection();
+    this.editor.moveCursorTo(line - 1, col - 1);
+  };
+
+  Editor.prototype.onFunctionCallClicked = function(callback) {
+    this.editor.on('click', (function(e) {
+      if (!e.getAccelKey()) {
+        return;
+      }
+      var position = e.getDocumentPosition();
+      var token = this.editor.getSession()
+          .getTokenAt(position.row, position.column);
+      var line = position.row + 1;
+      var col = token.start + 1;
+      if (!this.possibleFunctionCall(line, col)) {
+        return;
+      }
+
+      var file = this.tabs.getSelectedTab().label;
+      var id = token.value + '@' + file + ':' + line + ',' + col;
+      callback(id);
+    }).bind(this));
+  }
 
   Editor.prototype.possibleFunctionCall = function(row, column) {
     // TODO(isbadawi): Get correct kind information.
