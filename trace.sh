@@ -20,8 +20,9 @@ function main {
   callgraphbin=$HOME/code/java/mclab-ide-support/bin
   java -cp $natlabjar:$callgraphbin mclab.ide.callgraph.Instrument $project_dir $target_dir
 
+  echo -e "function mclab_callgraph_entry_point\n$entry_point\nend" > $target_dir/mclab_callgraph_entry_point.m
   cd $target_dir
-  matlab >/dev/null -nojvm -r "mclab_callgraph_init('$log_file'); $entry_point; exit"
+  matlab >/dev/null -nojvm -r "mclab_callgraph_init('$log_file'); mclab_callgraph_entry_point(); exit"
   cd $current_dir
   cat $log_file
 }
