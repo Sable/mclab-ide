@@ -41,6 +41,8 @@ ide.init = function() {
       var targets = callgraph[id];
       if (targets !== undefined && targets.length !== 0) {
         editor.jumpToId(targets[0]);
+      } else {
+        ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
     });
   });
