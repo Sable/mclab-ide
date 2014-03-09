@@ -14,11 +14,30 @@ ide.init = function() {
   consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
-  editor.onFunctionCallClicked(function(id) {
+  var callgraph = null;
+  var getCallgraph = function(callback) {
+    if (callgraph !== null) {
+      console.log('Reusing cached callgraph.');
+      callback(callgraph);
+      return;
+    }
     var expression = consolePane.getValue().trim();
     console.log('Triggering callgraph with "' + expression + '"...');
-    ide.ajax.getCallGraph(expression, function (callgraph) {
-      console.log('Got the callgraph!');
+    ide.ajax.getCallGraph(expression, function (newCallgraph) {
+      console.log('Got the callgraph: ' + JSON.stringify(newCallgraph));
+      callgraph = newCallgraph;
+      callback(callgraph);
+    });
+  };
+  var invalidateCallgraph = function() {
+    callgraph = null;
+  };
+
+  editor.editor.on('change', invalidateCallgraph);
+  consolePane.on('change', invalidateCallgraph);
+
+  editor.onFunctionCallClicked(function(id) {
+    getCallgraph(function(callgraph) {
       var targets = callgraph[id];
       if (targets !== undefined && targets.length !== 0) {
         editor.jumpToId(targets[0]);
