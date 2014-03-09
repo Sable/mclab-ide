@@ -1,6 +1,7 @@
 package mclab.ide.callgraph;
 
 import mclint.util.AstUtil;
+import natlab.LookupFile;
 import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
 import natlab.toolkits.filehandling.FunctionOrScriptQuery;
@@ -19,10 +20,23 @@ import ast.Stmt;
 import ast.StringLiteralExpr;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
+  private static FunctionOrScriptQuery BASELINE_QUERY = LookupFile.getFunctionOrScriptQueryObject();
+  private static FunctionOrScriptQuery getKindAnalysisEnvironment(Program node) {
+    final FunctionOrScriptQuery env = new FileEnvironment(node.getFile())
+        .getFunctionOrScriptQuery(node.getFile());
+    return new FunctionOrScriptQuery() {
+      @Override public boolean isFunctionOrScript(String name) {
+        return env.isFunctionOrScript(name) || BASELINE_QUERY.isFunctionOrScript(name);
+      }
+      
+      @Override public boolean isPackage(String name) {
+        return env.isPackage(name) || BASELINE_QUERY.isPackage(name);
+      }
+    };
+  }
+
   public static void instrument(Program node, String relativePath) {
-    FileEnvironment environment = new FileEnvironment(node.getFile());
-    FunctionOrScriptQuery query = environment.getFunctionOrScriptQuery(node.getFile());
-    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, query);
+    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, getKindAnalysisEnvironment(node)); 
     kindAnalysis.analyze();
     node.analyze(new CallgraphTransformer(kindAnalysis, relativePath));
   }
