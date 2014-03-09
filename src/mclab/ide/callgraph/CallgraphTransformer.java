@@ -19,7 +19,8 @@ import ast.Stmt;
 import ast.StringLiteralExpr;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
-  public static void instrument(Program node, FileEnvironment environment, String relativePath) {
+  public static void instrument(Program node, String relativePath) {
+    FileEnvironment environment = new FileEnvironment(node.getFile());
     FunctionOrScriptQuery query = environment.getFunctionOrScriptQuery(node.getFile());
     VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, query);
     kindAnalysis.analyze();
