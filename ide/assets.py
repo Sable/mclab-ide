@@ -28,11 +28,12 @@ js_app = Bundle(
     filters='jsmin',
     output='gen/app.js')
 
+
 css = Bundle(
     'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/jqtree/jqtree.css',
     'bower_components/pnotify/jquery.pnotify.default.css',
-    Bundle('less/style.less', filters='less'),
+    Bundle('less/style.less', filters='less', output='gen/style.css'),
     filters='cssmin',
     output='gen/packed.css')
 
