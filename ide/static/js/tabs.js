@@ -54,6 +54,11 @@ ide.tabs = (function() {
   };
 
   Tab.prototype.close = function() {
+    // TODO(isbadawi): Prompt to save, not just warn?
+    if (this.is_dirty && !confirm('This file has unsaved changes. Really close?')) {
+      return;
+    }
+
     if (this.isSelected()) {
       var tab = this.getClosestTab();
       if (tab !== null) {
@@ -104,6 +109,18 @@ ide.tabs = (function() {
   TabManager.prototype.getNumTabs = function(name) {
     return Object.keys(this.tabs).length;
   };
+
+  TabManager.prototype.getAllTabs = function(name) {
+    return Object.keys(this.tabs).map((function (key) {
+      return this.tabs[key];
+    }).bind(this));
+  }
+
+  TabManager.prototype.getDirtyTabs = function(name) {
+    return this.getAllTabs().filter(function (tab) {
+      return tab.is_dirty;
+    });
+  }
 
   TabManager.prototype.getTabLabeled = function(name) {
     return this.tabs[name];

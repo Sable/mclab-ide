@@ -32,6 +32,17 @@ ide.editor = (function() {
       this.tabs.getSelectedTab().setDirty();
     }).bind(this));
     this.hide();
+
+    $(window).on('beforeunload', (function() {
+      // TODO(isbadawi): Prompt to save, not just warn?
+      var dirty_tabs = this.tabs.getDirtyTabs().length;
+      if (dirty_tabs > 0) {
+        return [
+          'You have ' + dirty_tabs + ' unsaved file' + (dirty_tabs === 1 ? '' : 's') + '.',
+          'If you leave the page, you will lose any unsaved changes.'
+        ].join('\n');
+      }
+    }).bind(this));
   };
 
   var createAceEditor = function(el) {
