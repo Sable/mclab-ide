@@ -2,9 +2,25 @@ ide.tabs = (function() {
   var Tab = function (li, label, manager) {
     this.li = li;
     this.label = label;
+    this.label_el = this.li.find('a').first();
     this.li.data('tab', this);
     this.manager = manager;
+    this.is_dirty = false;
   };
+
+  Tab.prototype.setDirty = function() {
+    if (!this.is_dirty) {
+      this.is_dirty = true;
+      this.label_el.prepend('*');
+    }
+  }
+
+  Tab.prototype.clearDirty = function() {
+    if (this.is_dirty) {
+      this.is_dirty = false;
+      this.label_el.html(this.label_el.html().substring(1));
+    }
+  }
 
   Tab.prototype.getSiblings = function() {
     return this.li.siblings().map(function (i, li) {

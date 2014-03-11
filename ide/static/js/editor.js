@@ -28,6 +28,9 @@ ide.editor = (function() {
         this.editor.setSession(this.sessions[path]);
         this.show();
       }).bind(this));
+    this.editor.on('change', (function () {
+      this.tabs.getSelectedTab().setDirty();
+    }).bind(this));
     this.hide();
   };
 
@@ -88,6 +91,7 @@ ide.editor = (function() {
 
   Editor.prototype.saveCurrentFile = function() {
     ide.ajax.writeFile(this.getCurrentFile(), this.editor.getValue());
+    this.tabs.getSelectedTab().clearDirty();
   };
 
   Editor.prototype.jumpTo = function(token) {
