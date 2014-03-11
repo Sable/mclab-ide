@@ -36,11 +36,29 @@ ide.init = function() {
   editor.editor.on('change', invalidateCallgraph);
   consolePane.on('change', invalidateCallgraph);
 
-  editor.onFunctionCallClicked(function(id) {
+  var createCallgraphIdFromToken = function(token) {
+    return token.identifier +
+      '@' + token.file +
+      ':' + token.line + ',' + token.col;
+  }
+
+  var createTokenFromCallgraphId = function(id) {
+    var pattern = /(.*)+@(.*)+:(\d+),(\d+)/;
+    var match = id.match(pattern);
+    return {
+      identifier: match[1],
+      file: match[2],
+      line: parseInt(match[3], 10),
+      col: parseInt(match[4], 10)
+    };
+  }
+
+  editor.onFunctionCallClicked(function (token) {
+    var id = createCallgraphIdFromToken(token);
     getCallgraph(function(callgraph) {
       var targets = callgraph[id];
       if (targets !== undefined && targets.length !== 0) {
-        editor.jumpToId(targets[0]);
+        editor.jumpTo(createTokenFromCallgraphId(targets[0]));
       } else {
         ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
@@ -49,4 +67,4 @@ ide.init = function() {
 
   var tree = new ide.tree.Tree('projects', 'tree');
   tree.onFileSelect(function(path) { editor.openFile(path); });
-}; 
+};

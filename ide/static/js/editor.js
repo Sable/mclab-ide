@@ -90,60 +90,53 @@ ide.editor = (function() {
     ide.ajax.writeFile(this.getCurrentFile(), this.editor.getValue());
   };
 
-  Editor.prototype.jumpToId = function(id) {
-    var pattern = /(.*)+@(.*)+:(\d+),(\d+)/;
-    var match = id.match(pattern);
-    this.jumpTo(match[2], parseInt(match[3], 10), parseInt(match[4], 10));
-  }
-
-  Editor.prototype.jumpTo = function(file, line, col) {
-    console.log('Jumping to ' + JSON.stringify(arguments));
-    this.openFile(file, (function() {
-      this.editor.getSelection().moveTo(line - 1, col - 1);
+  Editor.prototype.jumpTo = function(token) {
+    console.log('Jumping to ' + JSON.stringify(token));
+    this.openFile(token.file, (function() {
+      this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
     }).bind(this));
   };
+
+  Editor.prototype.getTokenFromMouseEvent = function(e) {
+    var position = e.getDocumentPosition();
+    var token = this.editor.getSession().getTokenAt(position.row, position.column);
+    return {
+      identifier: token.value,
+      file: this.getCurrentFile(),
+      line: position.row + 1,
+      col: token.start + 1
+    };
+  }
 
   Editor.prototype.onFunctionCallClicked = function(callback) {
     this.editor.on('click', (function(e) {
       if (!e.getAccelKey()) {
         return;
       }
-      var position = e.getDocumentPosition();
-      var token = this.editor.getSession()
-          .getTokenAt(position.row, position.column);
-      var line = position.row + 1;
-      var col = token.start + 1;
-      if (!this.possibleFunctionCall(line, col)) {
+      if (!this.hasAst()) {
+        ide.utils.flashError('There are parse errors.')
         return;
       }
-
-      var file = this.tabs.getSelectedTab().label;
-      var id = token.value + '@' + file + ':' + line + ',' + col;
-      callback(id);
+      var token = this.getTokenFromMouseEvent(e);
+      if (this.isFunctionCall(token)) {
+        callback(token);
+      }
     }).bind(this));
   }
 
-  Editor.prototype.possibleFunctionCall = function(row, column) {
-    // TODO(isbadawi): Get correct kind information.
-    // Here, I'm counting kind BOT as a possible function call.
-    // This is because I'm parsing files in isolation, so the kind
-    // analysis doesn't know about the sibling functions. Long term,
-    // should have an AST for the whole project.
-    var kind = this.getAst()
-        .find('NameExpr[line="' + row + '"][col="' + column + '"]')
-        .first()
-        .attr('kind');
-    return kind === 'FUN' || kind === 'BOT';
+  Editor.prototype.isFunctionCall = function(token) {
+    return this.getAst()
+      .find('NameExpr', {line: token.line, col: token.col})
+      .isFunctionCall();
   };
+
+  Editor.prototype.hasAst = function() {
+    return this.getCurrentFile() in this.asts;
+  }
 
   Editor.prototype.getAst = function() {
-    var currentFile = this.tabs.getSelectedTab().label;
-    if (!(currentFile in this.asts)) {
-      return $();
-    }
-    return this.asts[currentFile];
+    return this.asts[this.getCurrentFile()];
   };
-
 
   Editor.prototype.hide = function() {
     this.editor_el.css('visibility', 'hidden');
@@ -153,10 +146,11 @@ ide.editor = (function() {
     this.editor_el.css('visibility', 'visible');
   };
 
+  Editor.prototype.clearErrors = function() {
+    this.overlayErrors([]);
+  };
+
   Editor.prototype.overlayErrors = function(errors) {
-    if (errors === undefined) {
-      errors = [];
-    }
     this.editor.getSession().setAnnotations(
       errors.map(function (err) {
         return {
@@ -170,12 +164,15 @@ ide.editor = (function() {
   };
 
   Editor.prototype.tryParse = function() {
-    ide.ajax.parseCode(this.editor.getValue(), (function (data) {
-      if (data.ast) {
-        this.asts[this.tabs.getSelectedTab().label] = $($.parseXML(data.ast));
-      }
-      this.overlayErrors(data.errors);
-    }).bind(this));
+    ide.ast.parse(this.editor.getValue(),
+      (function (ast) {
+        this.clearErrors();
+        this.asts[this.getCurrentFile()] = ast;
+      }).bind(this),
+      (function (errors) {
+        this.overlayErrors(errors);
+        delete this.asts[this.getCurrentFile()];
+      }).bind(this));
   };
 
   Editor.prototype.startSyntaxChecker = function() {

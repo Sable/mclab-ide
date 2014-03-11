@@ -21,6 +21,7 @@ js_libs = Bundle(
 js_app = Bundle(
     'js/ide.js',
     'js/utils.js',
+    'js/ast.js',
     'js/ajax.js',
     'js/tree.js',
     'js/tabs.js',
