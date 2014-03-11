@@ -2,27 +2,19 @@ ide.editor = (function() {
   var Editor = function(id, aceId) {
     this.el = $('#' + id);
     this.editor_el = $('#' + aceId);
-    this.editor = ace.edit(aceId);
-    this.editor.setTheme('ace/theme/solarized_dark');
-    this.editor.setFontSize(14);
-    this.editor.setShowPrintMargin(false);
-    this.editor.resize();
-    this.editor.focus();
+    this.editor = createAceEditor(aceId);
 
-    this.editor.commands.addCommand({
-      name: 'save',
-      bindKey: {
-        win: 'Ctrl-S',
-        mac: 'Command-S',
-      },
-      exec: (function() {
-        var tab = this.tabs.getSelectedTab();
-        ide.ajax.writeFile(tab.label, this.editor.getValue());
-      }).bind(this),
-    });
+    this.addKeyboardShortcut('save', 'S', this.saveCurrentFile.bind(this));
 
-    $(window).resize(this.resizeAce.bind(this));
-    this.resizeAce();
+    $(window).resize((function() {
+      var height = $(window).height();
+      this.editor_el.height(3 * height / 4);
+      this.editor.resize();
+      // TODO(isbadawi): This shouldn't be here
+      $('#console').height(height / 4);
+      ace.edit('console').resize();
+    }).bind(this));
+    $(window).trigger('resize');
 
     var ul = this.el.find('ul.editor-tabs').first();
     this.sessions = {};
@@ -31,12 +23,71 @@ ide.editor = (function() {
       .on('all_tabs_closed', this.hide.bind(this))
       .on('tab_select', (function (e, path) {
         if (!(path in this.sessions)) {
-          this.sessions[path] = this.newSession('');
+          this.createSession(path, '');
         }
         this.editor.setSession(this.sessions[path]);
         this.show();
       }).bind(this));
     this.hide();
+  };
+
+  var createAceEditor = function(el) {
+    var editor = ace.edit(el);
+    // TODO(isbadawi): These could be configurable.
+    editor.setTheme('ace/theme/solarized_dark');
+    editor.setFontSize(14);
+    editor.setShowPrintMargin(false);
+    editor.resize();
+    editor.focus();
+    return editor;
+  };
+
+  var createEditSession = function(text) {
+    var session = ace.createEditSession(text, 'ace/mode/matlab');
+    // TODO(isbadawi): These could also be configurable.
+    session.setUseSoftTabs(true);
+    return session;
+  };
+
+  Editor.prototype.createSession = function(path, text) {
+    this.sessions[path] = createEditSession(text);
+  };
+
+  Editor.prototype.addKeyboardShortcut = function(name, key, action) {
+    this.editor.commands.addCommand({
+      name: name,
+      bindKey: {
+        win: 'Ctrl-' + key,
+        mac: 'Command-' + key,
+      },
+      exec: action,
+    });
+  };
+
+  Editor.prototype.openFile = function(path, callback) {
+    if (this.tabs.hasTabLabeled(path)) {
+      this.tabs.getTabLabeled(path).select();
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+    ide.ajax.readFile(path, (function (contents) {
+      this.createSession(path, contents);
+      this.tabs.createTab(path).select();
+      this.tryParse();
+      if (callback) {
+        callback();
+      }
+    }).bind(this));
+  }
+
+  Editor.prototype.getCurrentFile = function() {
+    return this.tabs.getSelectedTab().label;
+  }
+
+  Editor.prototype.saveCurrentFile = function() {
+    ide.ajax.writeFile(this.getCurrentFile(), this.editor.getValue());
   };
 
   Editor.prototype.jumpToId = function(id) {
@@ -93,29 +144,6 @@ ide.editor = (function() {
     return this.asts[currentFile];
   };
 
-  Editor.prototype.openFile = function(path, callback) {
-    if (this.tabs.hasTabLabeled(path)) {
-      this.tabs.getTabLabeled(path).select();
-      if (callback) {
-        callback();
-      }
-      return;
-    }
-    ide.ajax.readFile(path, (function (contents) {
-      this.sessions[path] = this.newSession(contents);
-      this.tabs.createTab(path).select();
-      this.tryParse();
-      if (callback) {
-        callback();
-      }
-    }).bind(this));
-  }
-
-  Editor.prototype.newSession = function(text) {
-    var session = ace.createEditSession(text, 'ace/mode/matlab');
-    session.setUseSoftTabs(true);
-    return session;
-  };
 
   Editor.prototype.hide = function() {
     this.editor_el.css('visibility', 'hidden');
@@ -123,15 +151,6 @@ ide.editor = (function() {
 
   Editor.prototype.show = function() {
     this.editor_el.css('visibility', 'visible');
-  };
-
-  Editor.prototype.resizeAce = function() {
-      var height = $(window).height();
-      this.editor_el.height(3 * height / 4);
-      this.editor.resize();
-      // TODO(isbadawi): This shouldn't be here
-      $('#console').height(height / 4);
-      ace.edit('console').resize();
   };
 
   Editor.prototype.overlayErrors = function(errors) {

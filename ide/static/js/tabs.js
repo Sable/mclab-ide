@@ -105,12 +105,11 @@ ide.tabs = (function() {
     return this.ul.find('li.active').data('tab');
   };
 
-  TabManager.prototype.createTab = function(filename, contents) {
+  TabManager.prototype.createTab = function(filename) {
     var li = $('<li>').append($('<a>').attr('href', '#').append(
       filename, '&nbsp;', ide.utils.makeIcon('remove')));
     li.insertBefore(this.newTabButton);
     this.tabs[filename] = new Tab(li, filename, this);
-    this.trigger('tab_create', this.tabs[filename]);
     return this.tabs[filename];
   };
 
