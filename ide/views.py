@@ -1,9 +1,10 @@
 import json
 
 from werkzeug.routing import BaseConverter
-from flask import render_template, request, abort
+from flask import render_template, request, abort, flash, redirect, url_for
 import requests
 
+import ide.settings
 from ide import app
 from ide.projects import get_all_projects, Project
 
@@ -17,6 +18,20 @@ def index():
 @app.route('/parse', methods=['POST'])
 def parse():
     return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if request.method == 'GET':
+        return render_template(
+            'settings.html', settings=ide.settings.get(),
+            themes=ide.settings.AVAILABLE_THEMES)
+    else:
+        new_settings = request.form.to_dict()
+        new_settings['expand_tabs'] = bool(new_settings['expand_tabs'])
+        new_settings['tab_width'] = int(new_settings['tab_width'])
+        ide.settings.save(new_settings)
+        flash('Settings successfully saved.', 'info')
+        return redirect(url_for('index'))
 
 
 class ProjectConverter(BaseConverter):
@@ -34,7 +49,7 @@ app.url_map.converters['project'] = ProjectConverter
 
 @app.route('/project/<project:project>/')
 def project(project):
-    return render_template('project.html')
+    return render_template('project.html', settings=json.dumps(ide.settings.get()))
 
 
 @app.route('/project/<project:project>/tree', methods=['GET'])

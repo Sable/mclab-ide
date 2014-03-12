@@ -1,9 +1,9 @@
 var ide = {};
 
-ide.init = function() {
+ide.init = function(settings) {
   ide.utils.init();
 
-  var editor = new ide.editor.Editor('editor', 'editor-buffer');
+  var editor = new ide.editor.Editor('editor', 'editor-buffer', settings);
   editor.startSyntaxChecker();
 
   var consolePane = ace.edit('console');

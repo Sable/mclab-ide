@@ -5,13 +5,17 @@ assets = Environment()
 js_ace = Bundle(
     'bower_components/ace-builds/src-noconflict/ace.js',
     'bower_components/ace-builds/src-noconflict/mode-matlab.js',
+    'bower_components/ace-builds/src-noconflict/keybinding-emacs.js',
+    'bower_components/ace-builds/src-noconflict/keybinding-vim.js',
     'bower_components/ace-builds/src-noconflict/theme-solarized_dark.js',
     'bower_components/ace-builds/src-noconflict/theme-solarized_light.js',
+    'bower_components/ace-builds/src-noconflict/theme-monokai.js',
+    'bower_components/ace-builds/src-noconflict/theme-textmate.js',
     filters='jsmin',
     output='gen/ace.js')
 
 js_libs = Bundle(
-    'bower_components/jquery/jquery.js',
+    'bower_components/jquery/dist/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/jqtree/tree.jquery.js',
     'bower_components/pnotify/jquery.pnotify.min.js',

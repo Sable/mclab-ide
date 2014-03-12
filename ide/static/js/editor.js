@@ -1,8 +1,9 @@
 ide.editor = (function() {
-  var Editor = function(id, aceId) {
+  var Editor = function(id, aceId, settings) {
     this.el = $('#' + id);
     this.editor_el = $('#' + aceId);
-    this.editor = createAceEditor(aceId);
+    this.editor = createAceEditor(aceId, settings);
+    this.settings = settings;
 
     this.addKeyboardShortcut('save', 'S', this.saveCurrentFile.bind(this));
 
@@ -45,26 +46,31 @@ ide.editor = (function() {
     }).bind(this));
   };
 
-  var createAceEditor = function(el) {
+  var createAceEditor = function(el, settings) {
     var editor = ace.edit(el);
-    // TODO(isbadawi): These could be configurable.
-    editor.setTheme('ace/theme/solarized_dark');
+    editor.setTheme('ace/theme/' + settings.theme);
     editor.setFontSize(14);
     editor.setShowPrintMargin(false);
+    if (settings.keybindings === 'vim') {
+      editor.setKeyboardHandler(ace.require('ace/keyboard/vim').handler);
+    } else if (settings.keybindings === 'emacs') {
+      editor.setKeyboardHandler(ace.require('ace/keyboard/emacs').handler);
+    }
+
     editor.resize();
     editor.focus();
     return editor;
   };
 
-  var createEditSession = function(text) {
+  var createEditSession = function(text, settings) {
     var session = ace.createEditSession(text, 'ace/mode/matlab');
-    // TODO(isbadawi): These could also be configurable.
-    session.setUseSoftTabs(true);
+    session.setUseSoftTabs(settings.expand_tabs);
+    session.setTabSize(settings.tab_width)
     return session;
   };
 
   Editor.prototype.createSession = function(path, text) {
-    this.sessions[path] = createEditSession(text);
+    this.sessions[path] = createEditSession(text, this.settings);
   };
 
   Editor.prototype.addKeyboardShortcut = function(name, key, action) {
