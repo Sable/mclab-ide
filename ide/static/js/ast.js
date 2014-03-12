@@ -2,7 +2,7 @@ ide.ast = (function() {
   var parse = function(code, callback, err) {
     ide.ajax.parseCode(code, function (data) {
       if (data.ast) {
-        callback(new Ast(data.ast));
+        callback(new Ast($($.parseXML(data.ast))));
       } else {
         err(data.errors);
       }
@@ -10,7 +10,7 @@ ide.ast = (function() {
   };
 
   var Ast = function(xml) {
-    this.ast = $($.parseXML(xml));
+    this.ast = xml;
   };
 
   Ast.prototype.find = function(node, attrs) {
@@ -24,7 +24,9 @@ ide.ast = (function() {
     // Here, we count names with kind BOT as possible function calls.
     // BOT usually occurs when you have a function call but it wasn't
     // found in the environment (typically because it's a builtin or
-    // library function McLab is not aware of).
+    // library function McLab is not aware of). (Also, until we fix the
+    // /parse API to have a correct kind analysis when parsing, regular
+    // in-project function calls have kind BOT.)
     //
     // Of course, BOT could also mean a genuine error -- a function
     // that doesn't exist. It would be nice if we could use this
