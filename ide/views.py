@@ -42,7 +42,7 @@ class ProjectConverter(BaseConverter):
         return project
 
     def to_url(self, value):
-        return BaseConverter.to_url(value.name)
+        return super(ProjectConverter, self).to_url(value.name)
 
 app.url_map.converters['project'] = ProjectConverter
 
@@ -51,6 +51,22 @@ app.url_map.converters['project'] = ProjectConverter
 def project(project):
     return render_template('project.html', settings=json.dumps(ide.settings.get()))
 
+
+@app.route('/project/create/', methods=['POST'])
+def create():
+    project = Project(request.form['name'])
+    if project.exists():
+        flash('A project called %s already exists.' % project.name, 'error')
+        return redirect(url_for('index'))
+    project.create()
+    return redirect(url_for('project', project=project))
+
+
+@app.route('/project/<project:project>/delete', methods=['POST'])
+def delete(project):
+    project.delete()
+    flash('Project %s successfully deleted.' % project.name, 'info')
+    return redirect(url_for('index'))
 
 @app.route('/project/<project:project>/tree', methods=['GET'])
 def tree(project):

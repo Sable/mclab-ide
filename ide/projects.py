@@ -1,5 +1,6 @@
 import errno
 import os
+import shutil
 
 WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
 
@@ -23,6 +24,12 @@ class Project(object):
 
     def exists(self):
         return os.path.exists(self.root)
+
+    def create(self):
+        mkdir_p(self.root)
+
+    def delete(self):
+        shutil.rmtree(self.root)
 
     def tree(self, start=None):
         if start is None:

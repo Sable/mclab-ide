@@ -9,12 +9,24 @@
 
 <table class="table">
   <tr><td>Project</td><td></td></tr>
+  <form class="form-inline" method="post" action="/project/create/">
+  <tr>
+  <td> <input type="text" name="name" placeholder="New project..." /> </td>
+  <td>
+    <button name="create" type="submit" class="btn btn-xs btn-primary">
+    Create <span class="glyphicon glyphicon-plus"></span>
+    </button>
+  </td>
+  </form>
   {% for project in projects %}
   <tr>
   <td><a href="/project/{{ project.name }}">{{ project.name }}</a></td>
-  <td><button name="delete" type="submit" value="{{ project.name }}" class="btn btn-xs btn-danger">
+  <td>
+  <form method="post" action="/project/{{ project.name }}/delete" >
+    <button name="delete" type="submit" class="btn btn-xs btn-danger">
     Delete <span class="glyphicon glyphicon-trash"></span>
-  </button></td>
+  </form>
+  </td>
   </tr>
   {% endfor %}
 </table>
