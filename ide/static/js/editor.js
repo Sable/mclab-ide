@@ -7,27 +7,13 @@ ide.editor = (function() {
 
     this.addKeyboardShortcut('save', 'S', this.saveCurrentFile.bind(this));
 
-    $(window).resize((function() {
-      var height = $(window).height();
-      this.editor_el.height(3 * height / 4);
-      this.editor.resize();
-      // TODO(isbadawi): This shouldn't be here
-      $('#console').height(height / 4);
-      ace.edit('console').resize();
-    }).bind(this));
-    $(window).trigger('resize');
-
     var ul = this.el.find('ul.editor-tabs').first();
     this.sessions = {};
     this.asts = {};
     this.tabs = new ide.tabs.TabManager(ul)
       .on('all_tabs_closed', this.hide.bind(this))
       .on('tab_select', (function (e, path) {
-        if (!(path in this.sessions)) {
-          this.createSession(path, '');
-        }
-        this.editor.setSession(this.sessions[path]);
-        this.show();
+        this.selectFile(path);
       }).bind(this));
     this.editor.on('change', (function () {
       this.tabs.getSelectedTab().setDirty();
@@ -67,6 +53,19 @@ ide.editor = (function() {
     session.setUseSoftTabs(settings.expand_tabs);
     session.setTabSize(settings.tab_width)
     return session;
+  };
+
+  Editor.prototype.resize = function(height) {
+    this.editor_el.height(height);
+    this.editor.resize();
+  };
+
+  Editor.prototype.selectFile = function(path) {
+      if (!(path in this.sessions)) {
+        this.createSession(path, '');
+      }
+      this.editor.setSession(this.sessions[path]);
+      this.show();
   };
 
   Editor.prototype.createSession = function(path, text) {

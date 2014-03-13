@@ -15,6 +15,14 @@ ide.init = function(settings) {
   consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
+  $(window).resize(function() {
+    var height = $(window).height();
+    editor.resize(3 * height / 4);
+    $('#console').height(height / 4);
+    consolePane.resize();
+  });
+  $(window).trigger('resize');
+
   var callgraph = new ide.callgraph.CallGraph(
     consolePane.getValue.bind(consolePane));
   editor.editor.on('change', callgraph.invalidate.bind(callgraph));
