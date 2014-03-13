@@ -1,8 +1,17 @@
+@import "../bower_components/bootstrap/less/bootstrap.less";
+
 @lightGrey: #ddd;
 @white: #fff;
+@black: #000;
 
 @sidebar-width: 200px;
 @sidebar-color: @white;
+
+// Override some bootstrap variables.
+// Suprisingly, this works, even though we already imported bootstrap.
+// This is because less variables are loaded lazily.
+@navbar-default-bg: @white;
+@navbar-default-border: @lightGrey;
 
 .disable-scrolling() {
   height: 100%;
@@ -17,7 +26,7 @@
 
 body {
   .disable-scrolling;
-  margin-top: 50px;
+  margin-top: @navbar-height;
 }
 
 #projects {

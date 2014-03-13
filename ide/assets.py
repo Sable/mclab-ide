@@ -25,8 +25,8 @@ js_libs = Bundle(
 js_app = Bundle(
     'js/ide.js',
     'js/utils.js',
-    'js/ajax.js',
     'js/ast.js',
+    'js/ajax.js',
     'js/callgraph.js',
     'js/tree.js',
     'js/tabs.js',
@@ -36,7 +36,6 @@ js_app = Bundle(
 
 
 css = Bundle(
-    'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/jqtree/jqtree.css',
     'bower_components/pnotify/jquery.pnotify.default.css',
     Bundle('less/style.less', filters='less', output='gen/style.css'),
