@@ -39,5 +39,5 @@ ide.init = function(settings) {
   });
 
   var explorer = new ide.explorer.ProjectExplorer(
-    'project-explorer', 'tree', editor.openFile.bind(editor));
+    'project-explorer', 'files', editor.openFile.bind(editor));
 };

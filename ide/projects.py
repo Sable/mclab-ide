@@ -58,3 +58,6 @@ class Project(object):
         mkdir_p(os.path.dirname(path))
         with open(path, 'w') as f:
             f.write(contents)
+
+    def delete_file(self, file):
+        os.remove(self.path(file))

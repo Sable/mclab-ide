@@ -47,13 +47,8 @@ class ProjectConverter(BaseConverter):
 app.url_map.converters['project'] = ProjectConverter
 
 
-@app.route('/project/<project:project>/')
-def project(project):
-    return render_template('project.html', settings=json.dumps(ide.settings.get()))
-
-
-@app.route('/project/create/', methods=['POST'])
-def create():
+@app.route('/project/', methods=['POST'])
+def create_project():
     project = Project(request.form['name'])
     if project.exists():
         flash('A project called %s already exists.' % project.name, 'error')
@@ -62,27 +57,38 @@ def create():
     return redirect(url_for('project', project=project))
 
 
+@app.route('/project/<project:project>/')
+def project(project):
+    return render_template('project.html', settings=json.dumps(ide.settings.get()))
+
+
 @app.route('/project/<project:project>/delete', methods=['POST'])
 def delete(project):
     project.delete()
     flash('Project %s successfully deleted.' % project.name, 'info')
     return redirect(url_for('index'))
 
-@app.route('/project/<project:project>/tree', methods=['GET'])
+
+@app.route('/project/<project:project>/files', methods=['GET'])
 def tree(project):
     return json.dumps(project.tree())
 
 
-@app.route('/project/<project:project>/read', methods=['GET'])
-def read(project):
+@app.route('/project/<project:project>/read-file', methods=['GET'])
+def read_file(project):
     return project.read_file(request.args['path'])
 
 
-@app.route('/project/<project:project>/write', methods=['POST'])
-def write(project):
+@app.route('/project/<project:project>/write-file', methods=['POST'])
+def write_file(project):
     project.write_file(request.form['path'], request.form['contents'])
     return json.dumps({'status': 'OK'})
 
+
+@app.route('/project/<project:project>/delete-file', methods=['POST'])
+def delete_fie(project):
+    project.delete_file(request.form['path'])
+    return json.dumps({'status': 'OK'})
 
 @app.route('/project/<project:project>/callgraph', methods=['POST'])
 def callgraph(project):

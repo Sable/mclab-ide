@@ -12,11 +12,11 @@ ide.ajax = (function() {
 
   var readFile = function(path, callback) {
     params = {path: path};
-    $.get('read?' + $.param(params), callback);
+    $.get('read-file?' + $.param(params), callback);
   };
 
   var writeFile = function(path, contents, callback) {
-    $.post('write', {path: path, contents: contents}, function (data) {
+    $.post('write-file', {path: path, contents: contents}, function (data) {
       if (callback) {
         callback();
       }
