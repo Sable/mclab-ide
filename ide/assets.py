@@ -28,7 +28,7 @@ js_app = Bundle(
     'js/ast.js',
     'js/ajax.js',
     'js/callgraph.js',
-    'js/tree.js',
+    'js/explorer.js',
     'js/tabs.js',
     'js/editor.js',
     filters='jsmin',

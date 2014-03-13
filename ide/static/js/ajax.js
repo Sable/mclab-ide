@@ -15,9 +15,11 @@ ide.ajax = (function() {
     $.get('read?' + $.param(params), callback);
   };
 
-  var writeFile = function(path, contents) {
+  var writeFile = function(path, contents, callback) {
     $.post('write', {path: path, contents: contents}, function (data) {
-      ide.utils.flashSuccess('File ' + path + ' saved.');
+      if (callback) {
+        callback();
+      }
     });
   };
 
@@ -32,7 +34,7 @@ ide.ajax = (function() {
           callback(data.callgraph);
         }
       }
-    }); 
+    });
   };
 
   return {

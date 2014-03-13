@@ -4,7 +4,14 @@
 <div id="wrapper">
 
 <div id="sidebar-wrapper">
-  <div id="projects"></div>
+  <div id="project-explorer">
+  <form id="new-file-form" class="form form-inline">
+  <input type="text" class="form-inline" name="path" placeholder="New file..." />
+  <button class="btn btn-xs btn-primary">
+  <span class="glyphicon glyphicon-plus"></span></button>
+  </form>
+  <div id="files"></div>
+  </div>
 </div>
 
 <div id="page-content-wrapper">
@@ -13,9 +20,6 @@
     <div class="row">
     <div id="editor">
       <ul class="editor-tabs nav nav-tabs">
-      <li class="editor-add-file">
-        <a href="#"><span class="glyphicon glyphicon-plus"></span></a>
-      </li>
       </ul>
       <div id="editor-buffer" class="col-md-12">
       </div>

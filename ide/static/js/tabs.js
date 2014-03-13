@@ -86,14 +86,6 @@ ide.tabs = (function() {
         $(this).parents('li').first().data('tab').close();
         return false;
       });
-
-    this.newTabButton = this.ul.find('.editor-add-file').first();
-    this.newTabButton.on('click', (function () {
-      var filename = prompt('Name: ');
-      if (filename !== null && /[^\s]/.test(filename)) {
-        this.createTab(filename).select();
-      }
-    }).bind(this));
   };
 
 
@@ -141,7 +133,7 @@ ide.tabs = (function() {
   TabManager.prototype.createTab = function(filename) {
     var li = $('<li>').append($('<a>').attr('href', '#').append(
       filename, '&nbsp;', ide.utils.makeIcon('remove')));
-    li.insertBefore(this.newTabButton);
+    li.appendTo(this.ul);
     this.tabs[filename] = new Tab(li, filename, this);
     return this.tabs[filename];
   };

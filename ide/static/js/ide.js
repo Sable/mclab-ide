@@ -38,6 +38,6 @@ ide.init = function(settings) {
     });
   });
 
-  var tree = new ide.tree.Tree('projects', 'tree');
-  tree.onFileSelect(function(path) { editor.openFile(path); });
+  var explorer = new ide.explorer.ProjectExplorer(
+    'project-explorer', 'tree', editor.openFile.bind(editor));
 };

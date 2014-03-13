@@ -106,7 +106,10 @@ ide.editor = (function() {
   }
 
   Editor.prototype.saveCurrentFile = function() {
-    ide.ajax.writeFile(this.getCurrentFile(), this.editor.getValue());
+    var path = this.getCurrentFile();
+    ide.ajax.writeFile(path, this.editor.getValue(), function () {
+      ide.utils.flashSuccess('File ' + path + ' saved.');
+    });
     this.tabs.getSelectedTab().clearDirty();
   };
 
