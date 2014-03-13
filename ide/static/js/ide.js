@@ -14,51 +14,15 @@ ide.init = function(settings) {
   consolePane.setShowPrintMargin(false);
   consolePane.renderer.setShowGutter(false);
 
-  var callgraph = null;
-  var getCallgraph = function(callback) {
-    if (callgraph !== null) {
-      console.log('Reusing cached callgraph.');
-      callback(callgraph);
-      return;
-    }
-    var expression = consolePane.getValue().trim();
-    console.log('Triggering callgraph with "' + expression + '"...');
-    ide.ajax.getCallGraph(expression, function (newCallgraph) {
-      console.log('Got the callgraph: ' + JSON.stringify(newCallgraph));
-      callgraph = newCallgraph;
-      callback(callgraph);
-    });
-  };
-  var invalidateCallgraph = function() {
-    callgraph = null;
-  };
-
-  editor.editor.on('change', invalidateCallgraph);
-  consolePane.on('change', invalidateCallgraph);
-
-  var createCallgraphIdFromToken = function(token) {
-    return token.identifier +
-      '@' + token.file +
-      ':' + token.line + ',' + token.col;
-  }
-
-  var createTokenFromCallgraphId = function(id) {
-    var pattern = /(.*)+@(.*)+:(\d+),(\d+)/;
-    var match = id.match(pattern);
-    return {
-      identifier: match[1],
-      file: match[2],
-      line: parseInt(match[3], 10),
-      col: parseInt(match[4], 10)
-    };
-  }
+  var callgraph = new ide.callgraph.CallGraph(
+    consolePane.getValue.bind(consolePane));
+  editor.editor.on('change', callgraph.invalidate.bind(callgraph));
+  consolePane.on('change', callgraph.invalidate.bind(callgraph));
 
   editor.onFunctionCallClicked(function (token) {
-    var id = createCallgraphIdFromToken(token);
-    getCallgraph(function(callgraph) {
-      var targets = callgraph[id];
-      if (targets !== undefined && targets.length !== 0) {
-        editor.jumpTo(createTokenFromCallgraphId(targets[0]));
+    callgraph.getTargets(token, function (targets) {
+      if (targets.length !== 0) {
+        editor.jumpTo(targets[0]);
       } else {
         ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
