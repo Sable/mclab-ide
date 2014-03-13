@@ -34,7 +34,7 @@ class Project(object):
     # TODO(isbadawi): It's not nice that this method is building
     # the tree that jqtree expects. Could just return a bunch of
     # paths and do the conversion in javascript,
-    def tree(self, start=None):
+    def files(self, start=None):
         if start is None:
             start = self.root
         dirs = []
@@ -42,7 +42,7 @@ class Project(object):
             abspath = os.path.join(start, dir)
             node = {'label': dir}
             if os.path.isdir(abspath):
-                node['children'] = self.tree(abspath)
+                node['children'] = self.files(abspath)
             dirs.append(node)
         return dirs
 

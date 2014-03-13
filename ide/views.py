@@ -70,8 +70,8 @@ def delete(project):
 
 
 @app.route('/project/<project:project>/files', methods=['GET'])
-def tree(project):
-    return json.dumps(project.tree())
+def files(project):
+    return json.dumps(project.files())
 
 
 @app.route('/project/<project:project>/read-file', methods=['GET'])
