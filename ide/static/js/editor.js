@@ -131,6 +131,7 @@ ide.editor = (function() {
 
   Editor.prototype.onFunctionCallClicked = function(callback) {
     this.editor.on('click', (function(e) {
+      this.editor.getSelection().toSingleRange();
       if (!e.getAccelKey()) {
         return;
       }
