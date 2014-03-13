@@ -7,7 +7,8 @@ ide.init = function(settings) {
   editor.startSyntaxChecker();
 
   var consolePane = ace.edit('console');
-  consolePane.setTheme('ace/theme/solarized_light');
+  consolePane.setSession(ace.createEditSession(''));
+  consolePane.setTheme('ace/theme/textmate');
   consolePane.setFontSize(14);
   // consolePane.setReadOnly(true);
   consolePane.setHighlightActiveLine(false);
