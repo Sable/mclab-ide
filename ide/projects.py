@@ -31,6 +31,9 @@ class Project(object):
     def delete(self):
         shutil.rmtree(self.root)
 
+    # TODO(isbadawi): It's not nice that this method is building
+    # the tree that jqtree expects. Could just return a bunch of
+    # paths and do the conversion in javascript,
     def tree(self, start=None):
         if start is None:
             start = self.root
