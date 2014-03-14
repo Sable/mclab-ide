@@ -31,20 +31,10 @@ class Project(object):
     def delete(self):
         shutil.rmtree(self.root)
 
-    # TODO(isbadawi): It's not nice that this method is building
-    # the tree that jqtree expects. Could just return a bunch of
-    # paths and do the conversion in javascript,
-    def files(self, start=None):
-        if start is None:
-            start = self.root
-        dirs = []
-        for dir in os.listdir(start):
-            abspath = os.path.join(start, dir)
-            node = {'label': dir}
-            if os.path.isdir(abspath):
-                node['children'] = self.files(abspath)
-            dirs.append(node)
-        return dirs
+    def files(self):
+        for dirpath, _, paths in os.walk(self.root):
+            for path in paths:
+                yield os.path.join(dirpath, path)[len(self.root) + 1:]
 
     def path(self, file):
         return os.path.join(self.root, file)

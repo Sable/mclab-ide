@@ -71,7 +71,7 @@ def delete(project):
 
 @app.route('/project/<project:project>/files', methods=['GET'])
 def files(project):
-    return json.dumps(project.files())
+    return json.dumps(list(project.files()))
 
 
 @app.route('/project/<project:project>/read-file', methods=['GET'])

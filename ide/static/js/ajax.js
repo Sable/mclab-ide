@@ -23,6 +23,10 @@ ide.ajax = (function() {
     });
   };
 
+  var getFiles = function(callback) {
+    $.getJSON('files', callback);
+  };
+
   var getCallGraph = function(expression, callback) {
      $.ajax({
       url: 'callgraph',
@@ -41,6 +45,7 @@ ide.ajax = (function() {
     parseCode: parseCode,
     readFile: readFile,
     writeFile: writeFile,
+    getFiles: getFiles,
     getCallGraph: getCallGraph,
   };
 })();

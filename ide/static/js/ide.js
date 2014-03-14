@@ -38,6 +38,5 @@ ide.init = function(settings) {
     });
   });
 
-  var explorer = new ide.explorer.ProjectExplorer(
-    'project-explorer', 'files', editor.openFile.bind(editor));
+  var explorer = new ide.explorer.ProjectExplorer('project-explorer', editor.openFile.bind(editor));
 };
