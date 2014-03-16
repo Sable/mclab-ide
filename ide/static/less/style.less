@@ -24,6 +24,12 @@
   -ms-user-select: none;
 }
 
+.border-radius(@top-left, @top-right, @bottom-right, @bottom-left) {
+  -webkit-border-radius: @top-left @top-right @bottom-right @bottom-left;
+  -moz-border-radius: @top-left @top-right @bottom-right @bottom-left;
+  border-radius: @top-left @top-right @bottom-right @bottom-left;
+}
+
 body {
   .disable-scrolling;
   margin-top: @navbar-height;
@@ -71,4 +77,48 @@ body {
 
 .inset {
   padding-left: 15px;
+}
+
+// This makes nested dropdowns (for the context menu) work
+// From http://stackoverflow.com/a/18024991 (http://www.bootply.com/86684)
+.dropdown-submenu {
+  position: relative;
+
+  & > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    .border-radius(0, 6px, 6px, 6px);
+  }
+
+  &:hover > .dropdown-menu {
+    display: block;
+  }
+
+  & > a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-right-width: 0;
+    border-left-color: #cccccc;
+    margin-top: 5px;
+    margin-right: -10px;
+  }
+
+  &:hover > a:after {
+    border-left-color: #ffffff;
+  }
+
+  .pull-left {
+    float: none;
+    & > .dropdown-menu {
+      left: -100%;
+      margin-left: 10px;
+      .border-radius(6px, 0, 6px, 6px);
+    }
+  }
 }
