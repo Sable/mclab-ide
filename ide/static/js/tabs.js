@@ -55,10 +55,21 @@ ide.tabs = (function() {
 
   Tab.prototype.close = function() {
     // TODO(isbadawi): Prompt to save, not just warn?
-    if (this.is_dirty && !confirm('This file has unsaved changes. Really close?')) {
-      return;
+    if (!this.is_dirty || confirm('This file has unsaved changes. Really close?')) {
+      this.forceClose();
     }
+  };
 
+  Tab.prototype.rename = function(newName) {
+    this.label_el.html(this.label_el.html().replace(this.label, newName));
+
+    // TODO(isbadawi): It's not nice that the tab is reaching into its manager
+    delete this.manager.tabs[this.label];
+    this.manager.tabs[newName] = this;
+    this.label = newName;
+  }
+
+  Tab.prototype.forceClose = function() {
     if (this.isSelected()) {
       var tab = this.getClosestTab();
       if (tab !== null) {

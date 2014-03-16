@@ -86,9 +86,16 @@ def write_file(project):
 
 
 @app.route('/project/<project:project>/delete-file', methods=['POST'])
-def delete_fie(project):
+def delete_file(project):
     project.delete_file(request.form['path'])
     return json.dumps({'status': 'OK'})
+
+
+@app.route('/project/<project:project>/rename-file', methods=['POST'])
+def rename_file(project):
+    project.rename_file(request.form['path'], request.form['newPath'])
+    return json.dumps({'status': 'OK'})
+
 
 @app.route('/project/<project:project>/callgraph', methods=['POST'])
 def callgraph(project):

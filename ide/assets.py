@@ -19,6 +19,7 @@ js_libs = Bundle(
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/jqtree/tree.jquery.js',
     'bower_components/pnotify/jquery.pnotify.min.js',
+    'bower_components/sydcanem-bootstrap-contextmenu/bootstrap-contextmenu.js',
     filters='jsmin',
     output='gen/libs.js')
 

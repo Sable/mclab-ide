@@ -15,12 +15,24 @@ ide.ajax = (function() {
     $.get('read-file?' + $.param(params), callback);
   };
 
-  var writeFile = function(path, contents, callback) {
-    $.post('write-file', {path: path, contents: contents}, function (data) {
+  var POST = function(url, params, callback) {
+    $.post(url, params, function (data) {
       if (callback) {
         callback();
       }
     });
+  };
+
+  var writeFile = function(path, contents, callback) {
+    POST('write-file', {path: path, contents: contents}, callback);
+  };
+
+  var renameFile = function(path, newPath, callback) {
+    POST('rename-file', {path: path, newPath: newPath}, callback);
+  };
+
+  var deleteFile = function(path, callback) {
+    POST('delete-file', {path: path}, callback);
   };
 
   var getFiles = function(callback) {
@@ -45,6 +57,8 @@ ide.ajax = (function() {
     parseCode: parseCode,
     readFile: readFile,
     writeFile: writeFile,
+    renameFile: renameFile,
+    deleteFile: deleteFile,
     getFiles: getFiles,
     getCallGraph: getCallGraph,
   };

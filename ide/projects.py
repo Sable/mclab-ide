@@ -51,3 +51,8 @@ class Project(object):
 
     def delete_file(self, file):
         os.remove(self.path(file))
+
+    def rename_file(self, src, dest):
+        src, dest = self.path(src), self.path(dest)
+        mkdir_p(os.path.dirname(dest))
+        shutil.move(src, dest)

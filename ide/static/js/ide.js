@@ -38,5 +38,23 @@ ide.init = function(settings) {
     });
   });
 
-  var explorer = new ide.explorer.ProjectExplorer('project-explorer', editor.openFile.bind(editor));
+  var explorer = new ide.explorer.ProjectExplorer('project-explorer')
+    .on('file_selected', function (path) { editor.openFile(path); })
+    .on('file_renamed', function (oldPath, newPath, doRename) {
+      if (editor.fileIsDirty(oldPath)) {
+        ide.utils.flashError('This file has unsaved changes. ' +
+          'Please save the file before renaming.')
+        return;
+      }
+      editor.renameFile(oldPath, newPath);
+      // TODO(isbadawi): Be smarter about invalidating callgraph
+      callgraph.invalidate();
+      doRename();
+    })
+    .on('file_deleted', function (path, doDelete) {
+      editor.deleteFile(path);
+      // TODO(isbadawi): Be smarter about invalidating callgraph
+      callgraph.invalidate();
+      doDelete();
+    });
 };

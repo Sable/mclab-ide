@@ -113,6 +113,42 @@ ide.editor = (function() {
     this.tabs.getSelectedTab().clearDirty();
   };
 
+  Editor.prototype.fileIsDirty = function(path) {
+    if (!this.tabs.hasTabLabeled(path)) {
+      return false;
+    }
+    return this.tabs.getTabLabeled(path).is_dirty;
+  }
+
+  var renameKey = function(object, oldKey, newKey) {
+    if (oldKey in object) {
+      object[newKey] = object[oldKey];
+      delete object[oldKey];
+    }
+  };
+
+  var removeKey = function(object, key) {
+    if (key in object) {
+      delete object[key];
+    }
+  };
+
+  Editor.prototype.renameFile = function(oldPath, newPath) {
+    if (this.tabs.hasTabLabeled(oldPath)) {
+      this.tabs.getTabLabeled(oldPath).rename(newPath);
+    }
+    renameKey(this.sessions, oldPath, newPath);
+    renameKey(this.asts, oldPath, newPath);
+  };
+
+  Editor.prototype.deleteFile = function(path) {
+    if (this.tabs.hasTabLabeled(path)) {
+      this.tabs.getTabLabeled(path).forceClose();
+    }
+    removeKey(this.sessions, path);
+    removeKey(this.asts, path);
+  };
+
   Editor.prototype.jumpTo = function(token) {
     console.log('Jumping to ' + JSON.stringify(token));
     this.openFile(token.file, (function() {
