@@ -20,10 +20,21 @@ ide.utils = (function() {
     });
   };
 
+
+  var prompt = function(message, callback) {
+    bootbox.prompt(message, callback);
+  };
+
+  var confirm = function(message, callback) {
+    bootbox.confirm(message, callback);
+  };
+
   return {
     makeIcon: makeIcon,
     flashSuccess: flashSuccess,
     flashError: flashError,
+    prompt: prompt,
+    confirm: confirm,
     init: function() {
       $.pnotify.defaults.styling = 'bootstrap3';
       $.pnotify.defaults.history = false;

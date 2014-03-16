@@ -55,9 +55,16 @@ ide.tabs = (function() {
 
   Tab.prototype.close = function() {
     // TODO(isbadawi): Prompt to save, not just warn?
-    if (!this.is_dirty || confirm('This file has unsaved changes. Really close?')) {
+    if (!this.is_dirty) {
       this.forceClose();
+      return;
     }
+    var self = this;
+    ide.utils.confirm('This file has unsaved changes. Really close?', function (confirmed) {
+      if (confirmed) {
+        self.forceClose();
+      }
+    });
   };
 
   Tab.prototype.rename = function(newName) {

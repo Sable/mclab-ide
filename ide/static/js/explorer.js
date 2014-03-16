@@ -178,33 +178,35 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.doRename = function(node) {
-    var newName = prompt('New name for ' + node.name + '?');
-    if (newName === null || newName.trim().length === 0) {
-      return;
-    };
-    if (!this.checkFilename(newName)) {
-      return;
-    }
     var self = this;
-    this.trigger('file_renamed', node.name, newName, function() {
-      ide.ajax.renameFile(node.name, newName, function() {
-        self.files.splice(self.files.indexOf(node.name), 1);
-        self.files.push(newName);
-        self.tree.tree('updateNode', node, newName);
+    ide.utils.prompt('New name for ' + node.name + '?', function (newName) {
+      if (newName === null || newName.trim().length === 0) {
+        return;
+      };
+      if (!self.checkFilename(newName)) {
+        return;
+      }
+      self.trigger('file_renamed', node.name, newName, function() {
+        ide.ajax.renameFile(node.name, newName, function() {
+          self.files.splice(self.files.indexOf(node.name), 1);
+          self.files.push(newName);
+          self.tree.tree('updateNode', node, newName);
+        });
       });
     });
   };
 
   ProjectExplorer.prototype.doDelete = function(node) {
-    if (!confirm("Are you sure you want to delete file '" + node.name + "'?")) {
-      return;
-    }
     var self = this;
-    this.trigger('file_deleted', node.name, function() {
-      ide.ajax.deleteFile(node.name, function() {
-        self.files.splice(self.files.indexOf(node.name), 1);
-        self.tree.tree('removeNode', node);
-      });
+    ide.utils.confirm("Are you sure you want to delete file '" + node.name + "'?", function(confirmed) {
+      if (confirmed) {
+        self.trigger('file_deleted', node.name, function() {
+          ide.ajax.deleteFile(node.name, function() {
+            self.files.splice(self.files.indexOf(node.name), 1);
+            self.tree.tree('removeNode', node);
+          });
+        });
+      }
     });
   };
 
