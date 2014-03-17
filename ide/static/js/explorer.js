@@ -37,7 +37,7 @@ ide.explorer = (function() {
   ProjectExplorer.prototype.trigger = function(event) {
     var callback = this.callbacks[event];
     if (callback) {
-      callback.apply(null, Array.prototype.slice.call(arguments, 1));
+      callback.apply(null, _(arguments).toArray().slice(1));
     }
   };
 
@@ -46,7 +46,7 @@ ide.explorer = (function() {
       ide.utils.flashError('Please enter a file name that ends in .m.');
       return false;
     }
-    if (this.files.indexOf(path) !== -1) {
+    if (_(this.files).contains(path)) {
       ide.utils.flashError('A file with that name already exists.');
       return false;
     }
@@ -85,25 +85,22 @@ ide.explorer = (function() {
       return;
     }
     var parts = path.split('/');
-    if (!(parts[0] in this.files)) {
-      this.files[parts[0]] = new Dir(parts[0]);
-    }
-    this.files[parts[0]].add(parts.slice(1).join('/'));
+    var first = parts[0];
+    this.files[first] = this.files[first] || new Dir(first);
+    this.files[first].add(parts.slice(1).join('/'));
   };
 
   Dir.prototype.toJqTree = function() {
     return {
       label: this.name,
-      children: Object.keys(this.files).map((function (k) {
-        return this.files[k].toJqTree();
-      }).bind(this)),
+      children: _(this.files).invoke('toJqTree'),
     };
   };
 
   var filesToJqTree = function(files) {
-    var tree = new Dir('<dummy>');
-    files.forEach(tree.add.bind(tree));
-    return tree.toJqTree().children;
+    return _(new Dir('<dummy>')).tap(function (tree) {
+      _(files).each(tree.add.bind(tree));
+    }).toJqTree().children;
   };
 
   ProjectExplorer.prototype.refresh = function(callback) {

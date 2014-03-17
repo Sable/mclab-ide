@@ -14,8 +14,8 @@ ide.ast = (function() {
   };
 
   Ast.prototype.find = function(node, attrs) {
-    var selector = node + Object.keys(attrs).map(function (key) {
-      return '[' + key + '="' + attrs[key] + '"]';
+    var selector = node + _(attrs).map(function (value, key) {
+      return '[' + key + '="' + value + '"]';
     }).join('');
     return new Ast(this.ast.find(selector));
   };

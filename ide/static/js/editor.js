@@ -61,7 +61,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.selectFile = function(path) {
-      if (!(path in this.sessions)) {
+      if (!_(this.sessions).has(path)) {
         this.createSession(path, '');
       }
       this.editor.setSession(this.sessions[path]);
@@ -121,14 +121,14 @@ ide.editor = (function() {
   }
 
   var renameKey = function(object, oldKey, newKey) {
-    if (oldKey in object) {
+    if (_(object).has(oldKey)) {
       object[newKey] = object[oldKey];
       delete object[oldKey];
     }
   };
 
   var removeKey = function(object, key) {
-    if (key in object) {
+    if (_(object).has(key)) {
       delete object[key];
     }
   };
@@ -191,7 +191,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.hasAst = function() {
-    return this.getCurrentFile() in this.asts;
+    return _(this.asts).has(this.getCurrentFile());
   }
 
   Editor.prototype.getAst = function() {

@@ -23,9 +23,7 @@ ide.tabs = (function() {
   }
 
   Tab.prototype.getSiblings = function() {
-    return this.li.siblings().map(function (i, li) {
-      return $(li).data('tab');
-    });
+    return _.chain(this.li.siblings()).map($).invoke('data', 'tab').value();
   };
 
   Tab.prototype.getClosestTab = function() {
@@ -49,7 +47,7 @@ ide.tabs = (function() {
 
   Tab.prototype.select = function() {
     this.li.addClass('active');
-    this.getSiblings().each(function (i, tab) { tab.unselect(); });
+    _(this.getSiblings()).invoke('unselect');
     this.manager.trigger('tab_select', this.label);
   };
 
@@ -121,15 +119,11 @@ ide.tabs = (function() {
   };
 
   TabManager.prototype.getAllTabs = function(name) {
-    return Object.keys(this.tabs).map((function (key) {
-      return this.tabs[key];
-    }).bind(this));
+    return _(this.tabs).values();
   }
 
   TabManager.prototype.getDirtyTabs = function(name) {
-    return this.getAllTabs().filter(function (tab) {
-      return tab.is_dirty;
-    });
+    return _(this.getAllTabs()).where({is_dirty: true});
   }
 
   TabManager.prototype.getTabLabeled = function(name) {
@@ -137,7 +131,7 @@ ide.tabs = (function() {
   };
 
   TabManager.prototype.hasTabLabeled = function(name) {
-    return name in this.tabs;
+    return _(this.tabs).has(name);
   };
 
   TabManager.prototype.removeTabLabeled = function(name) {
