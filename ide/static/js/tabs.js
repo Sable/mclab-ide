@@ -7,6 +7,15 @@ ide.tabs = (function() {
     this.dirty = false;
   };
 
+  Tab.create = function(name, parent) {
+    var li = $('<li>').append(
+        $('<a>')
+          .attr('href', '#')
+          .append(name, '&nbsp;', ide.utils.makeIcon('remove'))
+      ).appendTo(parent);
+    return new Tab(li, name);
+  };
+
   Tab.prototype.markDirty = function() {
     if (!this.dirty) {
       this.dirty = true;
@@ -86,7 +95,7 @@ ide.tabs = (function() {
   };
 
   TabManager.prototype.numDirtyTabs = function(name) {
-    return _.chain(this.tabs).values().where({dirty: true}).value().length;
+    return _.chain(this.tabs).values().where({dirty: true}).size().value();
   }
 
   TabManager.prototype.isDirty = function(name) {
@@ -139,7 +148,9 @@ ide.tabs = (function() {
   };
 
   TabManager.prototype.getSelected = function() {
-    return this.ul.find('li.active').data('tab').name;
+    return _(this.tabs).find(function (tab) {
+      return tab.selected();
+    }).name;
   };
 
   TabManager.prototype.markDirty = function(name) {
@@ -151,11 +162,7 @@ ide.tabs = (function() {
   }
 
   TabManager.prototype.create = function(name) {
-    var li = $('<li>').append($('<a>').attr('href', '#').append(
-      name, '&nbsp;', ide.utils.makeIcon('remove')));
-    li.appendTo(this.ul);
-    this.tabs[name] = new Tab(li, name);
-    return name;
+    this.tabs[name] = Tab.create(name, this.ul);
   };
 
   return {
