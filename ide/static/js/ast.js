@@ -6,7 +6,7 @@ ide.ast = (function() {
       } else {
         err(data.errors);
       }
-    })
+    });
   };
 
   var Ast = function(xml) {
@@ -41,7 +41,7 @@ ide.ast = (function() {
     return this.ast.prop('tagName') === 'NameExpr' && (
       this.ast.attr('kind') === 'FUN' ||
       this.ast.attr('kind') === 'BOT');
-  }
+  };
 
   Ast.prototype.attr = function(attr) {
     return this.ast.attr(attr);

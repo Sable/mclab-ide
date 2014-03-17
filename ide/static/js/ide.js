@@ -43,7 +43,7 @@ ide.init = function(settings) {
     .on('file_renamed', function (oldPath, newPath, doRename) {
       if (editor.fileIsDirty(oldPath)) {
         ide.utils.flashError('This file has unsaved changes. ' +
-          'Please save the file before renaming.')
+          'Please save the file before renaming.');
         return;
       }
       editor.renameFile(oldPath, newPath);

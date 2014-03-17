@@ -49,7 +49,7 @@ ide.editor = (function() {
   var createEditSession = function(text, settings) {
     var session = ace.createEditSession(text, 'ace/mode/matlab');
     session.setUseSoftTabs(settings.expand_tabs);
-    session.setTabSize(settings.tab_width)
+    session.setTabSize(settings.tab_width);
     return session;
   };
 
@@ -98,7 +98,7 @@ ide.editor = (function() {
         callback();
       }
     }).bind(this));
-  }
+  };
 
   Editor.prototype.saveCurrentFile = function() {
     var path = this.tabs.getSelected();
@@ -110,7 +110,7 @@ ide.editor = (function() {
 
   Editor.prototype.fileIsDirty = function(path) {
     return this.tabs.has(path) && this.tabs.isDirty(path);
-  }
+  };
 
   var renameKey = function(object, oldKey, newKey) {
     if (_(object).has(oldKey)) {
@@ -126,13 +126,17 @@ ide.editor = (function() {
   };
 
   Editor.prototype.renameFile = function(oldPath, newPath) {
-    this.tabs.has(oldPath) && this.tabs.rename(oldPath, newPath);
+    if (this.tabs.has(oldPath)) {
+      this.tabs.rename(oldPath, newPath);
+    }
     renameKey(this.sessions, oldPath, newPath);
     renameKey(this.asts, oldPath, newPath);
   };
 
   Editor.prototype.deleteFile = function(path) {
-    this.tabs.has(path) && this.tabs.forceClose(path);
+    if (this.tabs.has(path)) {
+      this.tabs.forceClose(path);
+    }
     removeKey(this.sessions, path);
     removeKey(this.asts, path);
   };
@@ -153,7 +157,7 @@ ide.editor = (function() {
       line: position.row + 1,
       col: token.start + 1
     };
-  }
+  };
 
   Editor.prototype.onFunctionCallClicked = function(callback) {
     this.editor.on('click', (function(e) {
@@ -162,7 +166,7 @@ ide.editor = (function() {
         return;
       }
       if (!this.hasAst()) {
-        ide.utils.flashError('There are parse errors.')
+        ide.utils.flashError('There are parse errors.');
         return;
       }
       var token = this.getTokenFromMouseEvent(e);
@@ -170,7 +174,7 @@ ide.editor = (function() {
         callback(token);
       }
     }).bind(this));
-  }
+  };
 
   Editor.prototype.isFunctionCall = function(token) {
     return this.getAst()
@@ -180,7 +184,7 @@ ide.editor = (function() {
 
   Editor.prototype.hasAst = function() {
     return _(this.asts).has(this.tabs.getSelected());
-  }
+  };
 
   Editor.prototype.getAst = function() {
     return this.asts[this.tabs.getSelected()];
@@ -233,7 +237,7 @@ ide.editor = (function() {
     }).bind(this);
 
     this.editor.on('change', function() {
-      if (typingTimer != null) {
+      if (typingTimer !== null) {
         clearTimeout(typingTimer);
         typingTimer = null;
       }

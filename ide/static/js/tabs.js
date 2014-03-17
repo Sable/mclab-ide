@@ -97,11 +97,11 @@ ide.tabs = (function() {
 
   TabManager.prototype.numDirtyTabs = function(name) {
     return _.chain(this.tabs).values().where({dirty: true}).size().value();
-  }
+  };
 
   TabManager.prototype.isDirty = function(name) {
     return this.tabs[name].dirty;
-  }
+  };
 
   TabManager.prototype.has = function(name) {
     return _(this.tabs).has(name);
@@ -156,11 +156,11 @@ ide.tabs = (function() {
 
   TabManager.prototype.markDirty = function(name) {
     this.tabs[name].markDirty();
-  }
+  };
 
   TabManager.prototype.clearDirty = function(name) {
     this.tabs[name].clearDirty();
-  }
+  };
 
   TabManager.prototype.create = function(name) {
     this.tabs[name] = Tab.create(name, this.ul);

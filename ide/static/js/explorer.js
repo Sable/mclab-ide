@@ -51,7 +51,7 @@ ide.explorer = (function() {
       return false;
     }
     return true;
-  }
+  };
 
   ProjectExplorer.prototype.createFile = function(path) {
     ide.ajax.writeFile(path, '', (function() {
@@ -131,7 +131,7 @@ ide.explorer = (function() {
         }
       },
     });
-  }
+  };
 
   ProjectExplorer.prototype.drawTree = function() {
     this.tree.tree('loadData', filesToJqTree(this.files));
@@ -179,7 +179,7 @@ ide.explorer = (function() {
     ide.utils.prompt('New name for ' + node.name + '?', function (newName) {
       if (newName === null || newName.trim().length === 0) {
         return;
-      };
+      }
       if (!self.checkFilename(newName)) {
         return;
       }

@@ -55,5 +55,5 @@ ide.callgraph = (function() {
 
   return {
     CallGraph: CallGraph
-  }
+  };
 })();
