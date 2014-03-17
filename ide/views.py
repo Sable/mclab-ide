@@ -10,6 +10,7 @@ from ide.projects import get_all_projects, Project
 
 MCLABAAS_URL = 'http://localhost:4242'
 
+
 @app.route('/')
 def index():
     return render_template('index.html', projects=get_all_projects())
@@ -18,6 +19,7 @@ def index():
 @app.route('/parse', methods=['POST'])
 def parse():
     return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
+
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
@@ -59,7 +61,9 @@ def create_project():
 
 @app.route('/project/<project:project>/')
 def project(project):
-    return render_template('project.html', settings=json.dumps(ide.settings.get()))
+    return render_template(
+        'project.html',
+        settings=json.dumps(ide.settings.get()))
 
 
 @app.route('/project/<project:project>/delete', methods=['POST'])
