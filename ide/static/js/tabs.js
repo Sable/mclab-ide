@@ -8,7 +8,8 @@ ide.tabs = (function() {
   };
 
   Tab.create = function(name, parent) {
-    var li = $('<li>').append(
+    var li =
+      $('<li>').append(
         $('<a>')
           .attr('href', '#')
           .append(name, '&nbsp;', ide.utils.makeIcon('remove'))
