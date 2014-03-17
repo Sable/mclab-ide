@@ -12,20 +12,18 @@ ide.editor = (function() {
     this.asts = {};
     this.tabs = new ide.tabs.TabManager(ul)
       .on('all_tabs_closed', this.hide.bind(this))
-      .on('tab_select', (function (e, path) {
-        this.selectFile(path);
-      }).bind(this));
+      .on('tab_select', this.selectFile.bind(this));
     this.editor.on('change', (function () {
-      this.tabs.getSelectedTab().setDirty();
+      this.tabs.markDirty(this.tabs.getSelected());
     }).bind(this));
     this.hide();
 
     $(window).on('beforeunload', (function() {
       // TODO(isbadawi): Prompt to save, not just warn?
-      var dirty_tabs = this.tabs.getDirtyTabs().length;
-      if (dirty_tabs > 0) {
+      var num_dirty = this.tabs.numDirtyTabs();
+      if (num_dirty > 0) {
         return [
-          'You have ' + dirty_tabs + ' unsaved file' + (dirty_tabs === 1 ? '' : 's') + '.',
+          'You have ' + num_dirty + ' unsaved file' + (num_dirty === 1 ? '' : 's') + '.',
           'If you leave the page, you will lose any unsaved changes.'
         ].join('\n');
       }
@@ -84,8 +82,8 @@ ide.editor = (function() {
   };
 
   Editor.prototype.openFile = function(path, callback) {
-    if (this.tabs.hasTabLabeled(path)) {
-      this.tabs.getTabLabeled(path).select();
+    if (this.tabs.has(path)) {
+      this.tabs.select(path);
       if (callback) {
         callback();
       }
@@ -93,7 +91,8 @@ ide.editor = (function() {
     }
     ide.ajax.readFile(path, (function (contents) {
       this.createSession(path, contents);
-      this.tabs.createTab(path).select();
+      this.tabs.create(path);
+      this.tabs.select(path);
       this.tryParse();
       if (callback) {
         callback();
@@ -101,23 +100,16 @@ ide.editor = (function() {
     }).bind(this));
   }
 
-  Editor.prototype.getCurrentFile = function() {
-    return this.tabs.getSelectedTab().label;
-  }
-
   Editor.prototype.saveCurrentFile = function() {
-    var path = this.getCurrentFile();
+    var path = this.tabs.getSelected();
     ide.ajax.writeFile(path, this.editor.getValue(), function () {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
-    this.tabs.getSelectedTab().clearDirty();
+    this.tabs.clearDirty(path);
   };
 
   Editor.prototype.fileIsDirty = function(path) {
-    if (!this.tabs.hasTabLabeled(path)) {
-      return false;
-    }
-    return this.tabs.getTabLabeled(path).is_dirty;
+    return this.tabs.has(path) && this.tabs.isDirty(path);
   }
 
   var renameKey = function(object, oldKey, newKey) {
@@ -134,17 +126,13 @@ ide.editor = (function() {
   };
 
   Editor.prototype.renameFile = function(oldPath, newPath) {
-    if (this.tabs.hasTabLabeled(oldPath)) {
-      this.tabs.getTabLabeled(oldPath).rename(newPath);
-    }
+    this.tabs.has(oldPath) && this.tabs.rename(oldPath, newPath);
     renameKey(this.sessions, oldPath, newPath);
     renameKey(this.asts, oldPath, newPath);
   };
 
   Editor.prototype.deleteFile = function(path) {
-    if (this.tabs.hasTabLabeled(path)) {
-      this.tabs.getTabLabeled(path).forceClose();
-    }
+    this.tabs.has(path) && this.tabs.forceClose(path);
     removeKey(this.sessions, path);
     removeKey(this.asts, path);
   };
@@ -161,7 +149,7 @@ ide.editor = (function() {
     var token = this.editor.getSession().getTokenAt(position.row, position.column);
     return {
       identifier: token.value,
-      file: this.getCurrentFile(),
+      file: this.tabs.getSelected(),
       line: position.row + 1,
       col: token.start + 1
     };
@@ -191,11 +179,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.hasAst = function() {
-    return _(this.asts).has(this.getCurrentFile());
+    return _(this.asts).has(this.tabs.getSelected());
   }
 
   Editor.prototype.getAst = function() {
-    return this.asts[this.getCurrentFile()];
+    return this.asts[this.tabs.getSelected()];
   };
 
   Editor.prototype.hide = function() {
@@ -227,11 +215,11 @@ ide.editor = (function() {
     ide.ast.parse(this.editor.getValue(),
       (function (ast) {
         this.clearErrors();
-        this.asts[this.getCurrentFile()] = ast;
+        this.asts[this.tabs.getSelected()] = ast;
       }).bind(this),
       (function (errors) {
         this.overlayErrors(errors);
-        delete this.asts[this.getCurrentFile()];
+        delete this.asts[this.tabs.getSelected()];
       }).bind(this));
   };
 

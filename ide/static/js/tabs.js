@@ -1,32 +1,27 @@
 ide.tabs = (function() {
-  var Tab = function (li, label, manager) {
+  var Tab = function (li, name) {
     this.li = li;
-    this.label = label;
-    this.label_el = this.li.find('a').first();
+    this.name = name;
+    this.label = this.li.find('a').first();
     this.li.data('tab', this);
-    this.manager = manager;
-    this.is_dirty = false;
+    this.dirty = false;
   };
 
-  Tab.prototype.setDirty = function() {
-    if (!this.is_dirty) {
-      this.is_dirty = true;
-      this.label_el.prepend('*');
+  Tab.prototype.markDirty = function() {
+    if (!this.dirty) {
+      this.dirty = true;
+      this.label.prepend('*');
     }
-  }
+  };
 
   Tab.prototype.clearDirty = function() {
-    if (this.is_dirty) {
-      this.is_dirty = false;
-      this.label_el.html(this.label_el.html().substring(1));
+    if (this.dirty) {
+      this.dirty = false;
+      this.label.html(this.label.html().substring(1));
     }
-  }
-
-  Tab.prototype.getSiblings = function() {
-    return _.chain(this.li.siblings()).map($).invoke('data', 'tab').value();
   };
 
-  Tab.prototype.getClosestTab = function() {
+  Tab.prototype.getNext = function() {
     var tab = this.li.prev('li');
     if (tab.length === 0) {
       tab = this.li.next('li');
@@ -35,119 +30,132 @@ ide.tabs = (function() {
       return tab.data('tab') || null;
     }
     return null;
-  }
+  };
 
-  Tab.prototype.isSelected = function() {
+  Tab.prototype.selected = function() {
     return this.li.hasClass('active');
   };
 
-  Tab.prototype.unselect = function() {
-    this.li.removeClass('active');
+  Tab.prototype.close = function() {
+    this.li.remove();
   };
 
   Tab.prototype.select = function() {
     this.li.addClass('active');
-    _(this.getSiblings()).invoke('unselect');
-    this.manager.trigger('tab_select', this.label);
-  };
-
-  Tab.prototype.close = function() {
-    // TODO(isbadawi): Prompt to save, not just warn?
-    if (!this.is_dirty) {
-      this.forceClose();
-      return;
-    }
-    var self = this;
-    ide.utils.confirm('This file has unsaved changes. Really close?', function (confirmed) {
-      if (confirmed) {
-        self.forceClose();
-      }
-    });
+    _.chain(this.li.siblings()).map($).invoke('removeClass', 'active');
   };
 
   Tab.prototype.rename = function(newName) {
-    this.label_el.html(this.label_el.html().replace(this.label, newName));
+    this.label.html(this.label.html().replace(this.name, newName));
+    this.name = newName;
+  };
 
-    // TODO(isbadawi): It's not nice that the tab is reaching into its manager
-    delete this.manager.tabs[this.label];
-    this.manager.tabs[newName] = this;
-    this.label = newName;
-  }
-
-  Tab.prototype.forceClose = function() {
-    if (this.isSelected()) {
-      var tab = this.getClosestTab();
-      if (tab !== null) {
-        tab.select();
-      }
-    }
-
-    this.manager.removeTabLabeled(this.label);
+  Tab.prototype.remove = function() {
     this.li.remove();
-
-    if (this.manager.getNumTabs() === 0) {
-      this.manager.trigger('all_tabs_closed');
-    }
   };
 
   var TabManager = function(ul) {
     this.ul = ul;
     this.tabs = {};
+    this.callbacks = {
+      all_tabs_closed: null,
+      tab_select: null,
+    };
 
+    var self = this;
     this.ul
       .on('click', 'li:not(.editor-add-file)', function() {
-        $(this).data('tab').select();
+        self.select($(this).data('tab').name);
       })
       .on('click', 'span.glyphicon-remove', function() {
-        $(this).parents('li').first().data('tab').close();
+        self.close($(this).parents('li').first().data('tab').name);
         return false;
       });
   };
 
-
   TabManager.prototype.on = function(event, callback) {
-    this.ul.on(event, callback);
+    this.callbacks[event] = callback;
     return this;
   };
 
-  TabManager.prototype.trigger = function(event, arg) {
-    this.ul.trigger(event, arg);
+  TabManager.prototype.trigger = function(event) {
+    var callback = this.callbacks[event];
+    if (callback) {
+      callback.apply(null, _(arguments).toArray().slice(1));
+    }
   };
 
-  TabManager.prototype.getNumTabs = function(name) {
-    return Object.keys(this.tabs).length;
-  };
-
-  TabManager.prototype.getAllTabs = function(name) {
-    return _(this.tabs).values();
+  TabManager.prototype.numDirtyTabs = function(name) {
+    return _.chain(this.tabs).values().where({dirty: true}).value().length;
   }
 
-  TabManager.prototype.getDirtyTabs = function(name) {
-    return _(this.getAllTabs()).where({is_dirty: true});
+  TabManager.prototype.isDirty = function(name) {
+    return this.tabs[name].dirty;
   }
 
-  TabManager.prototype.getTabLabeled = function(name) {
-    return this.tabs[name];
-  };
-
-  TabManager.prototype.hasTabLabeled = function(name) {
+  TabManager.prototype.has = function(name) {
     return _(this.tabs).has(name);
   };
 
-  TabManager.prototype.removeTabLabeled = function(name) {
+  TabManager.prototype.close = function(name) {
+    var tab = this.tabs[name];
+    if (!tab.dirty) {
+      this.forceClose(name);
+      return;
+    }
+    ide.utils.confirm('This file has unsaved changes. Really close?', (function (confirmed) {
+      if (confirmed) {
+        this.forceClose(name);
+      }
+    }).bind(this));
+  };
+
+  TabManager.prototype.forceClose = function(name) {
+    var tab = this.tabs[name];
+    if (tab.selected()) {
+      var next = tab.getNext();
+      if (next !== null) {
+        this.select(next.name);
+      }
+    }
+    tab.close();
+
+    delete this.tabs[name];
+    if (_(this.tabs).isEmpty()) {
+      this.trigger('all_tabs_closed');
+    }
+  };
+
+  TabManager.prototype.rename = function(name, newName) {
+    var tab = this.tabs[name];
+    tab.rename(newName);
+    this.tabs[newName] = tab;
     delete this.tabs[name];
   };
 
-  TabManager.prototype.getSelectedTab = function() {
-    return this.ul.find('li.active').data('tab');
+  TabManager.prototype.select = function(name) {
+    this.tabs[name].select();
+    this.trigger('tab_select', name);
   };
 
-  TabManager.prototype.createTab = function(filename) {
+  TabManager.prototype.getSelected = function() {
+    return this.ul.find('li.active').data('tab').name;
+  };
+
+  TabManager.prototype.markDirty = function(name) {
+    this.tabs[name].markDirty();
+  }
+
+  TabManager.prototype.clearDirty = function(name) {
+    this.tabs[name].clearDirty();
+  }
+
+  TabManager.prototype.create = function(name) {
     var li = $('<li>').append($('<a>').attr('href', '#').append(
-      filename, '&nbsp;', ide.utils.makeIcon('remove')));
+      name, '&nbsp;', ide.utils.makeIcon('remove')));
     li.appendTo(this.ul);
-    this.tabs[filename] = new Tab(li, filename, this);
-    return this.tabs[filename];
+    this.tabs[name] = new Tab(li, name);
+    return name;
   };
 
   return {
