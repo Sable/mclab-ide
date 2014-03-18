@@ -1,5 +1,7 @@
 package mclab.ide.callgraph;
 
+import mclint.MatlabProgram;
+import mclint.Project;
 import mclint.util.AstUtil;
 import natlab.LookupFile;
 import natlab.toolkits.analysis.varorfun.VFAnalysis;
@@ -28,19 +30,26 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
       @Override public boolean isFunctionOrScript(String name) {
         return env.isFunctionOrScript(name) || BASELINE_QUERY.isFunctionOrScript(name);
       }
-      
+
       @Override public boolean isPackage(String name) {
         return env.isPackage(name) || BASELINE_QUERY.isPackage(name);
       }
     };
   }
 
-  public static void instrument(Program node, String relativePath) {
-    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, getKindAnalysisEnvironment(node)); 
-    kindAnalysis.analyze();
-    node.analyze(new CallgraphTransformer(kindAnalysis, relativePath));
+  public static void instrument(Project project) {
+    for (MatlabProgram program : project.getMatlabPrograms()) {
+      instrument(program);
+    }
   }
-  
+
+  public static void instrument(MatlabProgram program) {
+    Program node = program.parse();
+    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, getKindAnalysisEnvironment(node));
+    kindAnalysis.analyze();
+    node.analyze(new CallgraphTransformer(kindAnalysis, program.getPath()));
+  }
+
   private VFAnalysis kindAnalysis;
   private String relativePath;
 
@@ -48,7 +57,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     this.kindAnalysis = kindAnalysis;
     this.relativePath = relativePath;
   }
-  
+
   private String identifier(ASTNode node, String id) {
     return String.format("%s@%s:%d,%d", id, relativePath, node.getStartLine(), node.getStartColumn());
   }
@@ -56,22 +65,22 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   private String identifier(Name name) {
     return identifier(name, name.getID());
   }
-  
+
   private String identifier(Function function) {
     return identifier(function, function.getName());
   }
-  
+
   private static Name getTarget(ParameterizedExpr call) {
     return ((NameExpr) call.getTarget()).getName();
   }
-  
+
   private boolean isCall(ParameterizedExpr call) {
     if (!(call.getTarget() instanceof NameExpr)) {
       return false;
     }
     return kindAnalysis.getResult(getTarget(call)).isFunction();
   }
-  
+
   private static <T extends ASTNode> ast.List<T> concat(ast.List<T> list, ast.List<T> other) {
     for (T t : other) {
       list = list.add(t);
@@ -92,7 +101,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     );
 
   }
-  
+
   private Stmt functionEntryLogStmt(Function f) {
     return new ExprStmt(
         new ParameterizedExpr(
@@ -108,12 +117,12 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
       node.getChild(i).analyze(this);
     }
   }
-  
+
   @Override public void caseFunction(Function f) {
     caseASTNode(f);
     f.getStmts().insertChild(functionEntryLogStmt(f), 0);
   }
-  
+
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
     if (!isCall(e)) {
       return;
