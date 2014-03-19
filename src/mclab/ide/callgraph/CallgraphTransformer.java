@@ -47,7 +47,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     Program node = program.parse();
     VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, getKindAnalysisEnvironment(node));
     kindAnalysis.analyze();
-    node.analyze(new CallgraphTransformer(kindAnalysis, program.getPath()));
+    node.analyze(new CallgraphTransformer(kindAnalysis, program.getPath().toString()));
   }
 
   private VFAnalysis kindAnalysis;
