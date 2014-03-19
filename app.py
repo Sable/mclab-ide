@@ -4,6 +4,7 @@ import flask
 
 import parse
 import callgraph
+import refactoring
 
 app = flask.Flask(__name__)
 
@@ -23,6 +24,17 @@ def get_callgraph():
     expression = flask.request.form['expression']
     graph = callgraph.get_callgraph(project, expression)
     return json.dumps({'callgraph': graph})
+
+@app.route('/refactor/extract-function', methods=['GET'])
+def extract_function():
+    path = flask.request.args['path']
+    selection = flask.request.args['selection']
+    new_name = flask.request.args['newName']
+    try:
+        new_text = refactoring.extract_function(path, selection, new_name)
+        return json.dumps({'newText': new_text})
+    except refactoring.Error as e:
+        return json.dumps({'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=4242)
