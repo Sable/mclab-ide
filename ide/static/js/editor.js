@@ -176,6 +176,16 @@ ide.editor = (function() {
     }).bind(this));
   };
 
+  Editor.prototype.getSelectionRange = function() {
+    var range = this.editor.getSelection().getRange();
+    return {
+      startLine: range.start.row + 1,
+      startColumn: range.start.column + 1,
+      endLine: range.end.row + 1,
+      endColumn: range.end.column + 1,
+    };
+  };
+
   Editor.prototype.isFunctionCall = function(token) {
     return this.getAst()
       .find('NameExpr', {line: token.line, col: token.col})

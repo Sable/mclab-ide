@@ -38,6 +38,39 @@ ide.init = function(settings) {
     });
   });
 
+  $('#editor-buffer').contextmenu({
+    target: '#editor-context-menu',
+    onItem: function (e, item) {
+      var action = $(item).text();
+      if (action === 'Extract function') {
+        console.log('Extract function for', JSON.stringify(editor.getSelectionRange()));
+        ide.utils.prompt('Method name', function (newName) {
+          // TODO(isbadawi): Check for valid MATLAB identifier?
+          if (newName === null || newName.trim().length === 0) {
+            return;
+          }
+          ide.ajax.extractFunction(
+            editor.tabs.getSelected(),
+            editor.getSelectionRange(),
+            newName,
+            function (changedText) {
+              console.log('Extract function successful.');
+              // TODO(isbadawi): Avoid rewriting the whole file?
+              // The server could send a patch, or something.
+              // Also, Eclipse sets the selection to the extracted method call
+              // after the refactoring finishes. Can we do this?
+              editor.editor.setValue(changedText, -1);
+            },
+            function (error) {
+              console.log('Extract function failed:', error);
+              ide.utils.flashError(error);
+            }
+          );
+        });
+      }
+    },
+  });
+
   var explorer = new ide.explorer.ProjectExplorer('project-explorer')
     .on('file_selected', function (path) { editor.openFile(path); })
     .on('file_renamed', function (oldPath, newPath, doRename) {

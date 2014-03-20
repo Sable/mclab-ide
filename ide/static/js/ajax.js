@@ -2,7 +2,7 @@ ide.ajax = (function() {
   var parseCode = function(code, callback) {
     $.ajax({
       url: '/parse',
-      method: 'POST',
+      method: 'post',
       contentType: 'text/plain',
       data: code,
       dataType: 'json',
@@ -10,12 +10,15 @@ ide.ajax = (function() {
     });
   };
 
-  var readFile = function(path, callback) {
-    params = {path: path};
-    $.get('read-file?' + $.param(params), callback);
+  var get = function(url, params, callback) {
+    $.get(url + '?' + $.param(params), callback);
   };
 
-  var POST = function(url, params, callback) {
+  var get_json = function(url, params, callback) {
+    $.getJSON(url + '?' + $.param(params), callback);
+  };
+
+  var post = function(url, params, callback) {
     $.post(url, params, function (data) {
       if (callback) {
         callback();
@@ -23,32 +26,52 @@ ide.ajax = (function() {
     });
   };
 
+  var readFile = function(path, callback) {
+    get('read-file', {path: path}, callback);
+  };
+
   var writeFile = function(path, contents, callback) {
-    POST('write-file', {path: path, contents: contents}, callback);
+    post('write-file', {path: path, contents: contents}, callback);
   };
 
   var renameFile = function(path, newPath, callback) {
-    POST('rename-file', {path: path, newPath: newPath}, callback);
+    post('rename-file', {path: path, newPath: newPath}, callback);
   };
 
   var deleteFile = function(path, callback) {
-    POST('delete-file', {path: path}, callback);
+    post('delete-file', {path: path}, callback);
   };
 
   var getFiles = function(callback) {
-    $.getJSON('files', callback);
+    get_json('files', {}, callback);
   };
 
   var getCallGraph = function(expression, callback) {
      $.ajax({
       url: 'callgraph',
-      method: 'POST',
+      method: 'post',
       data: {expression: expression},
       dataType: 'json',
       success: function (data) {
         if ('callgraph' in data) {
           callback(data.callgraph);
         }
+      }
+    });
+  };
+
+  var extractFunction = function(path, selection, newName, success, error) {
+    var range = [
+      [selection.startLine, selection.startColumn].join(','),
+      [selection.endLine, selection.endColumn].join(','),
+    ].join('-');
+
+    var params = { path: path, selection: range, newName: newName };
+    get_json('refactor/extract-function', params, function (data) {
+      if (data.newText) {
+        success(data.newText);
+      } else {
+        error(data.error);
       }
     });
   };
@@ -61,5 +84,6 @@ ide.ajax = (function() {
     deleteFile: deleteFile,
     getFiles: getFiles,
     getCallGraph: getCallGraph,
+    extractFunction: extractFunction,
   };
 })();

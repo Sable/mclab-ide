@@ -106,3 +106,13 @@ def callgraph(project):
     params = {'project': project.root,
               'expression': request.form['expression']}
     return requests.post(MCLABAAS_URL + '/callgraph', data=params).text
+
+
+@app.route('/project/<project:project>/refactor/extract-function', methods=['GET'])
+def extract_function(project):
+    params = {
+        'path': project.path(request.args['path']),
+        'selection': request.args['selection'],
+        'newName': request.args['newName']
+    }
+    return requests.get(MCLABAAS_URL + '/refactor/extract-function', params=params).text
