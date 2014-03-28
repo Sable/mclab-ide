@@ -8,15 +8,25 @@ import refactoring
 
 app = flask.Flask(__name__)
 
-@app.route('/ast', methods=['POST'])
-def ast():
-    code = flask.request.data
+
+def _parsed_request_data(format):
     response = {}
     try:
-        response['ast'] = parse.matlab_to_xml(code)
+        response['ast'] = parse.matlab(flask.request.data, format)
     except parse.SyntaxError as e:
         response['errors'] = e.errors
     return json.dumps(response)
+
+
+@app.route('/xml-ast', methods=['POST'])
+def xml_ast():
+    return _parsed_request_data(format='xml')
+
+
+@app.route('/json-ast', methods=['POST'])
+def json_ast():
+    return _parsed_request_data(format='json')
+
 
 @app.route('/callgraph', methods=['POST'])
 def get_callgraph():
@@ -24,6 +34,7 @@ def get_callgraph():
     expression = flask.request.form['expression']
     graph = callgraph.get_callgraph(project, expression)
     return json.dumps({'callgraph': graph})
+
 
 @app.route('/refactor/extract-function', methods=['GET'])
 def extract_function():
