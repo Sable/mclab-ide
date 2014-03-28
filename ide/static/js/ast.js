@@ -2,22 +2,43 @@ ide.ast = (function() {
   var parse = function(code, callback, err) {
     ide.ajax.parseCode(code, function (data) {
       if (data.ast) {
-        callback(new Ast($($.parseXML(data.ast))));
+        callback(new Ast(JSON.parse(data.ast)));
       } else {
         err(data.errors);
       }
     });
   };
 
-  var Ast = function(xml) {
-    this.ast = xml;
+  var Ast = function(ast) {
+    this.ast = ast;
   };
 
-  Ast.prototype.find = function(node, attrs) {
-    var selector = node + _(attrs).map(function (value, key) {
-      return '[' + key + '="' + value + '"]';
-    }).join('');
-    return new Ast(this.ast.find(selector));
+  var traverseAst = function(ast, cb) {
+    if (_.isEmpty(ast) || cb(ast) === false) {
+      return;
+    }
+    _(ast).each(function (value, key) {
+      if (_.isArray(value)) {
+        _(value).each(function (node) {
+          traverseAst(node, cb);
+        });
+      } else if (key !== 'position' && _.isObject(value)) {
+        traverseAst(value, cb);
+      }
+    });
+  }
+
+  Ast.prototype.findAtPosition = function(type, position) {
+    var match;
+    traverseAst(this.ast, function(node) {
+      if (node.type === type &&
+          node.position.start.line === position.line &&
+          node.position.start.column === position.col) {
+        match = node;
+        return false;
+      }
+    });
+    return new Ast(match);
   };
 
   Ast.prototype.isFunctionCall = function() {
@@ -38,13 +59,9 @@ ide.ast = (function() {
     //
     // TODO(isbadawi): Find a sensible heuristic to warn about
     // calls to undeclared functions?
-    return this.ast.prop('tagName') === 'NameExpr' && (
-      this.ast.attr('kind') === 'FUN' ||
-      this.ast.attr('kind') === 'BOT');
-  };
-
-  Ast.prototype.attr = function(attr) {
-    return this.ast.attr(attr);
+    return this.ast.type === 'NameExpr' && (
+      this.ast.kind === 'FUN' ||
+      this.ast.kind === 'BOT');
   };
 
   return {

@@ -18,7 +18,7 @@ def index():
 
 @app.route('/parse', methods=['POST'])
 def parse():
-    return requests.post(MCLABAAS_URL + '/ast', data=request.data).text
+    return requests.post(MCLABAAS_URL + '/json-ast', data=request.data).text
 
 
 @app.route('/settings', methods=['GET', 'POST'])

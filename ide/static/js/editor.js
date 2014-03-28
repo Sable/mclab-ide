@@ -188,7 +188,7 @@ ide.editor = (function() {
 
   Editor.prototype.isFunctionCall = function(token) {
     return this.getAst()
-      .find('NameExpr', {line: token.line, col: token.col})
+      .findAtPosition('NameExpr', token)
       .isFunctionCall();
   };
 
