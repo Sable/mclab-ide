@@ -61,7 +61,7 @@ public class ExtractFunctionTool {
   private static Function getEnclosingFunctionIfUniqueElseNull(List<Stmt> stmts) {
     FluentIterable<Function> functions = FluentIterable.from(
         Iterables.transform(stmts, ENCLOSING_FUNCTION));
-    if (functions.toImmutableSet().size() != 1) {
+    if (functions.toSet().size() != 1) {
       return null;
     }
     return functions.first().get();
