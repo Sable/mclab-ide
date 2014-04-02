@@ -9,6 +9,7 @@ import mclint.MatlabProgram;
 import mclint.refactoring.Refactoring;
 import mclint.refactoring.RefactoringContext;
 import mclint.refactoring.Refactorings;
+import mclint.transform.StatementRange;
 import natlab.refactoring.Exceptions;
 import natlab.utils.NodeFinder;
 import ast.Function;
@@ -23,21 +24,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 
 public class ExtractFunctionTool {
-  private static class StatementRange {
-    public int start;
-    public int end;
-    public Function enclosingFunction;
-    public StatementRange(int start, int end, Function enclosingFunction) {
-      this.start = start;
-      this.end = end;
-      this.enclosingFunction = enclosingFunction;
-    }
-    
-    @Override public String toString() {
-      return String.format("%s:%d-%d", enclosingFunction.getName(), start, end);
-    }
-  }
-  
   private static Predicate<Stmt> occursWithin(final TextRange range) {
     return new Predicate<Stmt>() {
       @Override public boolean apply(Stmt node) {
@@ -76,10 +62,9 @@ public class ExtractFunctionTool {
         
     Stmt firstStatement = byIndex.min(statements);
     Stmt lastStatement = byIndex.max(statements);
-    return new StatementRange(
+    return StatementRange.create(enclosingFunction, stmts,
         stmts.getIndexOfChild(firstStatement),
-        stmts.getIndexOfChild(lastStatement) + 1,
-        enclosingFunction);
+        stmts.getIndexOfChild(lastStatement) + 1);
   }
   
   private static StatementRange findStatementsInSelection(MatlabProgram program, TextRange range) {
@@ -102,8 +87,7 @@ public class ExtractFunctionTool {
     StatementRange statements = findStatementsInSelection(program, selection);
     RefactoringContext context = RefactoringContext.create(program);
     Refactoring extractFunction = Refactorings.extractFunction(
-        context, statements.enclosingFunction,
-        statements.start, statements.end, newName);
+        context, statements, newName);
     extractFunction.apply();
     for (Exceptions.RefactorException error : extractFunction.getErrors()) {
       System.err.println(error);
