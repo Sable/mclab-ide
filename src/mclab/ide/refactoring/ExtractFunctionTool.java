@@ -2,8 +2,6 @@ package mclab.ide.refactoring;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import mclab.ide.common.TextRange;
@@ -21,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 
 public class ExtractFunctionTool {
@@ -69,14 +68,14 @@ public class ExtractFunctionTool {
   
   private static StatementRange toStatementRange(List<Stmt> statements, Function enclosingFunction) {
     final ast.List<Stmt> stmts = enclosingFunction.getStmts();
-    Collections.sort(statements, new Comparator<Stmt>() {
+    Ordering<Stmt> byIndex = new Ordering<Stmt>() {
       @Override public int compare(Stmt s1, Stmt s2) {
         return Ints.compare(stmts.getIndexOfChild(s1), stmts.getIndexOfChild(s2));
       }
-    });
+    };
         
-    Stmt firstStatement = statements.get(0);
-    Stmt lastStatement = statements.get(statements.size() - 1);
+    Stmt firstStatement = byIndex.min(statements);
+    Stmt lastStatement = byIndex.max(statements);
     return new StatementRange(
         stmts.getIndexOfChild(firstStatement),
         stmts.getIndexOfChild(lastStatement) + 1,
