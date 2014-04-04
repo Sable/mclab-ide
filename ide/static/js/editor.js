@@ -66,6 +66,14 @@ ide.editor = (function() {
       this.show();
   };
 
+  Editor.prototype.selectLine = function(line) {
+    var Range = ace.require('ace/range').Range;
+    var selection = this.editor.selection;
+    selection.setSelectionRange(new Range(line - 1, 0, line - 1, 0));
+    selection.selectLineStart();
+    selection.selectLineEnd();
+  }
+
   Editor.prototype.createSession = function(path, text) {
     this.sessions[path] = createEditSession(text, this.settings);
   };

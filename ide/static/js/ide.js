@@ -57,9 +57,9 @@ ide.init = function(settings) {
               console.log('Extract function successful.');
               // TODO(isbadawi): Avoid rewriting the whole file?
               // The server could send a patch, or something.
-              // Also, Eclipse sets the selection to the extracted method call
-              // after the refactoring finishes. Can we do this?
-              editor.editor.setValue(changedText, -1);
+              var selection_start_line = editor.getSelectionRange().startLine;
+              editor.editor.setValue(changedText);
+              editor.selectLine(selection_start_line);
             },
             function (error) {
               console.log('Extract function failed:', error);
