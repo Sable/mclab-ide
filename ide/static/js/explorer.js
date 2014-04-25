@@ -20,9 +20,9 @@ ide.explorer = (function() {
       }
     });
 
-    this.tree.on('tree.dblclick', (function (e) {
+    this.tree.on('tree.dblclick', function (e) {
       this.nodeSelected(e.node);
-    }).bind(this));
+    }.bind(this));
 
     this.createTree();
     this.createContextMenu();
@@ -54,12 +54,12 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.createFile = function(path) {
-    ide.ajax.writeFile(path, '', (function() {
+    ide.ajax.writeFile(path, '', function() {
       // TODO(isbadawi): Just edit the tree instead of refreshing completely?
-      this.refresh((function() {
+      this.refresh(function() {
         this.trigger('file_selected', path);
-      }).bind(this));
-    }).bind(this));
+      }.bind(this));
+    }.bind(this));
   };
 
   ProjectExplorer.prototype.nodeSelected = function(node) {
@@ -104,13 +104,13 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.refresh = function(callback) {
-    ide.ajax.getFiles((function (files) {
+    ide.ajax.getFiles(function (files) {
       this.files = files;
       this.drawTree();
       if (callback) {
         callback();
       }
-    }).bind(this));
+    }.bind(this));
   };
 
   ProjectExplorer.prototype.createTree = function() {

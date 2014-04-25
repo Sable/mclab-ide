@@ -113,11 +113,11 @@ ide.tabs = (function() {
       this.forceClose(name);
       return;
     }
-    ide.utils.confirm('This file has unsaved changes. Really close?', (function (confirmed) {
+    ide.utils.confirm('This file has unsaved changes. Really close?', function (confirmed) {
       if (confirmed) {
         this.forceClose(name);
       }
-    }).bind(this));
+    }.bind(this));
   };
 
   TabManager.prototype.forceClose = function(name) {

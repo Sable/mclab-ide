@@ -13,12 +13,12 @@ ide.editor = (function() {
     this.tabs = new ide.tabs.TabManager(ul)
       .on('all_tabs_closed', this.hide.bind(this))
       .on('tab_select', this.selectFile.bind(this));
-    this.editor.on('change', (function () {
+    this.editor.on('change', function () {
       this.tabs.markDirty(this.tabs.getSelected());
-    }).bind(this));
+    }.bind(this));
     this.hide();
 
-    $(window).on('beforeunload', (function() {
+    $(window).on('beforeunload', function() {
       // TODO(isbadawi): Prompt to save, not just warn?
       var num_dirty = this.tabs.numDirtyTabs();
       if (num_dirty > 0) {
@@ -27,7 +27,7 @@ ide.editor = (function() {
           'If you leave the page, you will lose any unsaved changes.'
         ].join('\n');
       }
-    }).bind(this));
+    }.bind(this));
   };
 
   var createAceEditor = function(el, settings) {
@@ -97,7 +97,7 @@ ide.editor = (function() {
       }
       return;
     }
-    ide.ajax.readFile(path, (function (contents) {
+    ide.ajax.readFile(path, function (contents) {
       this.createSession(path, contents);
       this.tabs.create(path);
       this.tabs.select(path);
@@ -105,7 +105,7 @@ ide.editor = (function() {
       if (callback) {
         callback();
       }
-    }).bind(this));
+    }.bind(this));
   };
 
   Editor.prototype.saveCurrentFile = function() {
@@ -151,12 +151,16 @@ ide.editor = (function() {
 
   Editor.prototype.jumpTo = function(token) {
     console.log('Jumping to ' + JSON.stringify(token));
-    this.openFile(token.file, (function() {
+    this.openFile(token.file, function() {
       this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
-    }).bind(this));
+    }.bind(this));
   };
 
   Editor.prototype.getTokenFromMouseEvent = function(e) {
+    var MouseEvent = ace.require('ace/mouse/mouse_event').MouseEvent;
+    if (!(e instanceof MouseEvent)) {
+      e = new MouseEvent(e, this.editor);
+    }
     var position = e.getDocumentPosition();
     var token = this.editor.getSession().getTokenAt(position.row, position.column);
     return {
@@ -168,7 +172,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.onFunctionCallClicked = function(callback) {
-    this.editor.on('click', (function(e) {
+    this.editor.on('click', function(e) {
       this.editor.getSelection().toSingleRange();
       if (!e.getAccelKey()) {
         return;
@@ -181,7 +185,7 @@ ide.editor = (function() {
       if (this.isFunctionCall(token)) {
         callback(token);
       }
-    }).bind(this));
+    }.bind(this));
   };
 
   Editor.prototype.getSelectionRange = function() {
@@ -235,24 +239,24 @@ ide.editor = (function() {
 
   Editor.prototype.tryParse = function() {
     ide.ast.parse(this.editor.getValue(),
-      (function (ast) {
+      function (ast) {
         this.clearErrors();
         this.asts[this.tabs.getSelected()] = ast;
-      }).bind(this),
-      (function (errors) {
+      }.bind(this),
+      function (errors) {
         this.overlayErrors(errors);
         delete this.asts[this.tabs.getSelected()];
-      }).bind(this));
+      }.bind(this));
   };
 
   Editor.prototype.startSyntaxChecker = function() {
     var typingTimer = null;
     var doneTypingInterval = 1000;
 
-    var doneTyping = (function() {
+    var doneTyping = function() {
       this.tryParse();
       typingTimer = null;
-    }).bind(this);
+    }.bind(this);
 
     this.editor.on('change', function() {
       if (typingTimer !== null) {

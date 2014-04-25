@@ -39,10 +39,10 @@ ide.callgraph = (function() {
       callback(this.graph);
       return;
     }
-    computeCallGraph(this.codeSource(), (function(graph) {
+    computeCallGraph(this.codeSource(), function(graph) {
       this.graph = graph;
       callback(graph);
-    }).bind(this));
+    }.bind(this));
   };
 
   CallGraph.prototype.getTargets = function(token, callback) {
