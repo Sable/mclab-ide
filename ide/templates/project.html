@@ -4,19 +4,23 @@
 <div id="wrapper">
 
 <div id="sidebar-wrapper">
-  <div id="project-explorer">
-  <form id="new-file-form" class="form form-inline">
-  <input type="text" class="form-inline" name="path" placeholder="New file..." />
-  <button class="btn btn-xs btn-primary">
-  <span class="glyphicon glyphicon-plus"></span></button>
-  </form>
-  <div id="files"></div>
+  <div id="project-explorer"
+       data-bind="contextMenu: { target: '#files-context-menu',
+                                 before: beforeContextMenu,
+                                 onItem: onContextMenuItem }">
+    <form data-bind="submit: newFile" class="form form-inline">
+      <input type="text" class="form-inline" name="path"
+             placeholder="New file..." />
+      <button class="btn btn-xs btn-primary">
+        <span class="glyphicon glyphicon-plus"></span>
+      </button>
+    </form>
+    <ul data-bind="template: {name: 'tree-node', foreach: root.children}"></ul>
   </div>
 </div>
 
 <div id="page-content-wrapper">
   <div class="page-content inset">
-
     <div class="row">
     <div id="editor">
       <ul data-bind="foreach: tabs" class="editor-tabs nav nav-tabs">
@@ -31,7 +35,6 @@
       <div id="editor-buffer" class="col-md-12">
       </div>
     </div>
-
     <div id="console" class="col-md-12">
     </div>
     </div>
@@ -61,6 +64,24 @@
 {% endblock %}
 
 {% block js %}
+  <script type="text/html" id="tree-node">
+    <li data-bind="click: toggle">
+      <!-- ko if: leaf -->
+      <span class="glyphicon glyphicon-file"></span>
+      <!-- /ko -->
+      <!-- ko if: !leaf() && expanded() -->
+      <span class="glyphicon glyphicon-folder-open"></span>
+      <!-- /ko -->
+      <!-- ko if: !leaf() && !expanded() -->
+      <span class="glyphicon glyphicon-folder-close"></span>
+      <!-- /ko -->
+      <span class="file-name"
+            data-bind="text: name, event: { dblclick: $root.select }"></span>
+      <div data-bind="if: expanded">
+        <ul data-bind="template: {name: 'tree-node', foreach: children}"></ul>
+      </div>
+    </li>
+  </script>
   {% assets 'js_ace', 'js_app' %}
   <script src="{{ ASSET_URL }}"></script>
   {% endassets %}

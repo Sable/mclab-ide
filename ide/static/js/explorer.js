@@ -1,8 +1,107 @@
 ide.explorer = (function() {
-  var ProjectExplorer = function(id) {
-    this.el = $('#' + id);
-    this.tree = this.el.find('#files');
-    this.files = [];
+  ko.bindingHandlers.contextMenu = {
+    init: function (element, valueAccessor) {
+      $(element).contextmenu(valueAccessor());
+    }
+  };
+
+  var TreeNode = function (name, children, parent) {
+    this.name = ko.observable(name);
+    this.children = ko.observableArray(children || []);
+    this.parent = parent;
+
+    this.expanded = ko.observable(false);
+    this.leaf = ko.computed(function() {
+      return this.children().length === 0;
+    }.bind(this));
+  };
+
+  TreeNode.fromFiles = function(files) {
+    var root = new TreeNode('<dummy');
+    files.forEach(function (file) {
+      root.add(file);
+    });
+    return root;
+  }
+
+  TreeNode.prototype.toggle = function(node, e) {
+    e.stopPropagation();
+    this.expanded(!this.expanded());
+  };
+
+  TreeNode.prototype.getChildByName = function(name) {
+    return _(this.children()).find(function (node) {
+      return node.name() === name;
+    });
+  }
+
+  TreeNode.prototype.getOrCreateChildByName = function(name) {
+    var node = this.getChildByName(name);
+    if (!node) {
+      var node = new TreeNode(name, [], this);
+      this.children.push(node);
+    }
+    return node;
+  };
+
+  TreeNode.prototype.add = function (path) {
+    if (path.length === 0) {
+      return this;
+    }
+    var parts = path.split('/');
+    return this.getOrCreateChildByName(parts[0])
+        .add(parts.slice(1).join('/'));
+  };
+
+  TreeNode.prototype.getByPath = function(path) {
+    var parts = path.split('/');
+    var node = this;
+    for (var i = 0; i < parts.length; ++i) {
+      node = node.getChildByName(parts[i]);
+      if (!node) {
+        return;
+      }
+    }
+    return node;
+  };
+
+  TreeNode.prototype.ensureVisible = function() {
+    var node = this;
+    while (!node.expanded() && node.parent) {
+      node.expanded(true);
+      node = node.parent;
+    }
+  }
+
+  TreeNode.prototype.remove = function() {
+    var node = this;
+    do {
+      node.parent.children.remove(node);
+      node = node.parent;
+    } while (node.leaf() && node.parent);
+  };
+
+  TreeNode.prototype.fullPath = function() {
+    var parts = [];
+    var node = this;
+    while (node.parent) {
+      parts.unshift(node.name());
+      node = node.parent;
+    }
+    return parts.join('/');
+  }
+
+  var ProjectExplorer = function() {
+    this.files = ko.observableArray([]);
+    this.root = new TreeNode('<dummy>');
+
+    ide.ajax.getFiles(function (files) {
+      this.files(files);
+      this.root.children(TreeNode.fromFiles(files).children());
+      this.root.children().forEach(function (node) {
+        node.parent = this.root;
+      }.bind(this));
+    }.bind(this));
 
     this.callbacks = {
       file_selected: null,
@@ -10,23 +109,48 @@ ide.explorer = (function() {
       file_deleted: null
     };
 
+    // Define event handlers here -- otherwise we can't use 'this' to access
+    // the current object. (I guess).
     var self = this;
-    this.el.find('#new-file-form').submit(function (e) {
-      e.preventDefault();
-      var path = $(this).serializeArray()[0].value;
+
+    ProjectExplorer.prototype.newFile = function(form) {
+      var path = $(form).serializeArray()[0].value;
       if (self.checkFilename(path)) {
         self.createFile(path);
-        this.reset();
+        form.reset();
       }
-    });
+    };
 
-    this.tree.on('tree.dblclick', function (e) {
-      this.nodeSelected(e.node);
-    }.bind(this));
+    this.select = function(file) {
+      if (file.leaf()) {
+        self.trigger('file_selected', file.fullPath());
+      }
+    };
 
-    this.createTree();
-    this.createContextMenu();
-    this.refresh();
+    this.beforeContextMenu = function(e) {
+      var el = $(document.elementFromPoint(e.clientX, e.clientY));
+      var parents = el.parents('li');
+      var node = parents.first();
+      var descendents = node.find('li');
+      if (parents.length === 0 || descendents.length !== 0) {
+        return false;
+      }
+      self.contextMenuPath = el.parents('li').map(function() {
+        return $(this).find('span.file-name').first().text();
+      }).get().reverse().join('/');
+      return true;
+    }
+
+    this.onContextMenuItem = function(e, item) {
+      var action = $(item).text();
+      if (action === 'Rename...') {
+        self.doRename(self.contextMenuPath);
+      } else if (action === 'Delete') {
+        self.doDelete(self.contextMenuPath);
+      } else {
+        console.log('Unexpected action:', action);
+      }
+    };
   };
 
   ProjectExplorer.prototype.on = function(event, callback) {
@@ -46,7 +170,7 @@ ide.explorer = (function() {
       ide.utils.flashError('Please enter a file name that ends in .m.');
       return false;
     }
-    if (_(this.files).contains(path)) {
+    if (_(this.files()).contains(path)) {
       ide.utils.flashError('A file with that name already exists.');
       return false;
     }
@@ -55,156 +179,41 @@ ide.explorer = (function() {
 
   ProjectExplorer.prototype.createFile = function(path) {
     ide.ajax.writeFile(path, '', function() {
-      // TODO(isbadawi): Just edit the tree instead of refreshing completely?
-      this.refresh(function() {
-        this.trigger('file_selected', path);
+      this.root.add(path).ensureVisible();
+      this.trigger('file_selected', path);
+    }.bind(this));
+  };
+
+  ProjectExplorer.prototype.doRename = function(name) {
+    ide.utils.prompt('New name for ' + name + '?', function (newName) {
+      if (newName === null || newName.trim().length === 0) {
+        return;
+      }
+      if (!this.checkFilename(newName)) {
+        return;
+      }
+      this.trigger('file_renamed', name, newName, function() {
+        ide.ajax.renameFile(name, newName, function() {
+          this.files.remove(name);
+          this.files.push(newName);
+          this.root.getByPath(name).remove();
+          this.root.add(newName).ensureVisible();
+        }.bind(this));
       }.bind(this));
     }.bind(this));
   };
 
-  ProjectExplorer.prototype.nodeSelected = function(node) {
-    if (node.children.length > 0) {
-      this.el.tree('toggle', node, false);
-      return;
-    }
-    var parts = [];
-    while (node.name !== undefined) {
-      parts.unshift(node.name);
-      node = node.parent;
-    }
-    this.trigger('file_selected', parts.join('/'));
-  };
-
-  var Dir = function(name) {
-    this.name = name;
-    this.files = {};
-  };
-
-  Dir.prototype.add = function (path) {
-    if (path.length === 0) {
-      return;
-    }
-    var parts = path.split('/');
-    var first = parts[0];
-    this.files[first] = this.files[first] || new Dir(first);
-    this.files[first].add(parts.slice(1).join('/'));
-  };
-
-  Dir.prototype.toJqTree = function() {
-    return {
-      label: this.name,
-      children: _(this.files).invoke('toJqTree'),
-    };
-  };
-
-  var filesToJqTree = function(files) {
-    return _(new Dir('<dummy>')).tap(function (tree) {
-      _(files).each(tree.add.bind(tree));
-    }).toJqTree().children;
-  };
-
-  ProjectExplorer.prototype.refresh = function(callback) {
-    ide.ajax.getFiles(function (files) {
-      this.files = files;
-      this.drawTree();
-      if (callback) {
-        callback();
+  ProjectExplorer.prototype.doDelete = function(name) {
+    ide.utils.confirm("Are you sure you want to delete file '" + name + "'?", function(confirmed) {
+      if (confirmed) {
+        this.trigger('file_deleted', name, function() {
+          ide.ajax.deleteFile(name, function() {
+            this.files.remove(name);
+            this.root.getByPath(name).remove();
+          }.bind(this));
+        }.bind(this));
       }
     }.bind(this));
-  };
-
-  ProjectExplorer.prototype.createTree = function() {
-    this.el.find('#files').tree({
-      data: {},
-      selectable: true,
-      slide: false,
-      useContextMenu: false,
-      openedIcon: ide.utils.makeIcon('folder-open').prop('outerHTML'),
-      closedIcon: ide.utils.makeIcon('folder-close').prop('outerHTML'),
-      onCreateLi: function(node, li) {
-        if (node.children.length === 0) {
-          li.find('.jqtree-title').before(
-            $('<a>')
-              .addClass('jqtree_common jqtree-toggler')
-              .append(ide.utils.makeIcon('file'))
-          );
-        }
-      },
-    });
-  };
-
-  ProjectExplorer.prototype.drawTree = function() {
-    this.tree.tree('loadData', filesToJqTree(this.files));
-  };
-
-  ProjectExplorer.prototype.getSelectedNodeFromMouseEvent = function(e) {
-    var item = $(document.elementFromPoint(e.clientX, e.clientY));
-    var name = null;
-    if (item.hasClass('jqtree-title')) {
-      name = item.text();
-    } else {
-      name = item.find('.jqtree-title').text();
-    }
-    var node = this.tree.tree('getNodeByName', name);
-    this.tree.tree('selectNode', node);
-    return node;
-  };
-
-  ProjectExplorer.prototype.createContextMenu = function() {
-    var self = this;
-    var selectedNode = null;
-    this.el.contextmenu({
-      target: '#files-context-menu',
-      before: function (e) {
-        e.preventDefault();
-        selectedNode = self.getSelectedNodeFromMouseEvent(e);
-        return true;
-      },
-      onItem: function (e, item) {
-        var action = $(item).text();
-        if (action === 'Rename...') {
-          self.doRename(selectedNode);
-        } else if (action === 'Delete') {
-          self.doDelete(selectedNode);
-        } else {
-          console.log('Unexpected action:', action);
-        }
-        self.tree.tree('selectNode', null);
-      },
-    });
-  };
-
-  ProjectExplorer.prototype.doRename = function(node) {
-    var self = this;
-    ide.utils.prompt('New name for ' + node.name + '?', function (newName) {
-      if (newName === null || newName.trim().length === 0) {
-        return;
-      }
-      if (!self.checkFilename(newName)) {
-        return;
-      }
-      self.trigger('file_renamed', node.name, newName, function() {
-        ide.ajax.renameFile(node.name, newName, function() {
-          self.files.splice(self.files.indexOf(node.name), 1);
-          self.files.push(newName);
-          self.tree.tree('updateNode', node, newName);
-        });
-      });
-    });
-  };
-
-  ProjectExplorer.prototype.doDelete = function(node) {
-    var self = this;
-    ide.utils.confirm("Are you sure you want to delete file '" + node.name + "'?", function(confirmed) {
-      if (confirmed) {
-        self.trigger('file_deleted', node.name, function() {
-          ide.ajax.deleteFile(node.name, function() {
-            self.files.splice(self.files.indexOf(node.name), 1);
-            self.tree.tree('removeNode', node);
-          });
-        });
-      }
-    });
   };
 
   return {

@@ -35,8 +35,17 @@ body {
   margin-top: @navbar-height;
 }
 
-#files {
+#project-explorer {
   .disable-select;
+
+  & > ul {
+    list-style-type: none;
+    padding-left: 0;
+    ul {
+      list-style-type: none;
+      padding-left: 10px;
+    }
+  }
 }
 
 #console {
@@ -63,12 +72,6 @@ body {
   overflow-y: auto;
   z-index: 1000;
   transition: all 0.4s ease 0s;
-
-  li.jqtree-selected > .jqtree-element {
-    // Override the default jqTree selected style before setting it grey
-    background: initial;
-    background-color: @lightGrey;
-  }
 }
 
 #page-content-wrapper {

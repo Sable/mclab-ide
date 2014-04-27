@@ -77,18 +77,19 @@ ide.init = function(settings) {
     },
   });
 
-  var explorer = new ide.explorer.ProjectExplorer('project-explorer')
+
+  var explorer = new ide.explorer.ProjectExplorer()
     .on('file_selected', function (path) {
       tabs.open(path);
     })
     .on('file_renamed', function (oldPath, newPath, doRename) {
       var tab = tabs.findByName(oldPath);
-      if (tab.dirty()) {
-        ide.utils.flashError('This file has unsaved changes. ' +
-          'Please save the file before renaming.');
-        return;
-      }
       if (tab) {
+        if (tab.dirty()) {
+          ide.utils.flashError('This file has unsaved changes. ' +
+            'Please save the file before renaming.');
+          return;
+        }
         tab.name(newPath);
       }
       editor.renameFile(oldPath, newPath);
@@ -106,4 +107,5 @@ ide.init = function(settings) {
       callgraph.invalidate();
       doDelete();
     });
+  ko.applyBindings(explorer, document.getElementById('project-explorer'));
 };

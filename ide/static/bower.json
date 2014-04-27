@@ -18,7 +18,6 @@
     "ace-builds": "1.1.3",
     "bootstrap": "~3.1.0",
     "jquery": "~2.1.0",
-    "jqtree": "~0.19.0",
     "pnotify": "git://github.com/sciactive/pnotify.git#master",
     "sydcanem-bootstrap-contextmenu": "*",
     "bootbox": "~4.2.0",
