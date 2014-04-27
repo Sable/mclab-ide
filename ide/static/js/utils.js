@@ -1,9 +1,5 @@
 ide.utils = (function() {
-  var makeIcon = function(icon) {
-    return $('<span>').addClass('glyphicon glyphicon-' + icon);
-  };
-
-  var flashSuccess = function(text ) {
+  var flashSuccess = function(text) {
     flashNotification('success', 'Success!', text);
   };
 
@@ -22,11 +18,19 @@ ide.utils = (function() {
 
 
   var prompt = function(message, callback) {
-    bootbox.prompt(message, callback);
+    bootbox.prompt(message, function (text) {
+      if (text !== null && text.trim().length !== 0) {
+        callback(text);
+      }
+    });
   };
 
   var confirm = function(message, callback) {
-    bootbox.confirm(message, callback);
+    bootbox.confirm(message, function (confirmed) {
+      if (confirmed) {
+        callback();
+      }
+    });
   };
 
   // http://www.mathworks.com/help/matlab/ref/isvarname.html
@@ -44,7 +48,6 @@ ide.utils = (function() {
   };
 
   return {
-    makeIcon: makeIcon,
     flashSuccess: flashSuccess,
     flashError: flashError,
     prompt: prompt,

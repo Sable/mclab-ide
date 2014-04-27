@@ -186,9 +186,6 @@ ide.explorer = (function() {
 
   ProjectExplorer.prototype.doRename = function(name) {
     ide.utils.prompt('New name for ' + name + '?', function (newName) {
-      if (newName === null || newName.trim().length === 0) {
-        return;
-      }
       if (!this.checkFilename(newName)) {
         return;
       }
@@ -204,16 +201,15 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.doDelete = function(name) {
-    ide.utils.confirm("Are you sure you want to delete file '" + name + "'?", function(confirmed) {
-      if (confirmed) {
+    ide.utils.confirm("Are you sure you want to delete file '" + name + "'?",
+      function() {
         this.trigger('file_deleted', name, function() {
           ide.ajax.deleteFile(name, function() {
             this.files.remove(name);
             this.root.getByPath(name).remove();
           }.bind(this));
         }.bind(this));
-      }
-    }.bind(this));
+      }.bind(this));
   };
 
   return {

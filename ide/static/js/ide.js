@@ -47,9 +47,6 @@ ide.init = function(settings) {
       if (action === 'Extract function') {
         console.log('Extract function for', JSON.stringify(editor.getSelectionRange()));
         ide.utils.prompt('Method name', function (newName) {
-          if (newName === null || newName.trim().length === 0) {
-            return;
-          }
           if (!ide.utils.isMatlabIdentifier(newName.trim())) {
             ide.utils.flashError(
               "'" + newName.trim() + "' is not a valid MATLAB identifier.");
