@@ -4,7 +4,7 @@ ide.init = function(settings) {
   ide.utils.init();
 
   var editor = new ide.editor.Editor('editor', 'editor-buffer', settings);
-  tabs = new ide.tabs.TabsViewModel(editor);
+  var tabs = new ide.tabs.TabsViewModel(editor);
   ko.applyBindings(tabs, document.getElementById('editor'));
   editor.startSyntaxChecker();
 
@@ -33,7 +33,9 @@ ide.init = function(settings) {
   editor.onFunctionCallClicked(function (token) {
     callgraph.getTargets(token, function (targets) {
       if (targets.length !== 0) {
-        editor.jumpTo(targets[0]);
+        tabs.open(targets[0].file, function() {
+          editor.jumpToPosition(targets[0]);
+        });
       } else {
         ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
@@ -53,7 +55,7 @@ ide.init = function(settings) {
             return;
           }
           ide.ajax.extractFunction(
-            editor.tabs.getSelected(),
+            editor.currentTab.name(),
             editor.getSelectionRange(),
             newName,
             function (changedText) {

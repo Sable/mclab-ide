@@ -126,11 +126,8 @@ ide.editor = (function() {
     removeKey(this.asts, path);
   };
 
-  Editor.prototype.jumpTo = function(token) {
-    console.log('Jumping to ' + JSON.stringify(token));
-    this.openFile(token.file, function() {
-      this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
-    }.bind(this));
+  Editor.prototype.jumpToPosition = function(position) {
+     this.editor.getSelection().moveTo(position.line - 1, position.col - 1);
   };
 
   Editor.prototype.getTokenFromMouseEvent = function(e) {

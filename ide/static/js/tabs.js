@@ -71,7 +71,7 @@ ide.tabs = (function() {
       });
     };
 
-    self.open = function(path) {
+    self.open = function(path, callback) {
       editor.openFile(path, function () {
         var tab = self.findByName(path);
         if (!tab) {
@@ -80,6 +80,9 @@ ide.tabs = (function() {
         }
         self.selectTab(tab);
       });
+      if (callback) {
+        callback();
+      }
     };
   };
 

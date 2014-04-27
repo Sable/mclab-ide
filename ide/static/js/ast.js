@@ -51,7 +51,7 @@ ide.ast = (function() {
     //
     // Of course, BOT could also mean a genuine error -- a function
     // that doesn't exist. It would be nice if we could use this
-    // to signal // a possible error. Unfortunately we've no way to
+    // to signal a possible error. Unfortunately we've no way to
     // distinguish these cases right now. We would need a list of
     // all builtins, plus a mechanism for the project to declare what
     // libraries it depends on and what functions are included -- then
