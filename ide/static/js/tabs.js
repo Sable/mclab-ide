@@ -1,172 +1,91 @@
 ide.tabs = (function() {
-  var Tab = function (li, name) {
-    this.li = li;
-    this.name = name;
-    this.label = this.li.find('a').first();
-    this.li.data('tab', this);
-    this.dirty = false;
+  var Tab = function (name) {
+    this.name = ko.observable(name);
+    this.dirty = ko.observable(false);
+    this.selected = ko.observable(false);
   };
 
-  Tab.create = function(name, parent) {
-    var li =
-      $('<li>').append(
-        $('<a>')
-          .attr('href', '#')
-          .append(name, '&nbsp;', ide.utils.makeIcon('remove'))
-      ).appendTo(parent);
-    return new Tab(li, name);
-  };
+  var TabsViewModel = function (editor) {
+    var self = this;
 
-  Tab.prototype.markDirty = function() {
-    if (!this.dirty) {
-      this.dirty = true;
-      this.label.prepend('*');
-    }
-  };
+    // TODO(isbadawi): Does this belong here?
+    $(window).on('beforeunload', function() {
+      // TODO(isbadawi): Prompt to save, not just warn?
+      var num_dirty = _(self.tabs()).filter(function (tab) {
+        return tab.dirty();
+      }).length;
+      if (num_dirty === 0) {
+        return;
+      }
+      var plural = num_dirty === 1 ? '' : 's';
+      return [
+        'You have ' + num_dirty + ' unsaved file' + plural + '.',
+        'If you leave the page, you will lose any unsaved changes.'
+      ].join('\n');
+    });
 
-  Tab.prototype.clearDirty = function() {
-    if (this.dirty) {
-      this.dirty = false;
-      this.label.html(this.label.html().substring(1));
-    }
-  };
+    self.tabs = ko.observableArray([]);
 
-  Tab.prototype.getNext = function() {
-    var tab = this.li.prev('li');
-    if (tab.length === 0) {
-      tab = this.li.next('li');
-    }
-    if (tab.length !== 0) {
-      return tab.data('tab') || null;
-    }
-    return null;
-  };
-
-  Tab.prototype.selected = function() {
-    return this.li.hasClass('active');
-  };
-
-  Tab.prototype.close = function() {
-    this.li.remove();
-  };
-
-  Tab.prototype.select = function() {
-    this.li.addClass('active');
-    _.chain(this.li.siblings()).map($).invoke('removeClass', 'active');
-  };
-
-  Tab.prototype.rename = function(newName) {
-    this.label.html(this.label.html().replace(this.name, newName));
-    this.name = newName;
-  };
-
-  Tab.prototype.remove = function() {
-    this.li.remove();
-  };
-
-  var TabManager = function(ul) {
-    this.ul = ul;
-    this.tabs = {};
-    this.callbacks = {
-      all_tabs_closed: null,
-      tab_select: null,
+    self.selectTab = function(tab) {
+      self.tabs().forEach(function (tab) {
+        if (tab.selected()) {
+          tab.selected(false);
+        }
+      });
+      tab.selected(true);
+      editor.selectFile(tab.name());
+      // HACK, figure out a better way
+      editor.currentTab = tab;
     };
 
-    var self = this;
-    this.ul
-      .on('click', 'li:not(.editor-add-file)', function() {
-        self.select($(this).data('tab').name);
-      })
-      .on('click', 'span.glyphicon-remove', function() {
-        self.close($(this).parents('li').first().data('tab').name);
-        return false;
+    self.closeTab = function(tab) {
+      if (!tab.dirty()) {
+        self.forceCloseTab(tab);
+        return;
+      }
+      ide.utils.confirm('This file has unsaved changes. Really close?',
+        function (confirmed) {
+          if (confirmed) {
+            self.forceCloseTab(tab);
+          }
+        }
+      );
+    };
+
+    self.forceCloseTab = function(tab) {
+      if (tab.selected()) {
+        var i = self.tabs.indexOf(tab);
+        var next = self.tabs()[i == 0 ? 1 : i - 1];
+        if (next) {
+          self.selectTab(next);
+        }
+      }
+      self.tabs.remove(tab);
+
+      if (self.tabs().length === 0) {
+        editor.hide();
+      }
+    };
+
+    self.findByName = function(name) {
+      return _(self.tabs()).find(function (tab) {
+        return tab.name() === name;
       });
-  };
+    };
 
-  TabManager.prototype.on = function(event, callback) {
-    this.callbacks[event] = callback;
-    return this;
-  };
-
-  TabManager.prototype.trigger = function(event) {
-    var callback = this.callbacks[event];
-    if (callback) {
-      callback.apply(null, _(arguments).toArray().slice(1));
-    }
-  };
-
-  TabManager.prototype.numDirtyTabs = function(name) {
-    return _.chain(this.tabs).values().where({dirty: true}).size().value();
-  };
-
-  TabManager.prototype.isDirty = function(name) {
-    return this.tabs[name].dirty;
-  };
-
-  TabManager.prototype.has = function(name) {
-    return _(this.tabs).has(name);
-  };
-
-  TabManager.prototype.close = function(name) {
-    var tab = this.tabs[name];
-    if (!tab.dirty) {
-      this.forceClose(name);
-      return;
-    }
-    ide.utils.confirm('This file has unsaved changes. Really close?', function (confirmed) {
-      if (confirmed) {
-        this.forceClose(name);
-      }
-    }.bind(this));
-  };
-
-  TabManager.prototype.forceClose = function(name) {
-    var tab = this.tabs[name];
-    if (tab.selected()) {
-      var next = tab.getNext();
-      if (next !== null) {
-        this.select(next.name);
-      }
-    }
-    tab.close();
-
-    delete this.tabs[name];
-    if (_(this.tabs).isEmpty()) {
-      this.trigger('all_tabs_closed');
-    }
-  };
-
-  TabManager.prototype.rename = function(name, newName) {
-    var tab = this.tabs[name];
-    tab.rename(newName);
-    this.tabs[newName] = tab;
-    delete this.tabs[name];
-  };
-
-  TabManager.prototype.select = function(name) {
-    this.tabs[name].select();
-    this.trigger('tab_select', name);
-  };
-
-  TabManager.prototype.getSelected = function() {
-    return _(this.tabs).find(function (tab) {
-      return tab.selected();
-    }).name;
-  };
-
-  TabManager.prototype.markDirty = function(name) {
-    this.tabs[name].markDirty();
-  };
-
-  TabManager.prototype.clearDirty = function(name) {
-    this.tabs[name].clearDirty();
-  };
-
-  TabManager.prototype.create = function(name) {
-    this.tabs[name] = Tab.create(name, this.ul);
+    self.open = function(path) {
+      editor.openFile(path, function () {
+        var tab = self.findByName(path);
+        if (!tab) {
+          tab = new Tab(path);
+          self.tabs.push(tab);
+        }
+        self.selectTab(tab);
+      });
+    };
   };
 
   return {
-    TabManager: TabManager
+    TabsViewModel: TabsViewModel
   };
 })();

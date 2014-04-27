@@ -7,27 +7,17 @@ ide.editor = (function() {
 
     this.addKeyboardShortcut('save', 'S', this.saveCurrentFile.bind(this));
 
-    var ul = this.el.find('ul.editor-tabs').first();
     this.sessions = {};
     this.asts = {};
-    this.tabs = new ide.tabs.TabManager(ul)
-      .on('all_tabs_closed', this.hide.bind(this))
-      .on('tab_select', this.selectFile.bind(this));
+
+    // HACK; this is set by the TabsViewModel...
+    this.currentTab = null;
     this.editor.on('change', function () {
-      this.tabs.markDirty(this.tabs.getSelected());
+      this.currentTab.dirty(true);
     }.bind(this));
+
     this.hide();
 
-    $(window).on('beforeunload', function() {
-      // TODO(isbadawi): Prompt to save, not just warn?
-      var num_dirty = this.tabs.numDirtyTabs();
-      if (num_dirty > 0) {
-        return [
-          'You have ' + num_dirty + ' unsaved file' + (num_dirty === 1 ? '' : 's') + '.',
-          'If you leave the page, you will lose any unsaved changes.'
-        ].join('\n');
-      }
-    }.bind(this));
   };
 
   var createAceEditor = function(el, settings) {
@@ -59,11 +49,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.selectFile = function(path) {
-      if (!_(this.sessions).has(path)) {
-        this.createSession(path, '');
-      }
-      this.editor.setSession(this.sessions[path]);
-      this.show();
+    if (!_(this.sessions).has(path)) {
+      this.createSession(path, '');
+    }
+    this.editor.setSession(this.sessions[path]);
+    this.show();
   };
 
   Editor.prototype.selectLine = function(line) {
@@ -90,8 +80,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.openFile = function(path, callback) {
-    if (this.tabs.has(path)) {
-      this.tabs.select(path);
+    if (_(this.sessions).has(path)) {
       if (callback) {
         callback();
       }
@@ -99,8 +88,6 @@ ide.editor = (function() {
     }
     ide.ajax.readFile(path, function (contents) {
       this.createSession(path, contents);
-      this.tabs.create(path);
-      this.tabs.select(path);
       this.tryParse();
       if (callback) {
         callback();
@@ -109,15 +96,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.saveCurrentFile = function() {
-    var path = this.tabs.getSelected();
+    var path = this.currentTab.name();
     ide.ajax.writeFile(path, this.editor.getValue(), function () {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
-    this.tabs.clearDirty(path);
-  };
-
-  Editor.prototype.fileIsDirty = function(path) {
-    return this.tabs.has(path) && this.tabs.isDirty(path);
+    this.currentTab.dirty(false);
   };
 
   var renameKey = function(object, oldKey, newKey) {
@@ -134,17 +117,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.renameFile = function(oldPath, newPath) {
-    if (this.tabs.has(oldPath)) {
-      this.tabs.rename(oldPath, newPath);
-    }
     renameKey(this.sessions, oldPath, newPath);
     renameKey(this.asts, oldPath, newPath);
   };
 
   Editor.prototype.deleteFile = function(path) {
-    if (this.tabs.has(path)) {
-      this.tabs.forceClose(path);
-    }
     removeKey(this.sessions, path);
     removeKey(this.asts, path);
   };
@@ -165,7 +142,7 @@ ide.editor = (function() {
     var token = this.editor.getSession().getTokenAt(position.row, position.column);
     return {
       identifier: token.value,
-      file: this.tabs.getSelected(),
+      file: this.currentTab.name(),
       line: position.row + 1,
       col: token.start + 1
     };
@@ -205,11 +182,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.hasAst = function() {
-    return _(this.asts).has(this.tabs.getSelected());
+    return _(this.asts).has(this.currentTab.name());
   };
 
   Editor.prototype.getAst = function() {
-    return this.asts[this.tabs.getSelected()];
+    return this.asts[this.currentTab.name()];
   };
 
   Editor.prototype.hide = function() {
@@ -241,11 +218,11 @@ ide.editor = (function() {
     ide.ast.parse(this.editor.getValue(),
       function (ast) {
         this.clearErrors();
-        this.asts[this.tabs.getSelected()] = ast;
+        this.asts[this.currentTab.name()] = ast;
       }.bind(this),
       function (errors) {
         this.overlayErrors(errors);
-        delete this.asts[this.tabs.getSelected()];
+        delete this.asts[this.currentTab.name()];
       }.bind(this));
   };
 

@@ -22,6 +22,7 @@ js_libs = Bundle(
     'bower_components/sydcanem-bootstrap-contextmenu/bootstrap-contextmenu.js',
     'bower_components/bootbox/bootbox.js',
     'bower_components/underscore/underscore.js',
+    'bower_components/knockout.js/knockout.js',
     filters='jsmin',
     output='gen/libs.js')
 

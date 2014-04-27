@@ -4,6 +4,8 @@ ide.init = function(settings) {
   ide.utils.init();
 
   var editor = new ide.editor.Editor('editor', 'editor-buffer', settings);
+  tabs = new ide.tabs.TabsViewModel(editor);
+  ko.applyBindings(tabs, document.getElementById('editor'));
   editor.startSyntaxChecker();
 
   var consolePane = ace.edit('console');
@@ -76,12 +78,18 @@ ide.init = function(settings) {
   });
 
   var explorer = new ide.explorer.ProjectExplorer('project-explorer')
-    .on('file_selected', function (path) { editor.openFile(path); })
+    .on('file_selected', function (path) {
+      tabs.open(path);
+    })
     .on('file_renamed', function (oldPath, newPath, doRename) {
-      if (editor.fileIsDirty(oldPath)) {
+      var tab = tabs.findByName(oldPath);
+      if (tab.dirty()) {
         ide.utils.flashError('This file has unsaved changes. ' +
           'Please save the file before renaming.');
         return;
+      }
+      if (tab) {
+        tab.name(newPath);
       }
       editor.renameFile(oldPath, newPath);
       // TODO(isbadawi): Be smarter about invalidating callgraph
@@ -89,6 +97,10 @@ ide.init = function(settings) {
       doRename();
     })
     .on('file_deleted', function (path, doDelete) {
+      var tab = tabs.findByName(path);
+      if (tab) {
+        tabs.forceCloseTab(tab);
+      }
       editor.deleteFile(path);
       // TODO(isbadawi): Be smarter about invalidating callgraph
       callgraph.invalidate();

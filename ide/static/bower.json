@@ -22,6 +22,7 @@
     "pnotify": "git://github.com/sciactive/pnotify.git#master",
     "sydcanem-bootstrap-contextmenu": "*",
     "bootbox": "~4.2.0",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "knockout.js": "~3.0.0"
   }
 }

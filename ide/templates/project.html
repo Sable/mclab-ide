@@ -19,7 +19,14 @@
 
     <div class="row">
     <div id="editor">
-      <ul class="editor-tabs nav nav-tabs">
+      <ul data-bind="foreach: tabs" class="editor-tabs nav nav-tabs">
+        <li data-bind="css: { active: selected }">
+        <a href="#" data-bind="click: $parent.selectTab">
+          <span data-bind="if: dirty">*</span>
+          <span data-bind="text: name"></span>
+          <span data-bind="click: $parent.closeTab" class="glyphicon glyphicon-remove"></span>
+        </a>
+        </li>
       </ul>
       <div id="editor-buffer" class="col-md-12">
       </div>
