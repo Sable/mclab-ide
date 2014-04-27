@@ -25,6 +25,13 @@ ide.tabs = (function() {
     });
 
     self.tabs = ko.observableArray([]);
+    self.callbacks = {};
+
+    self.selectedTab = function() {
+      return _(self.tabs()).find(function (tab) {
+        return tab.selected();
+      });
+    };
 
     self.selectTab = function(tab) {
       self.tabs().forEach(function (tab) {
@@ -33,9 +40,7 @@ ide.tabs = (function() {
         }
       });
       tab.selected(true);
-      editor.selectFile(tab.name());
-      // HACK, figure out a better way
-      editor.currentTab = tab;
+      self.trigger('tab_select', tab.name());
     };
 
     self.closeTab = function(tab) {
@@ -61,7 +66,7 @@ ide.tabs = (function() {
       self.tabs.remove(tab);
 
       if (self.tabs().length === 0) {
-        editor.hide();
+        self.trigger('all_tabs_closed');
       }
     };
 
@@ -71,17 +76,24 @@ ide.tabs = (function() {
       });
     };
 
-    self.open = function(path, callback) {
-      editor.openFile(path, function () {
-        var tab = self.findByName(path);
-        if (!tab) {
-          tab = new Tab(path);
-          self.tabs.push(tab);
-        }
-        self.selectTab(tab);
-      });
+    self.openTab = function(path) {
+      var tab = self.findByName(path);
+      if (!tab) {
+        tab = new Tab(path);
+        self.tabs.push(tab);
+      }
+      self.selectTab(tab);
+    };
+
+    self.on = function(event, callback) {
+      self.callbacks[event] = callback;
+      return self;
+    }
+
+    self.trigger = function(event) {
+      var callback = self.callbacks[event];
       if (callback) {
-        callback();
+        callback.apply(null, _(arguments).toArray().slice(1));
       }
     };
   };

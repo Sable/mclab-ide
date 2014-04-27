@@ -9,15 +9,15 @@ ide.editor = (function() {
 
     this.sessions = {};
     this.asts = {};
+    this.tabs = new ide.tabs.TabsViewModel()
+      .on('all_tabs_closed', this.hide.bind(this))
+      .on('tab_select', this.selectFile.bind(this));
 
-    // HACK; this is set by the TabsViewModel...
-    this.currentTab = null;
     this.editor.on('change', function () {
-      this.currentTab.dirty(true);
+      this.tabs.selectedTab().dirty(true);
     }.bind(this));
 
     this.hide();
-
   };
 
   var createAceEditor = function(el, settings) {
@@ -81,6 +81,7 @@ ide.editor = (function() {
 
   Editor.prototype.openFile = function(path, callback) {
     if (_(this.sessions).has(path)) {
+      this.tabs.openTab(path);
       if (callback) {
         callback();
       }
@@ -88,6 +89,7 @@ ide.editor = (function() {
     }
     ide.ajax.readFile(path, function (contents) {
       this.createSession(path, contents);
+      this.tabs.openTab(path);
       this.tryParse();
       if (callback) {
         callback();
@@ -96,11 +98,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.saveCurrentFile = function() {
-    var path = this.currentTab.name();
+    var path = this.tabs.selectedTab();
     ide.ajax.writeFile(path, this.editor.getValue(), function () {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
-    this.currentTab.dirty(false);
+    this.tabs.selectedTab().dirty(false);
   };
 
   var renameKey = function(object, oldKey, newKey) {
@@ -126,8 +128,10 @@ ide.editor = (function() {
     removeKey(this.asts, path);
   };
 
-  Editor.prototype.jumpToPosition = function(position) {
-     this.editor.getSelection().moveTo(position.line - 1, position.col - 1);
+  Editor.prototype.jumpTo = function(token) {
+    this.openFile(token.file, function () {
+     this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
+    }.bind(this));
   };
 
   Editor.prototype.getTokenFromMouseEvent = function(e) {
@@ -139,7 +143,7 @@ ide.editor = (function() {
     var token = this.editor.getSession().getTokenAt(position.row, position.column);
     return {
       identifier: token.value,
-      file: this.currentTab.name(),
+      file: this.tabs.selectedTab().name(),
       line: position.row + 1,
       col: token.start + 1
     };
@@ -179,11 +183,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.hasAst = function() {
-    return _(this.asts).has(this.currentTab.name());
+    return _(this.asts).has(this.tabs.selectedTab());
   };
 
   Editor.prototype.getAst = function() {
-    return this.asts[this.currentTab.name()];
+    return this.asts[this.tabs.selectedTab()];
   };
 
   Editor.prototype.hide = function() {
@@ -215,11 +219,11 @@ ide.editor = (function() {
     ide.ast.parse(this.editor.getValue(),
       function (ast) {
         this.clearErrors();
-        this.asts[this.currentTab.name()] = ast;
+        this.asts[this.tabs.selectedTab()] = ast;
       }.bind(this),
       function (errors) {
         this.overlayErrors(errors);
-        delete this.asts[this.currentTab.name()];
+        delete this.asts[this.tabs.selectedTab()];
       }.bind(this));
   };
 

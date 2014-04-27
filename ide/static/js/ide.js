@@ -4,8 +4,7 @@ ide.init = function(settings) {
   ide.utils.init();
 
   var editor = new ide.editor.Editor('editor', 'editor-buffer', settings);
-  var tabs = new ide.tabs.TabsViewModel(editor);
-  ko.applyBindings(tabs, document.getElementById('editor'));
+  ko.applyBindings(editor.tabs, document.getElementById('editor'));
   editor.startSyntaxChecker();
 
   var consolePane = ace.edit('console');
@@ -31,11 +30,10 @@ ide.init = function(settings) {
   consolePane.on('change', callgraph.invalidate.bind(callgraph));
 
   editor.onFunctionCallClicked(function (token) {
+    console.log(token);
     callgraph.getTargets(token, function (targets) {
       if (targets.length !== 0) {
-        tabs.open(targets[0].file, function() {
-          editor.jumpToPosition(targets[0]);
-        });
+        editor.jumpTo(targets[0]);
       } else {
         ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
@@ -79,7 +77,7 @@ ide.init = function(settings) {
 
   var explorer = new ide.explorer.ProjectExplorer()
     .on('file_selected', function (path) {
-      tabs.open(path);
+      editor.openFile(path);
     })
     .on('file_renamed', function (oldPath, newPath, doRename) {
       var tab = tabs.findByName(oldPath);
