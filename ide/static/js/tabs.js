@@ -34,7 +34,7 @@ ide.tabs = (function() {
     });
 
     self.numDirtyTabs = function() {
-      return _(self.tabs()).filter(function(tab) {
+      return self.tabs().filter(function(tab) {
         return tab.dirty();
       }).length;
     };
