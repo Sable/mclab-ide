@@ -103,12 +103,6 @@ ide.explorer = (function() {
       }.bind(this));
     }.bind(this));
 
-    this.callbacks = {
-      file_selected: null,
-      file_renamed: null,
-      file_deleted: null
-    };
-
     // Define event handlers here -- otherwise we can't use 'this' to access
     // the current object. (I guess).
     var self = this;
@@ -151,18 +145,6 @@ ide.explorer = (function() {
         console.log('Unexpected action:', action);
       }
     };
-  };
-
-  ProjectExplorer.prototype.on = function(event, callback) {
-    this.callbacks[event] = callback;
-    return this;
-  };
-
-  ProjectExplorer.prototype.trigger = function(event) {
-    var callback = this.callbacks[event];
-    if (callback) {
-      callback.apply(null, _(arguments).toArray().slice(1));
-    }
   };
 
   ProjectExplorer.prototype.checkFilename = function(path) {
@@ -211,6 +193,8 @@ ide.explorer = (function() {
         }.bind(this));
       }.bind(this));
   };
+
+  _.extend(ProjectExplorer.prototype, ide.utils.EventsMixin);
 
   return {
     ProjectExplorer: ProjectExplorer

@@ -76,21 +76,9 @@ ide.tabs = (function() {
       }
       self.selectedTab(tab);
     };
-
-    self.on = function(event, callback) {
-      self.callbacks = self.callbacks || {};
-      self.callbacks[event] = callback;
-      return self;
-    }
-
-    self.trigger = function(event) {
-      self.callbacks = self.callbacks || {};
-      var callback = self.callbacks[event];
-      if (callback) {
-        callback.apply(null, _(arguments).toArray().slice(1));
-      }
-    };
   };
+
+  _.extend(TabsViewModel.prototype, ide.utils.EventsMixin);
 
   return {
     TabsViewModel: TabsViewModel

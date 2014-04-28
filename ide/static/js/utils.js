@@ -47,7 +47,23 @@ ide.utils = (function() {
     return !_(MATLAB_KEYWORDS).contains(name) && MATLAB_IDENTIFIER.test(name);
   };
 
+  var EventsMixin = {
+    on: function (event, callback) {
+      this.callbacks = this.callbacks || {};
+      this.callbacks[event] = callback;
+      return this;
+    },
+    trigger: function (event) {
+      this.callbacks = this.callbacks || {};
+      var callback = this.callbacks[event];
+      if (callback) {
+        callback.apply(this, _(arguments).toArray().slice(1));
+      }
+    }
+  };
+
   return {
+    EventsMixin: EventsMixin,
     flashSuccess: flashSuccess,
     flashError: flashError,
     prompt: prompt,
