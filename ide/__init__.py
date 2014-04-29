@@ -11,6 +11,7 @@ assets.init_app(app)
 
 jasmine = Jasmine(app)
 jasmine.specs(
+    'js/spec/explorer_spec.js',
     'js/spec/tabs_spec.js',
 )
 jasmine.sources(Asset('js_all'))

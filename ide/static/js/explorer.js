@@ -193,6 +193,7 @@ ide.explorer = (function() {
   _.extend(ProjectExplorer.prototype, ide.utils.EventsMixin);
 
   return {
+    TreeNode: TreeNode,
     ProjectExplorer: ProjectExplorer
   };
 })();
