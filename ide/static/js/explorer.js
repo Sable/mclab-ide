@@ -1,10 +1,4 @@
 ide.explorer = (function() {
-  ko.bindingHandlers.contextMenu = {
-    init: function (element, valueAccessor) {
-      $(element).contextmenu(valueAccessor());
-    }
-  };
-
   var TreeNode = function (name, children, parent) {
     this.name = ko.observable(name);
     this.children = ko.observableArray(children || []);
@@ -135,8 +129,7 @@ ide.explorer = (function() {
       return true;
     }
 
-    this.onContextMenuItem = function(e, item) {
-      var action = $(item).text();
+    this.onContextMenuItem = function(action) {
       if (action === 'Rename...') {
         self.doRename(self.contextMenuPath);
       } else if (action === 'Delete') {

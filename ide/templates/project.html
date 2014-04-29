@@ -4,6 +4,7 @@
 <div id="wrapper">
 
 <div id="sidebar-wrapper">
+  <div data-bind="with: explorer">
   <div id="project-explorer"
        data-bind="contextMenu: { target: '#files-context-menu',
                                  before: beforeContextMenu,
@@ -17,12 +18,14 @@
     </form>
     <ul data-bind="template: {name: 'tree-node', foreach: root.children}"></ul>
   </div>
+  </div>
 </div>
 
 <div id="page-content-wrapper">
   <div class="page-content inset">
     <div class="row">
-    <div id="editor">
+    <div id="editor" data-bind="with: editor">
+      <div data-bind="with: tabs">
       <ul data-bind="foreach: tabs" class="editor-tabs nav nav-tabs">
         <li data-bind="css: { active: $parent.selectedTab() === $data }">
         <a href="#" data-bind="click: $parent.selectedTab">
@@ -32,7 +35,11 @@
         </a>
         </li>
       </ul>
-      <div id="editor-buffer" class="col-md-12">
+      </div>
+      <div id="editor-buffer" class="col-md-12"
+           data-bind="style: { visibility: visible() ? 'visible' : 'hidden' },
+                      contextMenu: { target: '#editor-context-menu',
+                                     onItem: $root.onContextMenuItem }">
       </div>
     </div>
     <div id="console" class="col-md-12">
@@ -76,7 +83,7 @@
       <span class="glyphicon glyphicon-folder-close"></span>
       <!-- /ko -->
       <span class="file-name"
-            data-bind="text: name, event: { dblclick: $root.select }"></span>
+            data-bind="text: name, event: { dblclick: $parent.select }"></span>
       <div data-bind="if: expanded">
         <ul data-bind="template: {name: 'tree-node', foreach: children}"></ul>
       </div>
@@ -86,6 +93,6 @@
   <script src="{{ ASSET_URL }}"></script>
   {% endassets %}
   <script>
-    ide.init({{ settings|safe }});
+    ko.applyBindings(new ide.ViewModel({{ settings|safe }}));
   </script>
 {% endblock %}

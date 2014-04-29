@@ -1,7 +1,5 @@
 ide.editor = (function() {
-  var Editor = function(id, aceId, settings) {
-    this.el = $('#' + id);
-    this.editor_el = $('#' + aceId);
+  var Editor = function(aceId, settings) {
     this.editor = createAceEditor(aceId, settings);
     this.settings = settings;
 
@@ -10,14 +8,31 @@ ide.editor = (function() {
     this.sessions = {};
     this.asts = {};
     this.tabs = new ide.tabs.TabsViewModel()
-      .on('all_tabs_closed', this.hide.bind(this))
+      .on('all_tabs_closed', function() {
+        this.visible(false);
+      }.bind(this))
       .on('tab_select', this.selectFile.bind(this));
 
     this.editor.on('change', function () {
       this.tabs.selectedTab().dirty(true);
     }.bind(this));
 
-    this.hide();
+    this.editor.on('click', function(e) {
+      this.editor.getSelection().toSingleRange();
+      if (!e.getAccelKey()) {
+        return;
+      }
+      if (!this.hasAst()) {
+        ide.utils.flashError('There are parse errors.');
+        return;
+      }
+      var token = this.getTokenFromMouseEvent(e);
+      if (this.isFunctionCall(token)) {
+        this.trigger('function_call_clicked', token);
+      }
+    }.bind(this));
+
+    this.visible = ko.observable(false);
   };
 
   var createAceEditor = function(el, settings) {
@@ -43,17 +58,12 @@ ide.editor = (function() {
     return session;
   };
 
-  Editor.prototype.resize = function(height) {
-    this.editor_el.height(height);
-    this.editor.resize();
-  };
-
   Editor.prototype.selectFile = function(path) {
     if (!_(this.sessions).has(path)) {
       this.createSession(path, '');
     }
     this.editor.setSession(this.sessions[path]);
-    this.show();
+    this.visible(true);
   };
 
   Editor.prototype.selectLine = function(line) {
@@ -98,7 +108,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.saveCurrentFile = function() {
-    var path = this.tabs.selectedTab();
+    var path = this.tabs.selectedTab().name();
     ide.ajax.writeFile(path, this.editor.getValue(), function () {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
@@ -118,12 +128,25 @@ ide.editor = (function() {
     }
   };
 
+  Editor.prototype.hasDirtyTab = function(path) {
+    var tab = this.tabs.findByName(path);
+    return tab && tab.dirty();
+  };
+
   Editor.prototype.renameFile = function(oldPath, newPath) {
+    var tab = this.tabs.findByName(oldPath);
+    if (tab) {
+      tab.name(newPath);
+    }
     renameKey(this.sessions, oldPath, newPath);
     renameKey(this.asts, oldPath, newPath);
   };
 
   Editor.prototype.deleteFile = function(path) {
+    var tab = this.tabs.findByName(path);
+    if (tab) {
+      this.tabs.forceCloseTab(tab);
+    }
     removeKey(this.sessions, path);
     removeKey(this.asts, path);
   };
@@ -149,23 +172,6 @@ ide.editor = (function() {
     };
   };
 
-  Editor.prototype.onFunctionCallClicked = function(callback) {
-    this.editor.on('click', function(e) {
-      this.editor.getSelection().toSingleRange();
-      if (!e.getAccelKey()) {
-        return;
-      }
-      if (!this.hasAst()) {
-        ide.utils.flashError('There are parse errors.');
-        return;
-      }
-      var token = this.getTokenFromMouseEvent(e);
-      if (this.isFunctionCall(token)) {
-        callback(token);
-      }
-    }.bind(this));
-  };
-
   Editor.prototype.getSelectionRange = function() {
     var range = this.editor.getSelection().getRange();
     return {
@@ -183,19 +189,11 @@ ide.editor = (function() {
   };
 
   Editor.prototype.hasAst = function() {
-    return _(this.asts).has(this.tabs.selectedTab());
+    return _(this.asts).has(this.tabs.selectedTab().name());
   };
 
   Editor.prototype.getAst = function() {
-    return this.asts[this.tabs.selectedTab()];
-  };
-
-  Editor.prototype.hide = function() {
-    this.editor_el.css('visibility', 'hidden');
-  };
-
-  Editor.prototype.show = function() {
-    this.editor_el.css('visibility', 'visible');
+    return this.asts[this.tabs.selectedTab().name()];
   };
 
   Editor.prototype.clearErrors = function() {
@@ -219,11 +217,11 @@ ide.editor = (function() {
     ide.ast.parse(this.editor.getValue(),
       function (ast) {
         this.clearErrors();
-        this.asts[this.tabs.selectedTab()] = ast;
+        this.asts[this.tabs.selectedTab().name()] = ast;
       }.bind(this),
       function (errors) {
         this.overlayErrors(errors);
-        delete this.asts[this.tabs.selectedTab()];
+        delete this.asts[this.tabs.selectedTab().name()];
       }.bind(this));
   };
 
@@ -244,6 +242,8 @@ ide.editor = (function() {
       typingTimer = setTimeout(doneTyping, doneTypingInterval);
     });
   };
+
+  _.extend(Editor.prototype, ide.utils.EventsMixin);
 
   return {
     Editor: Editor

@@ -1,4 +1,20 @@
 ide.utils = (function() {
+  $.pnotify.defaults.styling = 'bootstrap3';
+  $.pnotify.defaults.history = false;
+
+  ko.bindingHandlers.contextMenu = {
+    init: function (element, valueAccessor) {
+      var value = valueAccessor();
+      $(element).contextmenu({
+        target: value.target,
+        before: value.before,
+        onItem: function (e, item) {
+          value.onItem($(item).text());
+        }
+      });
+    }
+  };
+
   var flashSuccess = function(text) {
     flashNotification('success', 'Success!', text);
   };
@@ -69,9 +85,5 @@ ide.utils = (function() {
     prompt: prompt,
     confirm: confirm,
     isMatlabIdentifier: isMatlabIdentifier,
-    init: function() {
-      $.pnotify.defaults.styling = 'bootstrap3';
-      $.pnotify.defaults.history = false;
-    },
   };
 })();
