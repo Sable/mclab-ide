@@ -33,7 +33,10 @@ ide.explorer = (function() {
     var node = this.getChildByName(name);
     if (!node) {
       var node = new TreeNode(name, [], this);
-      this.children.push(node);
+      var index = _(this.children()).sortedIndex(node, function (node) {
+        return node.name();
+      });
+      this.children.splice(index, 0, node);
     }
     return node;
   };
