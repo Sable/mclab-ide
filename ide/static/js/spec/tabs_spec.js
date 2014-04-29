@@ -33,25 +33,21 @@ describe('TabsViewModel', function() {
     });
 
     it('emits a tab_select event when a tab is selected', function() {
+      var callback = jasmine.createSpy('callback');
+      this.tabs.on('tab_select', callback);
       var tab = this.tabs.newTab('hello');
-      var called = false;
-      this.tabs.on('tab_select', function(selected_tab) {
-        called = true;
-      });
       this.tabs.selectedTab(tab);
-      expect(called).toBe(true);
+
+      expect(callback).toHaveBeenCalledWith('hello');
     });
 
     it('does not emit an event when the selection is cleared', function() {
+      var callback = jasmine.createSpy('callback');
       var tab = this.tabs.newTab('hello');
       this.tabs.selectedTab(tab);
-      var called = false;
-      this.tabs.on('tab_select', function(selected_tab) {
-        called = true;
-      });
-
+      this.tabs.on('tab_select', callback);
       this.tabs.selectedTab(null);
-      expect(called).toBe(false);
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 
@@ -63,17 +59,15 @@ describe('TabsViewModel', function() {
     });
 
     it('emits an all_tabs_closed event when all tabs are closed', function() {
-      var called = false;
-      this.tabs.on('all_tabs_closed', function() {
-        called = true;
-      });
+      var callback = jasmine.createSpy('callback');
+      this.tabs.on('all_tabs_closed', callback);
 
       var tab1 = this.tabs.newTab('first');
       var tab2 = this.tabs.newTab('second');
       this.tabs.closeTab(tab1);
-      expect(called).toBe(false);
+      expect(callback).not.toHaveBeenCalled();
       this.tabs.closeTab(tab2);
-      expect(called).toBe(true);
+      expect(callback).toHaveBeenCalled();
     });
 
     describe('closing dirty tabs', function() {
