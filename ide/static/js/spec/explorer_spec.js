@@ -51,25 +51,17 @@ describe('ProjectExplorer', function() {
   });
 
   it('emits a file_selected event when a file is selected', function() {
-    var called = false;
-    this.explorer.on('file_selected', function(path) {
-      expect(path).toEqual('lib/one.m');
-      called = true;
-    });
-
+    var callback = jasmine.createSpy('callback');
+    this.explorer.on('file_selected', callback);
     this.explorer.select(this.explorer.root.getByPath('lib/one.m'));
-    expect(called).toBe(true);
+    expect(callback).toHaveBeenCalledWith('lib/one.m');
   });
 
 
   describe('renaming files', function() {
     beforeEach(function() {
-      this.fileRenamedCallbackWasCalled = false;
-      this.explorer.on('file_renamed', function() {
-        this.fileRenamedCallbackWasCalled = true;
-      }.bind(this));
-
       this.tryToRename = function(from, to) {
+        spyOn(ide.ajax, 'renameFile');
         spyOn(ide.utils, 'prompt').andCallFake(function(message, cb) {
           cb(to);
         });
@@ -77,19 +69,40 @@ describe('ProjectExplorer', function() {
       }
     });
 
-    it('emits a file_renamed event when a file is to be renamed', function() {
+    it('emits a file_renamed event before renaming', function() {
+      var callback = jasmine.createSpy('callback');
+      this.explorer.on('file_renamed', callback);
       this.tryToRename('lib/one.m', 'lib/f.m');
-      expect(this.fileRenamedCallbackWasCalled).toBe(true);
+      expect(callback).toHaveBeenCalled();
+      expect(ide.ajax.renameFile).not.toHaveBeenCalled();
+    });
+
+    it('lets event listeners accept the rename', function() {
+      this.explorer.on('file_renamed', function(from, to, doIt) {
+        doIt();
+      });
+      this.tryToRename('lib/one.m', 'lib/f.m');
+      expect(ide.ajax.renameFile).toHaveBeenCalled();
+    });
+
+    it('lets event listeners cancel the rename', function() {
+      this.explorer.on('file_renamed', function(from, to, doIt) { });
+      this.tryToRename('lib/one.m', 'lib/f.m');
+      expect(ide.ajax.renameFile).not.toHaveBeenCalled();
     });
 
     it('rejects names without a .m extension', function() {
+      var callback = jasmine.createSpy('callback');
+      this.explorer.on('file_renamed', callback);
       this.tryToRename('lib/one.m', 'lib/f.xxx');
-      expect(this.fileRenamedCallbackWasCalled).toBe(false);
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('rejects names already in the project', function() {
+      var callback = jasmine.createSpy('callback');
+      this.explorer.on('file_renamed', callback);
       this.tryToRename('lib/one.m', 'lib/two.m');
-      expect(this.fileRenamedCallbackWasCalled).toBe(false);
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 });
