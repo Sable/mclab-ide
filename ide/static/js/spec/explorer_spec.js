@@ -59,13 +59,27 @@ describe('ProjectExplorer', function() {
 
   describe('renaming files', function() {
     beforeEach(function() {
-      this.tryToRename = function(from, to) {
-        spyOn(ide.ajax, 'renameFile');
+      this.tryToRename = function(from, to, fs) {
+        spyOn(ide.ajax, 'renameFile').andCallFake(function(from, to, done) {
+          if (fs) {
+            done();
+          }
+        });
         spyOn(ide.utils, 'prompt').andCallFake(function(message, cb) {
           cb(to);
         });
         this.explorer.doRename(from);
       }
+    });
+
+    it('reflects the rename in the file tree', function() {
+      expect(this.explorer.root.getByPath('lib/one.m').fullPath()).toEqual('lib/one.m');
+      this.explorer.on('file_renamed', function(_, _, doIt) {
+        doIt();
+      });
+      this.tryToRename('lib/one.m', 'lib/three.m', true);
+      expect(this.explorer.root.getByPath('lib/one.m')).toBeFalsy();
+      expect(this.explorer.root.getByPath('lib/three.m').fullPath()).toEqual('lib/three.m');
     });
 
     it('emits a file_renamed event before renaming', function() {
