@@ -3,3 +3,4 @@ Flask-Assets==0.8
 cssmin==0.2.0
 jsmin==2.0.9
 requests==2.2.1
+Flask-Jasmine==1.4

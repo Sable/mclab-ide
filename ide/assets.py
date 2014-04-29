@@ -38,12 +38,15 @@ js_app = Bundle(
     output='gen/app.js')
 
 
+js_all = Bundle(js_ace, js_libs, js_app)
+
 css = Bundle(
     'bower_components/pnotify/jquery.pnotify.default.css',
     Bundle('less/style.less', filters='less', output='gen/style.css'),
     filters='cssmin',
     output='gen/packed.css')
 
+assets.register('js_all', js_all)
 assets.register('js_ace', js_ace)
 assets.register('js_libs', js_libs)
 assets.register('js_app', js_app)

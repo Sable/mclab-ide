@@ -24,7 +24,9 @@ ide.tabs = (function() {
     self.selectedTab = ko.observable();
 
     self.selectedTab.subscribe(function (tab) {
-      self.trigger('tab_select', tab.name());
+      if (tab) {
+        self.trigger('tab_select', tab.name());
+      }
     });
 
     self.tabs.subscribe(function (tabs) {
@@ -54,10 +56,7 @@ ide.tabs = (function() {
     self.forceCloseTab = function(tab) {
       if (tab === self.selectedTab()) {
         var i = self.tabs.indexOf(tab);
-        var next = self.tabs()[i == 0 ? 1 : i - 1];
-        if (next) {
-          self.selectedTab(next);
-        }
+        self.selectedTab(self.tabs()[i == 0 ? 1 : i - 1]);
       }
       self.tabs.remove(tab);
     };
@@ -68,13 +67,19 @@ ide.tabs = (function() {
       });
     };
 
+    self.newTab = function(name) {
+      var tab = new Tab(name);
+      self.tabs.push(tab);
+      return tab;
+    };
+
     self.openTab = function(path) {
       var tab = self.findByName(path);
       if (!tab) {
-        tab = new Tab(path);
-        self.tabs.push(tab);
+        tab = self.newTab(path);
       }
       self.selectedTab(tab);
+      return tab;
     };
   };
 
