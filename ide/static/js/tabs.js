@@ -4,7 +4,7 @@ ide.tabs = (function() {
     this.dirty = ko.observable(false);
   };
 
-  var TabsViewModel = function (editor) {
+  var TabsViewModel = function () {
     var self = this;
 
     // TODO(isbadawi): Does this belong here?
