@@ -57,7 +57,6 @@ describe('ProjectExplorer', function() {
     expect(callback).toHaveBeenCalledWith('lib/one.m');
   });
 
-
   describe('renaming files', function() {
     beforeEach(function() {
       this.tryToRename = function(from, to) {
@@ -103,6 +102,40 @@ describe('ProjectExplorer', function() {
       this.explorer.on('file_renamed', callback);
       this.tryToRename('lib/one.m', 'lib/two.m');
       expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleting files', function() {
+    beforeEach(function() {
+      spyOn(ide.ajax, 'deleteFile');
+      spyOn(ide.utils, 'confirm').andCallFake(function(message, cb) { cb() });
+    });
+
+    it('asks for confirmation', function() {
+      this.explorer.doDelete('lib/one.m');
+      expect(ide.utils.confirm).toHaveBeenCalled();
+    })
+
+    it('emits a file_deleted event before deleting', function() {
+      var callback = jasmine.createSpy('callback');
+      this.explorer.on('file_deleted', callback);
+      this.explorer.doDelete('lib/one.m');
+      expect(callback).toHaveBeenCalled();
+      expect(ide.ajax.deleteFile).not.toHaveBeenCalled();
+    });
+
+    it('lets event listeners accept the deletion', function() {
+      this.explorer.on('file_deleted', function(path, doIt) {
+        doIt();
+      });
+      this.explorer.doDelete('lib/one.m');
+      expect(ide.ajax.deleteFile).toHaveBeenCalled();
+    });
+
+    it('lets event listeners cancel the deletion', function() {
+      this.explorer.on('file_deleted', function(path, doIt) { });
+      this.explorer.doDelete('lib/one.m');
+      expect(ide.ajax.deleteFile).not.toHaveBeenCalled();
     });
   });
 });
