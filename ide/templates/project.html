@@ -21,6 +21,24 @@
   </div>
 </div>
 
+<script type="text/html" id="tree-node">
+  <li data-bind="click: toggle">
+    <!-- ko if: leaf -->
+      <span class="glyphicon glyphicon-file"></span>
+    <!-- /ko -->
+    <!-- ko if: !leaf() && expanded() -->
+      <span class="glyphicon glyphicon-folder-open"></span>
+    <!-- /ko -->
+    <!-- ko if: !leaf() && !expanded() -->
+      <span class="glyphicon glyphicon-folder-close"></span>
+    <!-- /ko -->
+    <span class="file-name" data-bind="text: name, event: { dblclick: $parent.select }"></span>
+      <div data-bind="if: expanded">
+        <ul data-bind="template: {name: 'tree-node', foreach: children}"></ul>
+      </div>
+    </li>
+</script>
+
 <div id="page-content-wrapper">
   <div class="page-content inset">
     <div class="row">
@@ -71,24 +89,6 @@
 {% endblock %}
 
 {% block js %}
-  <script type="text/html" id="tree-node">
-    <li data-bind="click: toggle">
-      <!-- ko if: leaf -->
-      <span class="glyphicon glyphicon-file"></span>
-      <!-- /ko -->
-      <!-- ko if: !leaf() && expanded() -->
-      <span class="glyphicon glyphicon-folder-open"></span>
-      <!-- /ko -->
-      <!-- ko if: !leaf() && !expanded() -->
-      <span class="glyphicon glyphicon-folder-close"></span>
-      <!-- /ko -->
-      <span class="file-name"
-            data-bind="text: name, event: { dblclick: $parent.select }"></span>
-      <div data-bind="if: expanded">
-        <ul data-bind="template: {name: 'tree-node', foreach: children}"></ul>
-      </div>
-    </li>
-  </script>
   {% assets 'js_ace', 'js_app' %}
   <script src="{{ ASSET_URL }}"></script>
   {% endassets %}
