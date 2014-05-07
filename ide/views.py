@@ -44,7 +44,7 @@ class ProjectConverter(BaseConverter):
         return project
 
     def to_url(self, value):
-        return super(ProjectConverter, self).to_url(value)
+        return super(ProjectConverter, self).to_url(value.name)
 
 app.url_map.converters['project'] = ProjectConverter
 
