@@ -9,7 +9,7 @@
 
 <table class="table">
   <tr><td>Project</td><td></td></tr>
-  <form class="form-inline" method="post" action="/project/">
+  <form class="form-inline" method="post" action="{{ url_for('create_project') }}">
   <tr>
   <td> <input type="text" name="name" placeholder="New project..." /> </td>
   <td>
@@ -20,9 +20,9 @@
   </form>
   {% for project in projects %}
   <tr>
-  <td><a href="/project/{{ project.name }}">{{ project.name }}</a></td>
+    <td><a href="{{ url_for('project', project=project) }}">{{ project.name }}</a></td>
   <td>
-  <form method="post" action="/project/{{ project.name }}/delete" >
+    <form method="post" action="{{ url_for('delete', project=project) }}" >
     <button name="delete" type="submit" class="btn btn-xs btn-danger">
     Delete <span class="glyphicon glyphicon-trash"></span>
   </form>
