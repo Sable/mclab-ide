@@ -1,6 +1,6 @@
 ide.utils = (function() {
-  $.pnotify.defaults.styling = 'bootstrap3';
-  $.pnotify.defaults.history = false;
+  PNotify.prototype.options.styling = 'bootstrap3';
+  PNotify.prototype.options.history = false;
 
   ko.bindingHandlers.contextMenu = {
     init: function (element, valueAccessor) {
@@ -24,7 +24,7 @@ ide.utils = (function() {
   };
 
   var flashNotification = function(type, title, text) {
-    $.pnotify({
+    new PNotify({
       title: title,
       text: text,
       type: type,

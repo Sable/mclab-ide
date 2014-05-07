@@ -17,7 +17,7 @@ js_ace = Bundle(
 js_libs = Bundle(
     'bower_components/jquery/dist/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
-    'bower_components/pnotify/jquery.pnotify.min.js',
+    'bower_components/pnotify/pnotify.core.js',
     'bower_components/sydcanem-bootstrap-contextmenu/bootstrap-contextmenu.js',
     'bower_components/bootbox/bootbox.js',
     'bower_components/underscore/underscore.js',
@@ -41,7 +41,7 @@ js_app = Bundle(
 js_all = Bundle(js_ace, js_libs, js_app)
 
 css = Bundle(
-    'bower_components/pnotify/jquery.pnotify.default.css',
+    'bower_components/pnotify/pnotify.core.css',
     Bundle('less/style.less', filters='less', output='gen/style.css'),
     filters='cssmin',
     output='gen/packed.css')
