@@ -8,8 +8,8 @@ ide.utils = (function() {
       $(element).contextmenu({
         target: value.target,
         before: value.before,
-        onItem: function (e, item) {
-          value.onItem($(item).text());
+        onItem: function (context, e) {
+          value.onItem($(e.target).text());
         }
       });
     }

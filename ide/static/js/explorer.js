@@ -118,7 +118,7 @@ ide.explorer = (function() {
       }
     };
 
-    this.beforeContextMenu = function(e) {
+    this.beforeContextMenu = function(e, context) {
       var el = $(document.elementFromPoint(e.clientX, e.clientY));
       var parents = el.parents('li');
       var node = parents.first();

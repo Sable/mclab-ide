@@ -18,7 +18,7 @@ js_libs = Bundle(
     'bower_components/jquery/dist/jquery.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/pnotify/pnotify.core.js',
-    'bower_components/sydcanem-bootstrap-contextmenu/bootstrap-contextmenu.js',
+    'bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js',
     'bower_components/bootbox/bootbox.js',
     'bower_components/underscore/underscore.js',
     'bower_components/knockout.js/knockout.js',
