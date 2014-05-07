@@ -66,7 +66,7 @@ ide.ViewModel = function(settings) {
             console.log('Extract function failed:', error);
             ide.utils.flashError(error);
           }
-          );
+        );
       });
     }
   };
