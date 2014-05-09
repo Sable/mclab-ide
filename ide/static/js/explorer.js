@@ -105,7 +105,7 @@ ide.explorer = (function() {
     var self = this;
 
     ProjectExplorer.prototype.newFile = function(form) {
-      var path = $(form).serializeArray()[0].value;
+      var path = form.path.value;
       if (self.checkFilename(path)) {
         self.createFile(path);
         form.reset();
