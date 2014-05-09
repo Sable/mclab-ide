@@ -7,19 +7,6 @@ ide.tabs = (function() {
   var TabsViewModel = function () {
     var self = this;
 
-    // TODO(isbadawi): Does this belong here?
-    $(window).on('beforeunload', function() {
-      // TODO(isbadawi): Prompt to save, not just warn?
-      var num_dirty = self.numDirtyTabs();
-      if (num_dirty > 0) {
-        var plural = num_dirty === 1 ? '' : 's';
-        return [
-          'You have ' + num_dirty + ' unsaved file' + plural + '.',
-          'If you leave the page, you will lose any unsaved changes.'
-        ].join('\n');
-      }
-    });
-
     self.tabs = ko.observableArray();
     self.selectedTab = ko.observable();
 
@@ -40,6 +27,17 @@ ide.tabs = (function() {
         return tab.dirty();
       }).length;
     };
+
+    self.beforeUnloadText = ko.computed(function() {
+      var num_dirty = self.numDirtyTabs();
+      if (num_dirty > 0) {
+        var plural = num_dirty === 1 ? '' : 's';
+        return [
+          'You have ' + num_dirty + ' unsaved file' + plural + '.',
+          'If you leave the page, you will lose any unsaved changes.'
+        ].join('\n');
+      }
+    });
 
     self.closeTab = function(tab) {
       if (!tab.dirty()) {

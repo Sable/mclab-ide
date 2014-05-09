@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div id="wrapper">
+<div id="wrapper" data-bind="beforeUnloadText: editor.tabs.beforeUnloadText">
 
 <div id="sidebar-wrapper">
   <div data-bind="with: explorer">

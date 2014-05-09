@@ -18,6 +18,17 @@ ide.utils = (function() {
     }
   };
 
+  ko.bindingHandlers.beforeUnloadText = {
+    init: function (element, valueAccessor) {
+      $(window).on('beforeunload', function() {
+        var value = ko.unwrap(valueAccessor());
+        if (value && value !== null) {
+          return value;
+        }
+      });
+    }
+  };
+
   var flashSuccess = function(text) {
     flashNotification('success', 'Success!', text);
   };
