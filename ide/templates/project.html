@@ -7,7 +7,7 @@
   <div data-bind="with: explorer">
   <div id="project-explorer"
        data-bind="contextMenu: { target: '#files-context-menu',
-                                 before: beforeContextMenu,
+                                 scopes: 'li',
                                  onItem: onContextMenuItem }">
     <form data-bind="submit: newFile" class="form form-inline">
       <input type="text" class="form-inline" name="path"
@@ -32,7 +32,7 @@
     <!-- ko if: !leaf() && !expanded() -->
       <span class="glyphicon glyphicon-folder-close"></span>
     <!-- /ko -->
-    <span class="file-name" data-bind="text: name, event: { dblclick: $root.explorer.select }"></span>
+    <span data-bind="text: name, event: { dblclick: $root.explorer.select }"></span>
       <div data-bind="if: expanded">
         <ul data-bind="template: {name: 'tree-node', foreach: children}"></ul>
       </div>

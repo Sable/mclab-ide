@@ -118,25 +118,11 @@ ide.explorer = (function() {
       }
     };
 
-    this.beforeContextMenu = function(e, context) {
-      var el = $(document.elementFromPoint(e.clientX, e.clientY));
-      var parents = el.parents('li');
-      var node = parents.first();
-      var descendents = node.find('li');
-      if (parents.length === 0 || descendents.length !== 0) {
-        return false;
-      }
-      self.contextMenuPath = el.parents('li').map(function() {
-        return $(this).find('span.file-name').first().text();
-      }).get().reverse().join('/');
-      return true;
-    }
-
-    this.onContextMenuItem = function(action) {
+    this.onContextMenuItem = function(action, node) {
       if (action === 'Rename...') {
-        self.doRename(self.contextMenuPath);
+        self.doRename(node.fullPath());
       } else if (action === 'Delete') {
-        self.doDelete(self.contextMenuPath);
+        self.doDelete(node.fullPath());
       } else {
         console.log('Unexpected action:', action);
       }

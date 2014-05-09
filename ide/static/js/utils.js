@@ -8,8 +8,11 @@ ide.utils = (function() {
       $(element).contextmenu({
         target: value.target,
         before: value.before,
+        scopes: value.scopes || null,
         onItem: function (context, e) {
-          value.onItem($(e.target).text());
+          var data = ko.dataFor(context.first().get()[0]);
+          var action = $(e.target).text();
+          value.onItem(action, data ? data : context);
         }
       });
     }
