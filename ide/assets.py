@@ -26,6 +26,7 @@ js_libs = Bundle(
     output='gen/libs.js')
 
 js_app = Bundle(
+    'js/bindings.js',
     'js/ide.js',
     'js/utils.js',
     'js/ast.js',
