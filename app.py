@@ -47,5 +47,16 @@ def extract_function():
     except refactoring.Error as e:
         return json.dumps({'error': str(e)})
 
+@app.route('/refactor/extract-variable', methods=['GET'])
+def extract_variable():
+    path = flask.request.args['path']
+    selection = flask.request.args['selection']
+    new_name = flask.request.args['newName']
+    try:
+        new_text = refactoring.extract_variable(path, selection, new_name)
+        return json.dumps({'newText': new_text})
+    except refactoring.Error as e:
+        return json.dumps({'error': str(e)})
+
 if __name__ == '__main__':
     app.run(debug=True, port=4242)
