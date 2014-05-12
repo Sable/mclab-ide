@@ -40,22 +40,20 @@ ide.ViewModel = function(settings) {
     });
   });
 
-  self.onContextMenuItem = function (action) {
-    if (action === 'Extract function') {
-      console.log('Extract function for',
-                  JSON.stringify(self.editor.getSelectionRange()));
-      ide.utils.prompt('Method name', function (newName) {
-        if (!ide.utils.isMatlabIdentifier(newName.trim())) {
-          ide.utils.flashError(
-            "'" + newName.trim() + "' is not a valid MATLAB identifier.");
-          return;
-        }
-        ide.ajax.extractFunction(
+  self.doExtractRefactoring = function (name, action) {
+    console.log(name, 'for', JSON.stringify(self.editor.getSelectionRange()));
+    ide.utils.prompt('New name', function (newName) {
+      if (!ide.utils.isMatlabIdentifier(newName.trim())) {
+        ide.utils.flashError(
+          "'" + newName.trim() + "' is not a valid MATLAB identifier.");
+        return;
+      }
+      action(
           self.editor.tabs.selectedTab().name(),
           self.editor.getSelectionRange(),
           newName,
           function (changedText) {
-            console.log('Extract function successful.');
+            console.log(name, 'successful.');
             // TODO(isbadawi): Avoid rewriting the whole file?
             // The server could send a patch, or something.
             var selection_start_line = self.editor.getSelectionRange().startLine;
@@ -63,11 +61,20 @@ ide.ViewModel = function(settings) {
             self.editor.selectLine(selection_start_line);
           },
           function (error) {
-            console.log('Extract function failed:', error);
+            console.log(name, 'failed:', error);
             ide.utils.flashError(error);
           }
-        );
-      });
+      );
+    });
+  };
+
+  self.onContextMenuItem = function (action) {
+    if (action === 'Extract function') {
+      self.doExtractRefactoring('Extract function', ide.ajax.extractFunction);
+    }
+
+    if (action === 'Extract variable') {
+      self.doExtractRefactoring('Extract variable', ide.ajax.extractVariable);
     }
   };
 

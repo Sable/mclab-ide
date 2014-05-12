@@ -116,3 +116,13 @@ def extract_function(project):
         'newName': request.args['newName']
     }
     return requests.get(MCLABAAS_URL + '/refactor/extract-function', params=params).text
+
+
+@app.route('/project/<project:project>/refactor/extract-variable', methods=['GET'])
+def extract_variable(project):
+    params = {
+        'path': project.path(request.args['path']),
+        'selection': request.args['selection'],
+        'newName': request.args['newName']
+    }
+    return requests.get(MCLABAAS_URL + '/refactor/extract-variable', params=params).text

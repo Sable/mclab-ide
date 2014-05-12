@@ -60,20 +60,28 @@ ide.ajax = (function() {
     });
   };
 
-  var extractFunction = function(path, selection, newName, success, error) {
+  var extractBase = function(url, path, selection, newName, success, error) {
     var range = [
       [selection.startLine, selection.startColumn].join(','),
       [selection.endLine, selection.endColumn].join(','),
     ].join('-');
 
     var params = { path: path, selection: range, newName: newName };
-    get_json('refactor/extract-function', params, function (data) {
+    get_json(url, params, function (data) {
       if (data.newText) {
         success(data.newText);
       } else {
         error(data.error);
       }
     });
+  };
+
+  var extractFunction = function(path, selection, newName, success, error) {
+    extractBase('refactor/extract-function', path, selection, newName, success, error);
+  };
+
+  var extractVariable = function(path, selection, newName, success, error) {
+    extractBase('refactor/extract-variable', path, selection, newName, success, error);
   };
 
   return {
@@ -85,5 +93,6 @@ ide.ajax = (function() {
     getFiles: getFiles,
     getCallGraph: getCallGraph,
     extractFunction: extractFunction,
+    extractVariable: extractVariable,
   };
 })();
