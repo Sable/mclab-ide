@@ -26,13 +26,22 @@ public class TextRange {
     return create(startLine, startColumn, endLine, endColumn);
   }
   
-  public static Predicate<ASTNode<?>> correspondsTo(final TextRange range) {
+  public static Predicate<ASTNode<?>> within(final TextRange range) {
     return new Predicate<ASTNode<?>>() {
       @Override public boolean apply(ASTNode<?> node) {
         return range.contains(TextRange.of(node));
       }
     };
   }
+
+  public static Predicate<ASTNode<?>> containing(final TextRange range) {
+    return new Predicate<ASTNode<?>>() {
+      @Override public boolean apply(ASTNode<?> node) {
+        return TextRange.of(node).contains(range);
+      }
+    };
+  }
+  
   
   public static TextRange create(int startLine, int startColumn, int endLine, int endColumn) {
     return new TextRange(startLine, startColumn, endLine, endColumn);

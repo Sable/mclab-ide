@@ -15,7 +15,7 @@ import ast.Expr;
 public class ExtractVariableTool {
   private static Expr findExpressionInSelection(MatlabProgram program, TextRange selection) {
     return NodeFinder.find(Expr.class, program.parse())
-        .firstMatch(TextRange.correspondsTo(selection))
+        .firstMatch(TextRange.within(selection))
         .orNull();
   }
 
