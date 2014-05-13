@@ -47,6 +47,7 @@ def extract_function():
     except refactoring.Error as e:
         return json.dumps({'error': str(e)})
 
+
 @app.route('/refactor/extract-variable', methods=['GET'])
 def extract_variable():
     path = flask.request.args['path']
@@ -57,6 +58,18 @@ def extract_variable():
         return json.dumps({'newText': new_text})
     except refactoring.Error as e:
         return json.dumps({'error': str(e)})
+
+
+@app.route('/refactor/inline-variable', methods=['GET'])
+def inline_variable():
+    path = flask.request.args['path']
+    selection = flask.request.args['selection']
+    try:
+        new_text = refactoring.inline_variable(path, selection)
+        return json.dumps({'newText': new_text})
+    except refactoring.Error as e:
+        return json.dumps({'error': str(e)})
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=4242)
