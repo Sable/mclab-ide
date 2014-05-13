@@ -126,3 +126,12 @@ def extract_variable(project):
         'newName': request.args['newName']
     }
     return requests.get(MCLABAAS_URL + '/refactor/extract-variable', params=params).text
+
+
+@app.route('/project/<project:project>/refactor/inline-variable', methods=['GET'])
+def inline_variable(project):
+    params = {
+        'path': project.path(request.args['path']),
+        'selection': request.args['selection'],
+    }
+    return requests.get(MCLABAAS_URL + '/refactor/inline-variable', params=params).text

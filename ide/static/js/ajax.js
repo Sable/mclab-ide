@@ -60,28 +60,41 @@ ide.ajax = (function() {
     });
   };
 
-  var extractBase = function(url, path, selection, newName, success, error) {
-    var range = [
-      [selection.startLine, selection.startColumn].join(','),
-      [selection.endLine, selection.endColumn].join(','),
-    ].join('-');
-
-    var params = { path: path, selection: range, newName: newName };
-    get_json(url, params, function (data) {
-      if (data.newText) {
-        success(data.newText);
-      } else {
-        error(data.error);
-      }
+  var refactoring = function(which, params, success, error) {
+    get_json('refactor/' + which, params, function (data) {
+      data.newText ? success(data.newText) : error(data.error);
     });
   };
 
+  // The Natlab tools expect selections in the form
+  // line,col-line,col
+  var serializeSelection = function(selection) {
+    return [
+      [selection.startLine, selection.startColumn].join(','),
+      [selection.endLine, selection.endColumn].join(','),
+    ].join('-');
+  };
+
+  var extractBase = function(url, path, selection, newName, success, error) {
+    var params = {
+      path: path,
+      selection: serializeSelection(selection),
+      newName: newName
+    };
+    refactoring(url, params, success, error);
+  };
+
   var extractFunction = function(path, selection, newName, success, error) {
-    extractBase('refactor/extract-function', path, selection, newName, success, error);
+    extractBase('extract-function', path, selection, newName, success, error);
   };
 
   var extractVariable = function(path, selection, newName, success, error) {
-    extractBase('refactor/extract-variable', path, selection, newName, success, error);
+    extractBase('extract-variable', path, selection, newName, success, error);
+  };
+
+  var inlineVariable = function(path, selection, success, error) {
+    var params = { path: path, selection: serializeSelection(selection) };
+    refactoring('inline-variable', params, success, error);
   };
 
   return {
@@ -94,5 +107,6 @@ ide.ajax = (function() {
     getCallGraph: getCallGraph,
     extractFunction: extractFunction,
     extractVariable: extractVariable,
+    inlineVariable: inlineVariable
   };
 })();

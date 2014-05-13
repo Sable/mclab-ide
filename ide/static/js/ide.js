@@ -40,31 +40,35 @@ ide.ViewModel = function(settings) {
     });
   });
 
-  self.doExtractRefactoring = function (name, action) {
+  self.doRefactoring = function (name, action, extraParams, success) {
     console.log(name, 'for', JSON.stringify(self.editor.getSelectionRange()));
+    var params = [
+      self.editor.tabs.selectedTab().name(),
+      self.editor.getSelectionRange()
+    ].concat(extraParams);
+    params.push(success);
+    params.push(function (error) {
+      console.log(name, 'failed:', error);
+      ide.utils.flashError(error);
+    });
+    action.apply(this, params);
+  };
+
+  self.doExtractRefactoring = function (name, action) {
     ide.utils.prompt('New name', function (newName) {
       if (!ide.utils.isMatlabIdentifier(newName.trim())) {
         ide.utils.flashError(
           "'" + newName.trim() + "' is not a valid MATLAB identifier.");
         return;
       }
-      action(
-          self.editor.tabs.selectedTab().name(),
-          self.editor.getSelectionRange(),
-          newName,
-          function (changedText) {
-            console.log(name, 'successful.');
-            // TODO(isbadawi): Avoid rewriting the whole file?
-            // The server could send a patch, or something.
-            var selection_start_line = self.editor.getSelectionRange().startLine;
-            self.editor.editor.setValue(changedText);
-            self.editor.selectLine(selection_start_line);
-          },
-          function (error) {
-            console.log(name, 'failed:', error);
-            ide.utils.flashError(error);
-          }
-      );
+      self.doRefactoring(name, action, [newName], function (changedText) {
+        console.log(name, 'successful.');
+        // TODO(isbadawi): Avoid rewriting the whole file?
+        // The server could send a patch, or something.
+        var selection_start_line = self.editor.getSelectionRange().startLine;
+        self.editor.editor.setValue(changedText);
+        self.editor.selectLine(selection_start_line);
+      });
     });
   };
 
@@ -75,6 +79,14 @@ ide.ViewModel = function(settings) {
 
     if (action === 'Extract variable') {
       self.doExtractRefactoring('Extract variable', ide.ajax.extractVariable);
+    }
+
+    if (action == 'Inline variable') {
+      self.doRefactoring('Inline variable', ide.ajax.inlineVariable, [],
+          function (changedText) {
+            self.editor.editor.setValue(changedText);
+            self.editor.editor.clearSelection();
+          });
     }
   };
 
