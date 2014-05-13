@@ -11,26 +11,12 @@ import mclint.refactoring.Refactorings;
 import natlab.refactoring.Exceptions;
 import natlab.utils.NodeFinder;
 import ast.AssignStmt;
-import ast.NameExpr;
-
-import com.google.common.base.Optional;
 
 public class InlineVariableTool {
   private static AssignStmt findDefinitionInSelection(MatlabProgram program, TextRange selection) {
-    Optional<AssignStmt> def = NodeFinder.find(AssignStmt.class, program.parse())
-        .firstMatch(TextRange.within(selection));
-    if (def.isPresent()) {
-      return def.get();
-    }
-    Optional<NameExpr> lhs = NodeFinder.find(NameExpr.class, program.parse())
-        .firstMatch(TextRange.containing(selection));
-    if (def.isPresent()) {
-      AssignStmt parentDef = NodeFinder.findParent(AssignStmt.class, lhs.get());
-      if (parentDef != null) {
-        return parentDef;
-      }
-    }
-    return null;
+    return NodeFinder.find(AssignStmt.class, program.parse())
+        .firstMatch(TextRange.overlapping(selection))
+        .orNull();
   }
 
   public static void main(String[] args) throws IOException {

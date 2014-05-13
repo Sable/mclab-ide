@@ -26,18 +26,18 @@ public class TextRange {
     return create(startLine, startColumn, endLine, endColumn);
   }
   
-  public static Predicate<ASTNode<?>> within(final TextRange range) {
+  public static Predicate<ASTNode<?>> overlapping(final TextRange range) {
     return new Predicate<ASTNode<?>>() {
       @Override public boolean apply(ASTNode<?> node) {
-        return range.contains(TextRange.of(node));
+        return TextRange.of(node).overlaps(range);
       }
     };
   }
 
-  public static Predicate<ASTNode<?>> containing(final TextRange range) {
+  public static Predicate<ASTNode<?>> within(final TextRange range) {
     return new Predicate<ASTNode<?>>() {
       @Override public boolean apply(ASTNode<?> node) {
-        return TextRange.of(node).contains(range);
+        return range.contains(TextRange.of(node));
       }
     };
   }
@@ -79,6 +79,13 @@ public class TextRange {
         (getStartLine() == range.getStartLine() && getStartColumn() <= range.getStartColumn())) &&
         (getEndLine() > range.getEndLine() ||
         (getEndLine() == range.getEndLine() && getEndColumn() >= range.getEndColumn()));
+  }
+
+  public boolean overlaps(TextRange range) {
+    return startColumn <= range.endColumn &&
+        endColumn >= range.startColumn &&
+        startLine <= range.endLine &&
+        endLine >= range.startLine;
   }
   
   @Override public String toString() {
