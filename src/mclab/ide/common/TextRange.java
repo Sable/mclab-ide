@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import ast.ASTNode;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 
 public class TextRange {
   private int startLine;
@@ -23,6 +24,14 @@ public class TextRange {
     int endLine = Integer.parseInt(m.group(3));
     int endColumn = Integer.parseInt(m.group(4));
     return create(startLine, startColumn, endLine, endColumn);
+  }
+  
+  public static Predicate<ASTNode<?>> correspondsTo(final TextRange range) {
+    return new Predicate<ASTNode<?>>() {
+      @Override public boolean apply(ASTNode<?> node) {
+        return range.contains(TextRange.of(node));
+      }
+    };
   }
   
   public static TextRange create(int startLine, int startColumn, int endLine, int endColumn) {
