@@ -17,7 +17,7 @@ function main {
   entry_point=$4
 
   natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  callgraphbin=$HOME/code/java/mclab-ide-support/bin
+  callgraphbin=$HOME/code/java/mclab-ide-support/build
   java -cp $natlabjar:$callgraphbin mclab.ide.callgraph.Instrument $project_dir $target_dir
 
   echo -e "function mclab_callgraph_entry_point\n$entry_point\nend" > $target_dir/mclab_callgraph_entry_point.m

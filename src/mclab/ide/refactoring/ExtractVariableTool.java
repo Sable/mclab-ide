@@ -17,14 +17,14 @@ public class ExtractVariableTool extends RefactoringTool {
 
   private static Expr findExpressionInSelection(MatlabProgram program, TextRange selection) {
     return NodeFinder.find(Expr.class, program.parse())
-        .firstMatch(TextRange.within(selection))
-        .orNull();
+        .filter(node -> selection.contains(TextRange.of(node)))
+        .findFirst().orElse(null);
   }
   
   protected Refactoring createRefactoring(MatlabProgram program, TextRange selection,
       String[] extraArgs) {
     return Refactorings.extractVariable(
-        RefactoringContext.create(program),
+        RefactoringContext.create(program.getProject()),
         findExpressionInSelection(program, selection),
         extraArgs[0]);
   }

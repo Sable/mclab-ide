@@ -3,6 +3,7 @@ package mclab.ide.refactoring;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import mclab.ide.common.TextRange;
 import mclint.MatlabProgram;
@@ -21,18 +22,22 @@ public abstract class RefactoringTool {
       String[] extraArgs
   );
   
-  private static void abortUnless(boolean check, String format, Object... args) {
+  private static void abortUnless(boolean check, String message) {
     if (!check) {
-      System.err.printf(format, args);
+      System.err.println(message);
       System.exit(1);
     }
+  }
+  
+  private static void abortUnless(boolean check, String format, Object... args) {
+    abortUnless(check, String.format(format, args));
   }
 
   public void run(String[] args) throws IOException {
     String[] extra = expectedExtraArguments();
     abortUnless(args.length == 2 + extra.length,
         "usage: %s <file> <start-line>,<start-col>-<end-line>,<end-col> %s",
-        getClass().getSimpleName(), Joiner.on(" ").join(extra));
+        getClass().getSimpleName(), Arrays.stream(extra).collect(Collectors.joining(" ")));
     
     MatlabProgram program = MatlabProgram.at(Paths.get(args[0]));
     TextRange selection = TextRange.parse(args[1]);
@@ -46,6 +51,6 @@ public abstract class RefactoringTool {
     abortUnless(refactoring.getErrors().isEmpty(), "%s",
         Joiner.on("\n").join(refactoring.getErrors()));
 
-    System.out.println(refactoring.getContext().getTransformer().reconstructText());
+    System.out.println(refactoring.getContext().getTransformer(program.parse()).reconstructText());
   }
 }

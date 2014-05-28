@@ -16,7 +16,7 @@ function main {
   newname=$3
 
   natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  refactoringbin=$HOME/code/java/mclab-ide-support/bin
+  refactoringbin=$HOME/code/java/mclab-ide-support/build
   java -cp $natlabjar:$refactoringbin mclab.ide.refactoring.ExtractVariableTool $path $selection $newname
 }
 

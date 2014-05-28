@@ -14,7 +14,7 @@ function main {
   selection=$2
 
   natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  refactoringbin=$HOME/code/java/mclab-ide-support/bin
+  refactoringbin=$HOME/code/java/mclab-ide-support/build
   java -cp $natlabjar:$refactoringbin mclab.ide.refactoring.InlineVariableTool $path $selection
 }
 

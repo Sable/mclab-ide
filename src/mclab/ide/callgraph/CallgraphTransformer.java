@@ -38,9 +38,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   public static void instrument(Project project) {
-    for (MatlabProgram program : project.getMatlabPrograms()) {
-      instrument(program);
-    }
+    project.getMatlabPrograms().forEach(CallgraphTransformer::instrument);
   }
 
   public static void instrument(MatlabProgram program) {
