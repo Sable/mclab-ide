@@ -3,6 +3,7 @@ package mclab.ide.refactoring;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +54,7 @@ public class ExtractFunctionTool extends RefactoringTool {
   }
   
   private static ast.Function getEnclosingFunctionIfUniqueElseNull(List<Stmt> stmts) {
+
     return getUniqueElementOrNull(stmts.stream()
         .map(stmt -> NodeFinder.findParent(Function.class, stmt)));
   }
@@ -83,11 +85,11 @@ public class ExtractFunctionTool extends RefactoringTool {
   }
   
   protected Refactoring createRefactoring(MatlabProgram program, TextRange selection,
-      String[] extraArguments) {
+      Map<String, String> extraArguments) {
     return Refactorings.extractFunction(
         RefactoringContext.create(program.getProject()),
         findStatementsInSelection(program, selection),
-        extraArguments[0]);
+        extraArguments.get("newName"));
   }
 
   public static void main(String[] args) throws IOException {

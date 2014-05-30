@@ -3,7 +3,9 @@ package mclab.ide.refactoring;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import mclab.ide.common.TextRange;
 import mclint.MatlabProgram;
@@ -19,7 +21,7 @@ public abstract class RefactoringTool {
   protected abstract Refactoring createRefactoring(
       MatlabProgram program,
       TextRange selection,
-      String[] extraArgs
+      Map<String, String> extraArgs
   );
   
   private static void abortUnless(boolean check, String message) {
@@ -42,9 +44,10 @@ public abstract class RefactoringTool {
     MatlabProgram program = MatlabProgram.at(Paths.get(args[0]));
     TextRange selection = TextRange.parse(args[1]);
     
-    Refactoring refactoring = createRefactoring(
-        program, selection, Arrays.copyOfRange(args, 2, args.length));
-    
+    Refactoring refactoring = createRefactoring(program, selection,
+        IntStream.range(2, args.length).boxed()
+            .collect(Collectors.toMap(i -> extra[i - 2], i -> args[i])));
+
     abortUnless(refactoring.checkPreconditions(), "Preconditions failed!");
     refactoring.apply();
 

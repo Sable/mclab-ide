@@ -1,6 +1,7 @@
 package mclab.ide.refactoring;
 
 import java.io.IOException;
+import java.util.Map;
 
 import mclab.ide.common.TextRange;
 import mclint.MatlabProgram;
@@ -22,11 +23,11 @@ public class ExtractVariableTool extends RefactoringTool {
   }
   
   protected Refactoring createRefactoring(MatlabProgram program, TextRange selection,
-      String[] extraArgs) {
+      Map<String, String> extraArgs) {
     return Refactorings.extractVariable(
         RefactoringContext.create(program.getProject()),
         findExpressionInSelection(program, selection),
-        extraArgs[0]);
+        extraArgs.get("newName"));
   }
 
   public static void main(String[] args) throws IOException {

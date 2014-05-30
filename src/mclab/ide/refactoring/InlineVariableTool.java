@@ -1,6 +1,7 @@
 package mclab.ide.refactoring;
 
 import java.io.IOException;
+import java.util.Map;
 
 import mclab.ide.common.TextRange;
 import mclint.MatlabProgram;
@@ -18,7 +19,7 @@ public class InlineVariableTool extends RefactoringTool {
   }
   
   protected Refactoring createRefactoring(MatlabProgram program, TextRange selection,
-      String[] extraArgs) {
+      Map<String, String> extraArgs) {
     return Refactorings.inlineVariable(
         RefactoringContext.create(program.getProject()),
         findDefinitionInSelection(program, selection));
