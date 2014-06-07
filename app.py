@@ -59,5 +59,10 @@ def inline_variable():
     return refactoring.inline_variable(path, selection)
 
 
+@app.route('/refactor/inline-script', methods=['GET'])
+def inline_script():
+    path = flask.request.args['path']
+    return refactoring.inline_script(path)
+
 if __name__ == '__main__':
     app.run(debug=True, port=4242)

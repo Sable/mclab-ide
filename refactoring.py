@@ -16,3 +16,7 @@ def extract_variable(path, selection, new_name):
 
 def inline_variable(path, selection):
     return delegate_to('inline-variable.sh', path, selection)
+
+
+def inline_script(path):
+    return delegate_to('inline-script.sh', path)
