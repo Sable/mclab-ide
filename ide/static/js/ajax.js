@@ -62,7 +62,11 @@ ide.ajax = (function() {
 
   var refactoring = function(which, params, success, error) {
     get_json('refactor/' + which, params, function (data) {
-      data.newText ? success(data.newText) : error(data.error);
+      if (data.errors.length !== 0 || data.exception) {
+        error(data);
+      } else {
+        success(data.modified);
+      }
     });
   };
 
@@ -97,6 +101,11 @@ ide.ajax = (function() {
     refactoring('inline-variable', params, success, error);
   };
 
+  var inlineScript = function(path, _, success, error) {
+    var params = { path: path };
+    refactoring('inline-script', params, success, error);
+  };
+
   return {
     parseCode: parseCode,
     readFile: readFile,
@@ -107,6 +116,7 @@ ide.ajax = (function() {
     getCallGraph: getCallGraph,
     extractFunction: extractFunction,
     extractVariable: extractVariable,
-    inlineVariable: inlineVariable
+    inlineVariable: inlineVariable,
+    inlineScript: inlineScript
   };
 })();

@@ -135,3 +135,11 @@ def inline_variable(project):
         'selection': request.args['selection'],
     }
     return requests.get(MCLABAAS_URL + '/refactor/inline-variable', params=params).text
+
+
+@app.route('/project/<project:project>/refactor/inline-script', methods=['GET'])
+def inline_script(project):
+    params = {
+        'path': project.path(request.args['path']),
+    }
+    return requests.get(MCLABAAS_URL + '/refactor/inline-script', params=params).text

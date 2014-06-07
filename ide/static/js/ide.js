@@ -48,6 +48,7 @@ ide.ViewModel = function(settings) {
     ].concat(extraParams);
     params.push(success);
     params.push(function (error) {
+      error = JSON.stringify(error);
       console.log(name, 'failed:', error);
       ide.utils.flashError(error);
     });
@@ -61,12 +62,12 @@ ide.ViewModel = function(settings) {
           "'" + newName.trim() + "' is not a valid MATLAB identifier.");
         return;
       }
-      self.doRefactoring(name, action, [newName], function (changedText) {
+      self.doRefactoring(name, action, [newName], function (modifiedFiles) {
         console.log(name, 'successful.');
         // TODO(isbadawi): Avoid rewriting the whole file?
         // The server could send a patch, or something.
         var selection_start_line = self.editor.getSelectionRange().startLine;
-        self.editor.editor.setValue(changedText);
+        self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
         self.editor.selectLine(selection_start_line);
       });
     });
@@ -83,9 +84,20 @@ ide.ViewModel = function(settings) {
 
     if (action == 'Inline variable') {
       self.doRefactoring('Inline variable', ide.ajax.inlineVariable, [],
-          function (changedText) {
-            self.editor.editor.setValue(changedText);
+          function (modifiedFiles) {
+            self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
             self.editor.editor.clearSelection();
+          });
+    }
+
+    if (action === 'Inline script') {
+      self.doRefactoring('Inline script', ide.ajax.inlineScript, [],
+          function (modifiedFiles) {
+            _(modifiedFiles).each(function (newText, filename) {
+              self.editor.openFile(filename, function () {
+                self.editor.sessions[filename].setValue(newText);
+              });
+            });
           });
     }
   };
