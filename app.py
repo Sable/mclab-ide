@@ -1,10 +1,10 @@
 import json
 
 import flask
+import sh
 
 import parse
 import callgraph
-import refactoring
 
 app = flask.Flask(__name__)
 
@@ -36,12 +36,14 @@ def get_callgraph():
     return json.dumps({'callgraph': graph})
 
 
+refactor = sh.Command('./mclab-ide-support/refactor.sh')
+
 @app.route('/refactor/extract-function', methods=['GET'])
 def extract_function():
     path = flask.request.args['path']
     selection = flask.request.args['selection']
     new_name = flask.request.args['newName']
-    return refactoring.extract_function(path, selection, new_name)
+    return refactor('ExtractFunction', path, selection, new_name).stdout
 
 
 @app.route('/refactor/extract-variable', methods=['GET'])
@@ -49,20 +51,20 @@ def extract_variable():
     path = flask.request.args['path']
     selection = flask.request.args['selection']
     new_name = flask.request.args['newName']
-    return refactoring.extract_variable(path, selection, new_name)
+    return refactor('ExtractVariable', path, selection, new_name).stdout
 
 
 @app.route('/refactor/inline-variable', methods=['GET'])
 def inline_variable():
     path = flask.request.args['path']
     selection = flask.request.args['selection']
-    return refactoring.inline_variable(path, selection)
+    return refactor('InlineVariable', path, selection).stdout
 
 
 @app.route('/refactor/inline-script', methods=['GET'])
 def inline_script():
     path = flask.request.args['path']
-    return refactoring.inline_script(path)
+    return refactor('InlineScript', path, '1,1-1,1').stdout
 
 if __name__ == '__main__':
     app.run(debug=True, port=4242)
