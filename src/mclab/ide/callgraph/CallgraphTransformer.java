@@ -1,5 +1,6 @@
 package mclab.ide.callgraph;
 
+import ast.Script;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
@@ -68,6 +69,10 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return identifier(function, function.getName());
   }
 
+  private String identifier(Script script) {
+    return identifier(script, script.getName());
+  }
+
   private boolean isCall(ParameterizedExpr call) {
     return call.getTarget() instanceof NameExpr && isCall((NameExpr) call.getTarget());
   }
@@ -92,15 +97,14 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
           call.getArgs()
         )
     );
-
   }
 
-  private Stmt functionEntryLogStmt(Function f) {
+  private Stmt entryPointLogStmt(String identifier) {
     return new ExprStmt(
         new ParameterizedExpr(
             new NameExpr(new Name("mclab_callgraph_log")),
             new ast.List<Expr>()
-              .add(new StringLiteralExpr("enter " + identifier(f) + "\\n"))
+                .add(new StringLiteralExpr("enter " + identifier + "\\n"))
         )
     );
   }
@@ -113,7 +117,12 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   @Override public void caseFunction(Function f) {
     caseASTNode(f);
-    f.getStmts().insertChild(functionEntryLogStmt(f), 0);
+    f.getStmts().insertChild(entryPointLogStmt(identifier(f)), 0);
+  }
+
+  @Override public void caseScript(Script s) {
+    caseASTNode(s);
+    s.getStmts().insertChild(entryPointLogStmt(identifier(s)), 0);
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
