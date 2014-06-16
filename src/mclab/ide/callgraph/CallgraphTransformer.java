@@ -68,26 +68,21 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return identifier(function, function.getName());
   }
 
-  private static Name getTarget(ParameterizedExpr call) {
-    return ((NameExpr) call.getTarget()).getName();
+  private boolean isCall(ParameterizedExpr call) {
+    return call.getTarget() instanceof NameExpr && isCall((NameExpr) call.getTarget());
   }
 
-  private boolean isCall(ParameterizedExpr call) {
-    if (!(call.getTarget() instanceof NameExpr)) {
-      return false;
-    }
-    return kindAnalysis.getResult(getTarget(call)).isFunction();
+  private boolean isCall(NameExpr call) {
+    return kindAnalysis.getResult(call.getName()).isFunction();
   }
 
   private static <T extends ASTNode> ast.List<T> concat(ast.List<T> list, ast.List<T> other) {
-    for (T t : other) {
-      list = list.add(t);
-    }
+    other.forEach(list::addChild);
     return list;
   }
 
   private Expr wrapWithTraceCall(ParameterizedExpr call) {
-    Name target = getTarget(call);
+    Name target = ((NameExpr) call.getTarget()).getName();
     return new ParameterizedExpr(
         new NameExpr(new Name("mclab_callgraph_log_then_run")),
         concat(
@@ -122,10 +117,15 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
-    if (!isCall(e)) {
-      return;
-    }
     e.getArgs().analyze(this);
-    AstUtil.replace(e, wrapWithTraceCall(e));
+    if (isCall(e)) {
+      AstUtil.replace(e, wrapWithTraceCall(e));
+    }
+  }
+
+  @Override public void caseNameExpr(NameExpr e) {
+    if (isCall(e)) {
+      AstUtil.replace(e, wrapWithTraceCall(new ParameterizedExpr(e.fullCopy(), new ast.List<>())));
+    }
   }
 }
