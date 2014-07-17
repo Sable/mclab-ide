@@ -3,8 +3,11 @@ ide.editor = (function() {
     this.editor = createAceEditor(aceId, settings);
     this.settings = settings;
 
-    this.addKeyboardShortcut('save', 'S', function() {
+    this.addKeyboardShortcut('save', 'Ctrl-S', function() {
       this.saveFile(this.tabs.selectedTab());
+    }.bind(this));
+    this.addKeyboardShortcut('save-all', 'Ctrl-Shift-S', function() {
+      this.tabs.tabs().forEach(this.saveFile.bind(this));
     }.bind(this));
 
     this.sessions = {};
@@ -74,12 +77,13 @@ ide.editor = (function() {
   };
 
   Editor.prototype.addKeyboardShortcut = function(name, key, action) {
+    var bindKey = key;
+    if (bindKey.indexOf('Ctrl') !== -1) {
+      bindKey = {win: key, mac: key.replace('Ctrl', 'Command')};
+    }
     this.editor.commands.addCommand({
       name: name,
-      bindKey: {
-        win: 'Ctrl-' + key,
-        mac: 'Command-' + key,
-      },
+      bindKey: bindKey,
       exec: action,
     });
   };
@@ -113,9 +117,7 @@ ide.editor = (function() {
 
   Editor.prototype.saveFile = function(tab) {
     var path = tab.name();
-    ide.ajax.writeFile(path, this.sessions[path].getValue(), function () {
-      ide.utils.flashSuccess('File ' + path + ' saved.');
-    });
+    ide.ajax.writeFile(path, this.sessions[path].getValue());
     tab.dirty(false);
   }
 
