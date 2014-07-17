@@ -3,7 +3,9 @@ ide.editor = (function() {
     this.editor = createAceEditor(aceId, settings);
     this.settings = settings;
 
-    this.addKeyboardShortcut('save', 'S', this.saveCurrentFile.bind(this));
+    this.addKeyboardShortcut('save', 'S', function() {
+      this.saveFile(this.tabs.selectedTab());
+    }.bind(this));
 
     this.sessions = {};
     this.asts = {};
@@ -11,7 +13,8 @@ ide.editor = (function() {
       .on('all_tabs_closed', function() {
         this.visible(false);
       }.bind(this))
-      .on('tab_select', this.selectFile.bind(this));
+      .on('tab_select', this.selectFile.bind(this))
+      .on('tab_save', this.saveFile.bind(this));
 
     this.editor.on('change', function () {
       this.tabs.selectedTab().dirty(true);
@@ -58,14 +61,6 @@ ide.editor = (function() {
     return session;
   };
 
-  Editor.prototype.selectFile = function(path) {
-    if (!_(this.sessions).has(path)) {
-      this.createSession(path, '');
-    }
-    this.editor.setSession(this.sessions[path]);
-    this.visible(true);
-  };
-
   Editor.prototype.selectLine = function(line) {
     var Range = ace.require('ace/range').Range;
     var selection = this.editor.selection;
@@ -107,13 +102,22 @@ ide.editor = (function() {
     }.bind(this));
   };
 
-  Editor.prototype.saveCurrentFile = function() {
-    var path = this.tabs.selectedTab().name();
-    ide.ajax.writeFile(path, this.editor.getValue(), function () {
+  Editor.prototype.selectFile = function(tab) {
+    var path = tab.name();
+    if (!_(this.sessions).has(path)) {
+      this.createSession(path, '');
+    }
+    this.editor.setSession(this.sessions[path]);
+    this.visible(true);
+  };
+
+  Editor.prototype.saveFile = function(tab) {
+    var path = tab.name();
+    ide.ajax.writeFile(path, this.sessions[path].getValue(), function () {
       ide.utils.flashSuccess('File ' + path + ' saved.');
     });
-    this.tabs.selectedTab().dirty(false);
-  };
+    tab.dirty(false);
+  }
 
   var renameKey = function(object, oldKey, newKey) {
     if (_(object).has(oldKey)) {

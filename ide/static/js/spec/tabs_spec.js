@@ -38,7 +38,7 @@ describe('TabsViewModel', function() {
       var tab = this.tabs.newTab('hello');
       this.tabs.selectedTab(tab);
 
-      expect(callback).toHaveBeenCalledWith('hello');
+      expect(callback).toHaveBeenCalledWith(tab);
     });
 
     it('does not emit an event when the selection is cleared', function() {
@@ -124,6 +124,16 @@ describe('TabsViewModel', function() {
       var tab = this.tabs.openTab('hello');
       expect(this.tabs.tabs().length).toBe(1);
       expect(this.tabs.selectedTab()).toBe(tab);
+    });
+  });
+
+  describe('saving tabs', function() {
+    it('emits a tab_save event', function() {
+      var callback = jasmine.createSpy('callback');
+      this.tabs.on('tab_save', callback);
+      var tab = this.tabs.openTab('hello');
+      this.tabs.onContextMenuItem('Save', tab);
+      expect(callback).toHaveBeenCalledWith(tab);
     });
   });
 });

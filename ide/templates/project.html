@@ -44,7 +44,10 @@
     <div class="row">
     <div id="editor" data-bind="with: editor">
       <div data-bind="with: tabs">
-      <ul data-bind="foreach: tabs" class="editor-tabs nav nav-tabs">
+        <ul class="editor-tabs nav nav-tabs" data-bind="foreach: tabs,
+                                                        contextMenu: { target: '#tab-context-menu',
+                                                                       scopes: 'li',
+                                                                       onItem: onContextMenuItem }">
         <li data-bind="css: { active: $parent.selectedTab() === $data }">
         <a href="#" data-bind="click: $parent.selectedTab">
           <span data-bind="if: dirty">*</span>
@@ -82,6 +85,13 @@
   <ul class="dropdown-menu" role="menu">
     <li><a tabindex="-1">Rename...</a></li>
     <li><a tabindex="-1">Delete</a></li>
+  </ul>
+</div>
+
+<div id="tab-context-menu">
+  <ul class="dropdown-menu" role="menu">
+    <li><a tabindex="-1" href="#">Close</a></li>
+    <li><a tabindex="-1" href="#">Save</a></li>
   </ul>
 </div>
 {% endblock %}

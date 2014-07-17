@@ -12,7 +12,7 @@ ide.tabs = (function() {
 
     self.selectedTab.subscribe(function (tab) {
       if (tab) {
-        self.trigger('tab_select', tab.name());
+        self.trigger('tab_select', tab);
       }
     });
 
@@ -78,6 +78,14 @@ ide.tabs = (function() {
       }
       self.selectedTab(tab);
       return tab;
+    };
+
+    self.onContextMenuItem = function (action, tab) {
+      if (action === 'Close') {
+        self.closeTab(tab);
+      } else if (action === 'Save') {
+        self.trigger('tab_save', tab);
+      }
     };
   };
 
