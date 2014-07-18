@@ -1,15 +1,8 @@
 package mclab.ide.callgraph;
 
-import ast.Script;
-import mclint.MatlabProgram;
-import mclint.Project;
-import mclint.util.AstUtil;
-import natlab.LookupFile;
-import natlab.toolkits.analysis.varorfun.VFAnalysis;
-import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
-import natlab.toolkits.filehandling.FunctionOrScriptQuery;
-import natlab.toolkits.path.FileEnvironment;
-import nodecases.AbstractNodeCaseHandler;
+import java.util.Arrays;
+import java.util.List;
+
 import ast.ASTNode;
 import ast.Expr;
 import ast.ExprStmt;
@@ -19,10 +12,22 @@ import ast.Name;
 import ast.NameExpr;
 import ast.ParameterizedExpr;
 import ast.Program;
+import ast.Script;
 import ast.Stmt;
 import ast.StringLiteralExpr;
+import mclint.MatlabProgram;
+import mclint.Project;
+import mclint.util.AstUtil;
+import natlab.LookupFile;
+import natlab.toolkits.analysis.varorfun.VFAnalysis;
+import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
+import natlab.toolkits.filehandling.FunctionOrScriptQuery;
+import natlab.toolkits.path.FileEnvironment;
+import nodecases.AbstractNodeCaseHandler;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
+  private static List<String> REFLECTIVE_FUNCTION_NAMES = Arrays.asList(
+      "nargin", "nargout", "nargchk", "narginchk", "inputname");
   private static FunctionOrScriptQuery BASELINE_QUERY = LookupFile.getFunctionOrScriptQueryObject();
   private static FunctionOrScriptQuery getKindAnalysisEnvironment(Program node) {
     final FunctionOrScriptQuery env = new FileEnvironment(node.getFile())
@@ -78,7 +83,8 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   private boolean isCall(NameExpr call) {
-    return kindAnalysis.getResult(call.getName()).isFunction();
+    return kindAnalysis.getResult(call.getName()).isFunction() &&
+        !REFLECTIVE_FUNCTION_NAMES.contains(call.getName().getID());
   }
 
   private static <T extends ASTNode> ast.List<T> concat(ast.List<T> list, ast.List<T> other) {
