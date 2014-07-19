@@ -47,9 +47,9 @@ ide.editor = (function() {
     editor.setFontSize(14);
     editor.setShowPrintMargin(false);
     if (settings.keybindings === 'vim') {
-      editor.setKeyboardHandler(ace.require('ace/keyboard/vim').handler);
+      editor.setKeyboardHandler('ace/keyboard/vim');
     } else if (settings.keybindings === 'emacs') {
-      editor.setKeyboardHandler(ace.require('ace/keyboard/emacs').handler);
+      editor.setKeyboardHandler('ace/keyboard/emacs');
     }
 
     editor.resize();
