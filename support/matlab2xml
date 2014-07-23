@@ -1,0 +1,11 @@
+#!/bin/bash
+
+natlab="$HOME/code/java/mclab/languages/Natlab/Natlab.sh"
+
+$natlab -xml -quiet "$@" >/tmp/stdout 2>/tmp/stderr
+if [[ -s /tmp/stderr ]]; then
+  cat /tmp/stderr
+  exit 1
+else
+  cat /tmp/stdout
+fi
