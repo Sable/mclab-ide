@@ -10,14 +10,15 @@ entry-point     MATLAB expression to start evaluating.
 
 function main {
   current_dir=$(pwd)
+  this_dir=$(cd "$(dirname "$0")" && pwd)
 
   project_dir=$1
   target_dir=$2
   log_file=$3
   entry_point=$4
 
-  natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  callgraphbin=java/build
+  natlabjar=$this_dir/mclab/languages/Natlab/Natlab.jar
+  callgraphbin=$this_dir/java/build
   java -cp $natlabjar:$callgraphbin mclab.ide.callgraph.Instrument $project_dir $target_dir
 
   echo -e "function mclab_callgraph_entry_point\n$entry_point\nend" > $target_dir/mclab_callgraph_entry_point.m

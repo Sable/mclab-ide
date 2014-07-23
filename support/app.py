@@ -1,4 +1,5 @@
 import json
+import os
 
 import flask
 import sh
@@ -6,6 +7,7 @@ import sh
 import parse
 import callgraph
 
+this_dir = os.path.dirname(__file__)
 app = flask.Flask(__name__)
 
 
@@ -36,7 +38,7 @@ def get_callgraph():
     return json.dumps({'callgraph': graph})
 
 
-refactor = sh.Command('./refactor.sh')
+refactor = sh.Command(os.path.join(this_dir, 'refactor.sh'))
 
 @app.route('/refactor/extract-function', methods=['GET'])
 def extract_function():

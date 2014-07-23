@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import collections
+import os
 import pprint
 import sys
 
 import sh
 
+this_dir = os.path.dirname(__file__)
 Event = collections.namedtuple('Event', 'type location')
 
 def trace_to_edgelist(trace):
@@ -21,7 +23,7 @@ def trace_to_edgelist(trace):
     return edgelist
 
 def get_callgraph(project_dir, matlab_expression):
-    trace = sh.Command('./trace.sh')
+    trace = sh.Command(os.path.join(this_dir, 'trace.sh'))
     call_trace = trace(project_dir, matlab_expression).stdout
     edges = trace_to_edgelist(call_trace.splitlines())
     grouped = collections.defaultdict(list)

@@ -11,9 +11,11 @@ selection    Range of text to apply refactoring to.
 args         Any extra required params (e.g. newName for extract function)
 "
 
+
 function main {
-  natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  refactoringbin=java/build
+  this_dir=$(cd "$(dirname "$0")" && pwd)
+  natlabjar=$this_dir/mclab/languages/Natlab/Natlab.jar
+  refactoringbin=$this_dir/java/build
   java -cp $natlabjar:$refactoringbin "mclab.ide.refactoring.$1Tool" "${@:2}"
 }
 

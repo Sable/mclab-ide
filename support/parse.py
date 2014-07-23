@@ -1,10 +1,13 @@
+import os
 import re
 import tempfile
 
 import sh
 
-matlab2xml = sh.Command('./matlab2xml')
-matlab2json = sh.Command('./matlab2json')
+this_dir = os.path.dirname(__file__)
+
+matlab2xml = sh.Command(os.path.join(this_dir, 'matlab2xml'))
+matlab2json = sh.Command(os.path.join(this_dir, 'matlab2json'))
 
 
 class SyntaxError(Exception):
