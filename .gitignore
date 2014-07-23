@@ -1,5 +1,4 @@
 *.pyc
-secret.py
 bower_components
 .webassets-cache
 gen
