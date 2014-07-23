@@ -22,6 +22,7 @@
     "underscore": "~1.6.0",
     "knockout.js": "~3.0.0",
     "pnotify": "~2.0.0",
-    "bootstrap-contextmenu": "~0.2.0"
+    "bootstrap-contextmenu": "~0.2.0",
+    "jquery.terminal": "~0.8.8"
   }
 }

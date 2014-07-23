@@ -27,6 +27,7 @@ class Project(object):
 
     def create(self):
         mkdir_p(self.root)
+        self.write_file('ide_entry_point.m', '')
 
     def delete(self):
         shutil.rmtree(self.root)

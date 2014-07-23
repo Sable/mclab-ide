@@ -149,6 +149,10 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.doRename = function(name) {
+    if (name === 'ide_entry_point.m') {
+      ide.utils.flashError("Can't rename ide_entry_point.m.");
+      return;
+    }
     ide.utils.prompt('New name for ' + name + '?', function (newName) {
       if (!this.checkFilename(newName)) {
         return;
@@ -165,6 +169,10 @@ ide.explorer = (function() {
   };
 
   ProjectExplorer.prototype.doDelete = function(name) {
+    if (name === 'ide_entry_point.m') {
+      ide.utils.flashError("Can't delete ide_entry_point.m.");
+      return;
+    }
     ide.utils.confirm("Are you sure you want to delete file '" + name + "'?",
       function() {
         this.trigger('file_deleted', name, function() {

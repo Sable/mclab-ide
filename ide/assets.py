@@ -16,6 +16,8 @@ js_ace = Bundle(
 
 js_libs = Bundle(
     'bower_components/jquery/dist/jquery.js',
+    'bower_components/jquery.terminal/js/jquery.mousewheel-min.js',
+    'bower_components/jquery.terminal/js/jquery.terminal-min.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
     'bower_components/pnotify/pnotify.core.js',
     'bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js',
@@ -43,6 +45,7 @@ js_all = Bundle(js_ace, js_libs, js_app)
 
 css = Bundle(
     'bower_components/pnotify/pnotify.core.css',
+    'bower_components/jquery.terminal/css/jquery.terminal.css',
     Bundle('less/style.less', filters='less', output='gen/style.css'),
     filters='cssmin',
     output='gen/packed.css')

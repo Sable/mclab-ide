@@ -1,8 +1,9 @@
 import json
 
-from werkzeug.routing import BaseConverter
 from flask import render_template, request, abort, flash, redirect, url_for
+import pymatbridge
 import requests
+from werkzeug.routing import BaseConverter
 
 import ide.settings
 from ide import app
@@ -10,6 +11,7 @@ from ide.projects import get_all_projects, Project
 
 MCLABAAS_URL = 'http://localhost:4242'
 
+matlab_session = None
 
 @app.route('/')
 def index():
@@ -61,10 +63,20 @@ def create_project():
 
 @app.route('/project/<project:project>/')
 def project(project):
+    global matlab_session
+    if matlab_session is not None:
+        matlab_session.stop()
+    matlab_session = pymatbridge.Matlab()
+    matlab_session.start()
+    matlab_session.run_code('cd %s;' % project.path(''))
     return render_template(
         'project.html',
         settings=json.dumps(ide.settings.get()))
 
+@app.route('/project/<project:project>/run', methods=['POST'])
+def run(project):
+    print request.data
+    return json.dumps(matlab_session.run_code(request.data))
 
 @app.route('/project/<project:project>/delete', methods=['POST'])
 def delete(project):

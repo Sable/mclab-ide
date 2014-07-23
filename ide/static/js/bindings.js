@@ -25,4 +25,16 @@
       });
     }
   };
+
+  ko.bindingHandlers.terminal = {
+    init: function (element, valueAccessor) {
+      $(element).terminal(valueAccessor(), {
+        greetings: '',
+        prompt: '>> ',
+        clear: false,
+        exit: false,
+        login: false,
+      });
+    }
+  }
 })();

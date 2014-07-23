@@ -6,28 +6,40 @@ ide.ViewModel = function(settings) {
   self.editor = new ide.editor.Editor('editor-buffer', settings);
   self.editor.startSyntaxChecker();
 
-  var consolePane = ace.edit('console');
-  consolePane.setSession(ace.createEditSession(''));
-  consolePane.setTheme('ace/theme/textmate');
-  consolePane.setFontSize(14);
-  // consolePane.setReadOnly(true);
-  consolePane.setHighlightActiveLine(false);
-  consolePane.setShowPrintMargin(false);
-  consolePane.renderer.setShowGutter(false);
-
   $(window).resize(function() {
-    var height = $(window).height();
-    $('#editor-buffer').height(3 * height / 4);
-    $('#console').height(height / 4);
+    var total_height = $(window).height();
+    var nav_height = $('nav').height();
+    var remaining_height = total_height - nav_height;
+
+    $('#editor').height(3 * remaining_height / 4);
+    $('#editor-buffer').height($('#editor').height() - $('ul.editor-tabs').height());
     self.editor.editor.resize();
-    consolePane.resize();
-  });
-  $(window).trigger('resize');
+
+    $('#console').height(remaining_height / 4);
+    var terminal = $.terminal.active();
+    if (terminal) {
+      terminal.css('height', $('#console').height());
+    }
+  }).resize();
+
+  self.onCommand = function(command, terminal) {
+    terminal.pause();
+    ide.ajax.runCode(command, function (response) {
+      terminal.resume();
+      if (response.success === "true") {
+        if (response.content.stdout.trim().length !== 0) {
+          terminal.echo(response.content.stdout);
+        }
+      } else {
+        terminal.error(response.content.stdout);
+      }
+    });
+  };
 
   var callgraph = new ide.callgraph.CallGraph(
-    consolePane.getValue.bind(consolePane));
+      ide.ajax.readFile.bind(null, 'ide_entry_point.m'));
+  // TODO(isbadawi): This is too strong.
   self.editor.editor.on('change', callgraph.invalidate.bind(callgraph));
-  consolePane.on('change', callgraph.invalidate.bind(callgraph));
 
   self.editor.on('function_call_clicked', function (token) {
     console.log(token);

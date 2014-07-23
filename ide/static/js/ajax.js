@@ -1,4 +1,15 @@
 ide.ajax = (function() {
+  var runCode = function(code, callback) {
+    $.ajax({
+      url: 'run',
+      method: 'post',
+      contentType: 'text/plain',
+      data: code,
+      dataType: 'json',
+      success: callback
+    });
+  };
+
   var parseCode = function(code, callback) {
     $.ajax({
       url: '/parse',
@@ -107,6 +118,7 @@ ide.ajax = (function() {
   };
 
   return {
+    runCode: runCode,
     parseCode: parseCode,
     readFile: readFile,
     writeFile: writeFile,

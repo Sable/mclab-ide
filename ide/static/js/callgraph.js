@@ -39,9 +39,11 @@ ide.callgraph = (function() {
       callback(this.graph);
       return;
     }
-    computeCallGraph(this.codeSource(), function(graph) {
-      this.graph = graph;
-      callback(graph);
+    this.codeSource(function (code) {
+      computeCallGraph(code, function (graph) {
+        this.graph = graph;
+        callback(graph);
+      }.bind(this));
     }.bind(this));
   };
 
