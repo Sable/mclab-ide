@@ -21,7 +21,7 @@ def trace_to_edgelist(trace):
     return edgelist
 
 def get_callgraph(project_dir, matlab_expression):
-    trace = sh.Command('./mclab-ide-support/trace.sh')
+    trace = sh.Command('./trace.sh')
     call_trace = trace(project_dir, matlab_expression).stdout
     edges = trace_to_edgelist(call_trace.splitlines())
     grouped = collections.defaultdict(list)

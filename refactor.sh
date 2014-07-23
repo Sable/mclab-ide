@@ -13,7 +13,7 @@ args         Any extra required params (e.g. newName for extract function)
 
 function main {
   natlabjar=$HOME/code/java/mclab/languages/Natlab/Natlab.jar
-  refactoringbin=$HOME/code/java/mclab-ide-support/build
+  refactoringbin=java/build
   java -cp $natlabjar:$refactoringbin "mclab.ide.refactoring.$1Tool" "${@:2}"
 }
 

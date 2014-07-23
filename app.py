@@ -36,7 +36,7 @@ def get_callgraph():
     return json.dumps({'callgraph': graph})
 
 
-refactor = sh.Command('./mclab-ide-support/refactor.sh')
+refactor = sh.Command('./refactor.sh')
 
 @app.route('/refactor/extract-function', methods=['GET'])
 def extract_function():
