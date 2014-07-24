@@ -30,6 +30,9 @@ ide.ViewModel = function(settings) {
         if (response.content.stdout.trim().length !== 0) {
           terminal.echo(response.content.stdout);
         }
+        response.content.figures.forEach(function (path) {
+          window.open('/figure?path=' + encodeURIComponent(path), '_blank');
+        });
       } else {
         terminal.error(response.content.stdout);
       }

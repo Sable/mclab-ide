@@ -1,7 +1,8 @@
 import json
 import re
 
-from flask import render_template, request, abort, flash, redirect, url_for
+from flask import (render_template, request, abort, flash, redirect, url_for,
+                   send_file)
 import pymatbridge
 import requests
 from werkzeug.routing import BaseConverter
@@ -86,6 +87,11 @@ def run(project):
     response = matlab_session.run_code(request.data)
     response['content']['stdout'] = _strip_cruft(response['content']['stdout'])
     return json.dumps(response)
+
+
+@app.route('/figure', methods=['GET'])
+def figure():
+    return send_file(request.args['path'], cache_timeout=0)
 
 
 @app.route('/project/<project:project>/delete', methods=['POST'])
