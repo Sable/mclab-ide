@@ -86,7 +86,7 @@ def project(project):
 
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    response = get_matlab_session().run_code(request.data)
+    response = get_matlab_session().run_code('rehash; %s' % request.data)
     response['content']['stdout'] = _strip_cruft(response['content']['stdout'])
     return json.dumps(response)
 
