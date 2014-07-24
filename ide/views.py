@@ -66,17 +66,19 @@ def create_project():
     project.create()
     return redirect(url_for('project', project=project))
 
+
 matlab_session = None
+def get_matlab_session():
+    global matlab_session
+    if matlab_session is None:
+        matlab_session = pymatbridge.Matlab()
+        matlab_session.start()
+    return matlab_session
 
 
 @app.route('/project/<project:project>/')
 def project(project):
-    global matlab_session
-    if matlab_session is not None:
-        matlab_session.stop()
-    matlab_session = pymatbridge.Matlab()
-    matlab_session.start()
-    matlab_session.run_code('cd %s;' % project.path(''))
+    get_matlab_session().run_code('cd %s;' % project.path(''))
     return render_template(
         'project.html',
         settings=json.dumps(ide.settings.get()))
@@ -84,7 +86,7 @@ def project(project):
 
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    response = matlab_session.run_code(request.data)
+    response = get_matlab_session().run_code(request.data)
     response['content']['stdout'] = _strip_cruft(response['content']['stdout'])
     return json.dumps(response)
 
