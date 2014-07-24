@@ -19,6 +19,7 @@ ide.editor = (function() {
       .on('tab_select', this.selectFile.bind(this))
       .on('tab_save', this.saveFile.bind(this));
 
+    this.editor.on('change', _.debounce(this.tryParse.bind(this), 1000));
     this.editor.on('change', function () {
       this.tabs.selectedTab().dirty(true);
     }.bind(this));
@@ -202,10 +203,6 @@ ide.editor = (function() {
     return this.asts[this.tabs.selectedTab().name()];
   };
 
-  Editor.prototype.clearErrors = function() {
-    this.overlayErrors([]);
-  };
-
   Editor.prototype.overlayErrors = function(errors) {
     this.editor.getSession().setAnnotations(
       errors.map(function (err) {
@@ -222,17 +219,13 @@ ide.editor = (function() {
   Editor.prototype.tryParse = function() {
     ide.ast.parse(this.editor.getValue(),
       function (ast) {
-        this.clearErrors();
+        this.overlayErrors([]);
         this.asts[this.tabs.selectedTab().name()] = ast;
       }.bind(this),
       function (errors) {
         this.overlayErrors(errors);
         delete this.asts[this.tabs.selectedTab().name()];
       }.bind(this));
-  };
-
-  Editor.prototype.startSyntaxChecker = function() {
-    this.editor.on('change', _.debounce(this.tryParse.bind(this), 1000));
   };
 
   _.extend(Editor.prototype, ide.utils.EventsMixin);

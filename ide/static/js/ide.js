@@ -4,7 +4,6 @@ ide.ViewModel = function(settings) {
   var self = this;
 
   self.editor = new ide.editor.Editor('editor-buffer', settings);
-  self.editor.startSyntaxChecker();
 
   $(window).resize(function() {
     var total_height = $(window).height();
