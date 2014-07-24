@@ -232,21 +232,7 @@ ide.editor = (function() {
   };
 
   Editor.prototype.startSyntaxChecker = function() {
-    var typingTimer = null;
-    var doneTypingInterval = 1000;
-
-    var doneTyping = function() {
-      this.tryParse();
-      typingTimer = null;
-    }.bind(this);
-
-    this.editor.on('change', function() {
-      if (typingTimer !== null) {
-        clearTimeout(typingTimer);
-        typingTimer = null;
-      }
-      typingTimer = setTimeout(doneTyping, doneTypingInterval);
-    });
+    this.editor.on('change', _.debounce(this.tryParse.bind(this), 1000));
   };
 
   _.extend(Editor.prototype, ide.utils.EventsMixin);
