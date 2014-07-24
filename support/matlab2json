@@ -1,6 +1,7 @@
 #!/bin/bash
 
-natlab="$HOME/code/java/mclab/languages/Natlab/Natlab.sh"
+this_dir=$(cd "$(dirname "$0")" && pwd)
+natlab="$this_dir/mclab/languages/Natlab/Natlab.sh"
 
 $natlab -json -quiet "$@" >/tmp/stdout 2>/tmp/stderr
 if [[ -s /tmp/stderr ]]; then
