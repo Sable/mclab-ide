@@ -19,7 +19,7 @@ ide.editor = (function() {
       .on('tab_select', this.selectFile.bind(this))
       .on('tab_save', this.saveFile.bind(this));
 
-    this.editor.on('change', _.debounce(this.tryParse.bind(this), 1000));
+    this.editor.on('change', _(this.tryParse.bind(this)).debounce(1000));
     this.editor.on('change', function () {
       this.tabs.selectedTab().dirty(true);
     }.bind(this));
