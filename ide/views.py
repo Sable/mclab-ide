@@ -1,4 +1,5 @@
 import json
+import re
 
 from flask import render_template, request, abort, flash, redirect, url_for
 import pymatbridge
@@ -10,8 +11,12 @@ from ide import app
 from ide.projects import get_all_projects, Project
 
 MCLABAAS_URL = 'http://localhost:4242'
+TERMINAL_CRUFT = re.compile(r'[\[\]]\x08')
 
-matlab_session = None
+
+def _strip_cruft(text):
+    return TERMINAL_CRUFT.sub('', text)
+
 
 @app.route('/')
 def index():
@@ -60,6 +65,8 @@ def create_project():
     project.create()
     return redirect(url_for('project', project=project))
 
+matlab_session = None
+
 
 @app.route('/project/<project:project>/')
 def project(project):
@@ -73,10 +80,13 @@ def project(project):
         'project.html',
         settings=json.dumps(ide.settings.get()))
 
+
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    print request.data
-    return json.dumps(matlab_session.run_code(request.data))
+    response = matlab_session.run_code(request.data)
+    response['content']['stdout'] = _strip_cruft(response['content']['stdout'])
+    return json.dumps(response)
+
 
 @app.route('/project/<project:project>/delete', methods=['POST'])
 def delete(project):
