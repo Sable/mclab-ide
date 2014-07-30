@@ -10,6 +10,7 @@ import ast.Expr;
 import ast.ExprStmt;
 import ast.Function;
 import ast.FunctionHandleExpr;
+import ast.LambdaExpr;
 import ast.Name;
 import ast.NameExpr;
 import ast.ParameterizedExpr;
@@ -141,6 +142,17 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   @Override public void caseScript(Script s) {
     caseASTNode(s);
     s.getStmts().insertChild(entryPointLogStmt(identifier(s)), 0);
+  }
+
+  @Override public void caseLambdaExpr(LambdaExpr e) {
+    caseASTNode(e);
+    AstUtil.replace(e.getBody(),
+        new ParameterizedExpr(
+            new NameExpr(new Name("mclab_callgraph_log_then_run")),
+            new ast.List<Expr>()
+                .add(new StringLiteralExpr(""))
+                .add(new StringLiteralExpr("enter " + identifier(e, "<lambda>") + "\\n"))
+                .add(new LambdaExpr(new ast.List<>(), (Expr) e.getBody().fullCopy()))));
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
