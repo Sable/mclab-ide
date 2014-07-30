@@ -160,7 +160,7 @@ ide.editor = (function() {
 
   Editor.prototype.jumpTo = function(token) {
     this.openFile(token.file, function () {
-     this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
+      this.editor.getSelection().moveTo(token.line - 1, token.col - 1);
     }.bind(this));
   };
 
