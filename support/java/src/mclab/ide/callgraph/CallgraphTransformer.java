@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import ast.ASTNode;
+import ast.AssignStmt;
+import ast.ColonExpr;
 import ast.Expr;
 import ast.ExprStmt;
 import ast.Function;
@@ -23,6 +25,7 @@ import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
 import natlab.toolkits.filehandling.FunctionOrScriptQuery;
 import natlab.toolkits.path.FileEnvironment;
+import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
@@ -82,6 +85,12 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return call.getTarget() instanceof NameExpr && isCall((NameExpr) call.getTarget());
   }
 
+  private boolean isVar(ParameterizedExpr call) {
+    return call.getTarget() instanceof NameExpr &&
+        kindAnalysis.getResult(((NameExpr) call.getTarget()).getName()).isVariable() &&
+        !(call.getParent() instanceof AssignStmt && ((AssignStmt) call.getParent()).getLHS() == call);
+  }
+
   private boolean isCall(NameExpr call) {
     return kindAnalysis.getResult(call.getName()).isFunction() &&
         !REFLECTIVE_FUNCTION_NAMES.contains(call.getName().getID());
@@ -92,14 +101,17 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return list;
   }
 
-  private Expr wrapWithTraceCall(ParameterizedExpr call) {
+  private Expr wrapWithTraceCall(ParameterizedExpr call, boolean isVar) {
     Name target = ((NameExpr) call.getTarget()).getName();
     return new ParameterizedExpr(
         new NameExpr(new Name("mclab_callgraph_log_then_run")),
         concat(
           new ast.List<Expr>()
+            .add(new StringLiteralExpr(isVar ? target.getID() : ""))
             .add(new StringLiteralExpr("call " + identifier(target) + "\\n"))
-            .add(new FunctionHandleExpr(new Name(target.getID()))),
+            .add(isVar ?
+                new NameExpr(new Name(target.getID())) :
+                new FunctionHandleExpr(new Name(target.getID()))),
           call.getArgs()
         )
     );
@@ -134,13 +146,21 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
     e.getArgs().analyze(this);
     if (isCall(e)) {
-      AstUtil.replace(e, wrapWithTraceCall(e));
+      AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
+    } else if (isVar(e)) {
+      // Replace any colons with colon string literals; passing literal
+      // colons to functions seems to confuse MATLAB.
+      NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
+          node -> AstUtil.replace(node, new StringLiteralExpr(":"))
+      );
+      AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
     }
   }
 
   @Override public void caseNameExpr(NameExpr e) {
     if (isCall(e)) {
-      AstUtil.replace(e, wrapWithTraceCall(new ParameterizedExpr(e.fullCopy(), new ast.List<>())));
+      AstUtil.replace(e, wrapWithTraceCall(
+          new ParameterizedExpr(e.fullCopy(), new ast.List<>()), false /* isVar */));
     }
   }
 }
