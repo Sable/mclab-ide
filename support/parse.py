@@ -6,7 +6,6 @@ import sh
 
 this_dir = os.path.dirname(__file__)
 
-matlab2xml = sh.Command(os.path.join(this_dir, 'matlab2xml'))
 matlab2json = sh.Command(os.path.join(this_dir, 'matlab2json'))
 
 
@@ -20,12 +19,8 @@ class SyntaxError(Exception):
         ]
 
 
-def matlab(code, format):
-    if format == 'xml':
-        return get_command_output_or_throw(matlab2xml, code)
-    if format == 'json':
-        return get_command_output_or_throw(matlab2json, code)
-    raise ValueError('unsupported ast format: %s' % format)
+def matlab(code):
+    return get_command_output_or_throw(matlab2json, code)
 
 
 def get_command_output_or_throw(command, code):

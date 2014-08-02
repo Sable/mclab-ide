@@ -11,23 +11,14 @@ this_dir = os.path.dirname(__file__)
 app = flask.Flask(__name__)
 
 
-def _parsed_request_data(format):
+@app.route('/json-ast', methods=['POST'])
+def json_ast():
     response = {}
     try:
-        response['ast'] = parse.matlab(flask.request.data, format)
+        response['ast'] = parse.matlab(flask.request.data)
     except parse.SyntaxError as e:
         response['errors'] = e.errors
     return json.dumps(response)
-
-
-@app.route('/xml-ast', methods=['POST'])
-def xml_ast():
-    return _parsed_request_data(format='xml')
-
-
-@app.route('/json-ast', methods=['POST'])
-def json_ast():
-    return _parsed_request_data(format='json')
 
 
 @app.route('/callgraph', methods=['POST'])
