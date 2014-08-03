@@ -1,3 +1,3 @@
 from ide import app
 
-app.run()
+app.run(threaded=True)
