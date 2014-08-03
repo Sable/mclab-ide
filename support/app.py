@@ -25,7 +25,8 @@ def json_ast():
 def get_callgraph():
     project = flask.request.form['project']
     expression = flask.request.form['expression']
-    graph = callgraph.get_callgraph(project, expression)
+    backend = flask.request.form['backend']
+    graph = callgraph.get_callgraph(project, expression, backend)
     return json.dumps({'callgraph': graph})
 
 

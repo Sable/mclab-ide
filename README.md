@@ -9,8 +9,8 @@ UI.
 * Syntax checking
 * Some basic support for layout-preserving refactorings
 * Preliminary code-navigation features, e.g. jump-to-definition
-* A MATLAB shell -- presently, a MATLAB installation is required for this to
-work, but support for alternative implementations (e.g. Octave) is upcoming.
+* A MATLAB or Octave shell. (A MATLAB or Octave installation is required for
+this to work).
 
 ### Installation
 

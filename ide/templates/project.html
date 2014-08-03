@@ -63,7 +63,8 @@
                                      onItem: $root.onContextMenuItem }">
       </div>
     </div>
-    <div id="console" class="col-md-12" data-bind="terminal: onCommand">
+    <div id="console" class="col-md-12"
+         data-bind="terminal: { onCommand: onCommand, enabled: matlabSessionReady }">
     </div>
     </div>
   </div>

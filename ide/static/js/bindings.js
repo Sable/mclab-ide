@@ -28,13 +28,28 @@
 
   ko.bindingHandlers.terminal = {
     init: function (element, valueAccessor) {
-      $(element).terminal(valueAccessor(), {
+      var options = valueAccessor();
+      var terminal = $(element).terminal(options.onCommand, {
         greetings: '',
         prompt: '>> ',
         clear: false,
         exit: false,
         login: false,
       });
-    }
+      if (!ko.unwrap(options.enabled)) {
+        terminal.pause();
+        terminal.echo('Preparing interpreter...');
+      }
+      $(element).data('terminal', terminal);
+    },
+
+    update: function (element, valueAccessor) {
+      var terminal = $(element).data('terminal');
+      var options = valueAccessor();
+      if (ko.unwrap(options.enabled) && terminal.paused()) {
+        terminal.clear();
+        terminal.resume();
+      }
+    },
   }
 })();

@@ -22,9 +22,9 @@ def trace_to_edgelist(trace):
         last_event = event
     return edgelist
 
-def get_callgraph(project_dir, matlab_expression):
+def get_callgraph(project_dir, matlab_expression, backend):
     trace = sh.Command(os.path.join(this_dir, 'trace.sh'))
-    call_trace = trace(project_dir, matlab_expression).stdout
+    call_trace = trace(project_dir, matlab_expression, backend).stdout
     edges = trace_to_edgelist(call_trace.splitlines())
     grouped = collections.defaultdict(list)
     for site, target in edges:

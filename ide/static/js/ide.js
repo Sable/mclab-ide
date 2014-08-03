@@ -21,6 +21,12 @@ ide.ViewModel = function(settings) {
     }
   }).resize();
 
+
+  self.matlabSessionReady = ko.observable(false);
+  ide.ajax.initializeMatlabSession(function () {
+    self.matlabSessionReady(true);
+  });
+
   self.onCommand = function(command, terminal) {
     terminal.pause();
     ide.ajax.runCode(command, function (response) {

@@ -37,6 +37,11 @@ ide.ajax = (function() {
     });
   };
 
+  var initializeMatlabSession = function(callback) {
+    post('init-session', {}, callback);
+  };
+
+
   var readFile = function(path, callback) {
     get('read-file', {path: path}, callback);
   };
@@ -120,6 +125,7 @@ ide.ajax = (function() {
   return {
     runCode: runCode,
     parseCode: parseCode,
+    initializeMatlabSession: initializeMatlabSession,
     readFile: readFile,
     writeFile: writeFile,
     renameFile: renameFile,

@@ -13,6 +13,7 @@ DEFAULT_SETTINGS = dict(
     keybindings='default',
     expand_tabs=True,
     tab_width=2,
+    backend='octave'
 )
 
 SETTINGS_PATH = os.path.join(os.path.expanduser('~'), '.mclabrc')
@@ -30,7 +31,9 @@ def _read():
         return json.load(f)
 
 
-def get():
+def get(key=None):
+    if key is not None:
+        return get()[key]
     if not os.path.exists(SETTINGS_PATH):
         save(DEFAULT_SETTINGS)
         return DEFAULT_SETTINGS

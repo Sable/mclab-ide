@@ -15,10 +15,6 @@ MCLABAAS_URL = 'http://localhost:4242'
 TERMINAL_CRUFT = re.compile(r'[\[\]]\x08')
 
 
-def _strip_cruft(text):
-    return TERMINAL_CRUFT.sub('', text)
-
-
 @app.route('/')
 def index():
     return render_template('index.html', projects=get_all_projects())
@@ -67,18 +63,48 @@ def create_project():
     return redirect(url_for('project', project=project))
 
 
-matlab_session = None
+class Session(object):
+    def __init__(self):
+        self.backend = None
+        self.session = None
+
+    @property
+    def started(self):
+        return self.session is not None
+
+    def start(self, backend):
+        if self.started:
+            self.session.stop()
+        if backend == 'matlab':
+            self.session = pymatbridge.Matlab()
+        else:
+            self.session = pymatbridge.Octave()
+        self.session.start()
+        self.backend = backend
+
+    def run_code(self, code):
+        response = self.session.run_code('rehash; %s' % code)
+        response['content']['stdout'] = TERMINAL_CRUFT.sub(
+            '', response['content']['stdout'])
+        return response
+
+
+session = Session()
 def get_matlab_session():
-    global matlab_session
-    if matlab_session is None:
-        matlab_session = pymatbridge.Matlab()
-        matlab_session.start()
-    return matlab_session
+    backend = ide.settings.get('backend')
+    if not session.started or session.backend != backend:
+        session.start(backend)
+    return session
+
+
+@app.route('/project/<project:project>/init-session', methods=['POST'])
+def initialize_session(project):
+    get_matlab_session().run_code('cd %s;' % project.path(''))
+    return json.dumps({'status': 'OK'})
 
 
 @app.route('/project/<project:project>/')
 def project(project):
-    get_matlab_session().run_code('cd %s;' % project.path(''))
     return render_template(
         'project.html',
         settings=json.dumps(ide.settings.get()))
@@ -86,9 +112,7 @@ def project(project):
 
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    response = get_matlab_session().run_code('rehash; %s' % request.data)
-    response['content']['stdout'] = _strip_cruft(response['content']['stdout'])
-    return json.dumps(response)
+    return json.dumps(get_matlab_session().run_code(request.data))
 
 
 @app.route('/figure', methods=['GET'])
@@ -134,7 +158,8 @@ def rename_file(project):
 @app.route('/project/<project:project>/callgraph', methods=['POST'])
 def callgraph(project):
     params = {'project': project.root,
-              'expression': request.form['expression']}
+              'expression': request.form['expression'],
+              'backend': ide.settings.get('backend')}
     return requests.post(MCLABAAS_URL + '/callgraph', data=params).text
 
 
