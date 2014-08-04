@@ -2,14 +2,18 @@
   ko.bindingHandlers.contextMenu = {
     init: function (element, valueAccessor) {
       var value = valueAccessor();
+      var clickEvent;
       $(element).contextmenu({
         target: value.target,
-        before: value.before,
+        before: function (e, context) {
+          clickEvent = e;
+          return value.before ? value.before(e, context) : true;
+        },
         scopes: value.scopes || null,
         onItem: function (context, e) {
           var data = ko.dataFor(context.first().get()[0]);
           var action = $(e.target).text();
-          value.onItem(action, data ? data : context);
+          value.onItem(action, data || context, clickEvent);
         }
       });
     }

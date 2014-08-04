@@ -49,8 +49,7 @@ ide.ViewModel = function(settings) {
   // TODO(isbadawi): This is too strong.
   self.editor.editor.on('change', callgraph.invalidate.bind(callgraph));
 
-  self.editor.on('function_call_clicked', function (token) {
-    console.log(token);
+  self.jumpToDeclaration = function (token) {
     callgraph.getTargets(token, function (targets) {
       if (targets.length !== 0) {
         self.editor.jumpTo(targets[0]);
@@ -58,7 +57,9 @@ ide.ViewModel = function(settings) {
         ide.utils.flashError("This call site wasn't covered by the profiling run.");
       }
     });
-  });
+  };
+
+  self.editor.on('function_call_clicked', self.jumpToDeclaration);
 
   self.doRefactoring = function (name, action, extraParams, success) {
     console.log(name, 'for', JSON.stringify(self.editor.getSelectionRange()));
@@ -93,7 +94,7 @@ ide.ViewModel = function(settings) {
     });
   };
 
-  self.onContextMenuItem = function (action) {
+  self.onContextMenuItem = function (action, element, event) {
     if (action === 'Extract function') {
       self.doExtractRefactoring('Extract function', ide.ajax.extractFunction);
     }
@@ -119,6 +120,13 @@ ide.ViewModel = function(settings) {
               });
             });
           });
+    }
+
+    if (action === 'Jump to declaration') {
+      var token = self.editor.getTokenFromMouseEvent(event);
+      if (self.editor.isFunctionCall(token)) {
+        self.jumpToDeclaration(token);
+      }
     }
   };
 
