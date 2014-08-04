@@ -95,23 +95,21 @@ ide.ViewModel = function(settings) {
   };
 
   self.onContextMenuItem = function (action, element, event) {
-    if (action === 'Extract function') {
+    switch (action) {
+    case 'Extract function':
       self.doExtractRefactoring('Extract function', ide.ajax.extractFunction);
-    }
-
-    if (action === 'Extract variable') {
+      break;
+    case 'Extract variable':
       self.doExtractRefactoring('Extract variable', ide.ajax.extractVariable);
-    }
-
-    if (action == 'Inline variable') {
+      break;
+    case 'Inline variable':
       self.doRefactoring('Inline variable', ide.ajax.inlineVariable, [],
           function (modifiedFiles) {
             self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
             self.editor.editor.clearSelection();
           });
-    }
-
-    if (action === 'Inline script') {
+      break;
+    case 'Inline script':
       self.doRefactoring('Inline script', ide.ajax.inlineScript, [],
           function (modifiedFiles) {
             _(modifiedFiles).each(function (newText, filename) {
@@ -120,13 +118,13 @@ ide.ViewModel = function(settings) {
               });
             });
           });
-    }
-
-    if (action === 'Jump to declaration') {
+      break;
+    case 'Jump to declaration':
       var token = self.editor.getTokenFromMouseEvent(event);
       if (self.editor.isFunctionCall(token)) {
         self.jumpToDeclaration(token);
       }
+      break;
     }
   };
 
