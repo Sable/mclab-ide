@@ -55,6 +55,16 @@ ide.callgraph = (function() {
     });
   };
 
+  CallGraph.prototype.getCallers = function(token, callback) {
+    var containsToken = _(_.contains).partial(_, idFromToken(token));
+    this.get(function (graph) {
+      callback(_.chain(graph).pairs()
+        .filter(_(containsToken).compose(_.last))
+        .map(_.compose(tokenFromId, _.first))
+        .value());
+    });
+  };
+
   return {
     CallGraph: CallGraph
   };

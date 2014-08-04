@@ -59,6 +59,16 @@ ide.ViewModel = function(settings) {
     });
   };
 
+  self.jumpToCaller = function (token) {
+    callgraph.getCallers(token, function (callers) {
+      if (callers.length !== 0) {
+        self.editor.jumpTo(callers[0]);
+      } else {
+        ide.utils.flashError("This function wasn't called during the profiling run.");
+      }
+    });
+  };
+
   self.editor.on('function_call_clicked', self.jumpToDeclaration);
 
   self.doRefactoring = function (name, action, extraParams, success) {
@@ -124,6 +134,10 @@ ide.ViewModel = function(settings) {
       if (self.editor.isFunctionCall(token)) {
         self.jumpToDeclaration(token);
       }
+      break;
+    case 'Find callers':
+      var token = self.editor.getTokenFromMouseEvent(event);
+      self.jumpToCaller(token);
       break;
     }
   };
