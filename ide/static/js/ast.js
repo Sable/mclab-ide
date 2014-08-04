@@ -42,6 +42,9 @@ ide.ast = (function() {
   };
 
   Ast.prototype.isFunctionCall = function() {
+    if (!this.ast) {
+      return false;
+    }
     // The only analysis we run so far is the kind analysis. This will
     // distinguish function calls from variable accesses, but it will
     // classify function handles as variables.
@@ -53,6 +56,8 @@ ide.ast = (function() {
     //
     // TODO(isbadawi): Integrate handle propagation analysis?
     // TODO(isbadawi): Somehow warn about calls to undeclared functions...
+    // TODO(isbadawi): Make parents accessible in json AST?
+    //                 Could at least check it's not the LHS of an assignment.
     return this.ast.type === 'NameExpr';
   };
 
