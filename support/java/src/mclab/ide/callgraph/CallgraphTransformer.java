@@ -75,7 +75,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   private String identifier(Function function) {
-    return identifier(function, function.getName().getID());
+    return identifier(function.getName());
   }
 
   private String identifier(Script script) {
