@@ -1,8 +1,12 @@
 ide.callgraph = (function() {
   var idFromToken = function(token) {
-    return token.identifier +
-      '@' + token.file +
-      ':' + token.line + ',' + token.col;
+    var id = token.identifier;
+    var col = token.col;
+    if (id.trim() === '@') {
+      col = token.col + id.indexOf('@');
+      id = '<lambda>';
+    }
+    return id + '@' + token.file + ':' + token.line + ',' + col;
   };
 
   var tokenFromId = function(id) {
