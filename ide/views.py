@@ -1,18 +1,16 @@
 import json
-import re
 
 from flask import (render_template, request, abort, flash, redirect, url_for,
                    send_file)
-import pymatbridge
 import requests
 from werkzeug.routing import BaseConverter
 
 import ide.settings
+import ide.session
 from ide import app
 from ide.projects import get_all_projects, Project
 
 MCLABAAS_URL = 'http://localhost:4242'
-TERMINAL_CRUFT = re.compile(r'[\[\]]\x08')
 
 
 @app.route('/')
@@ -63,43 +61,9 @@ def create_project():
     return redirect(url_for('project', project=project))
 
 
-class Session(object):
-    def __init__(self):
-        self.backend = None
-        self.session = None
-
-    @property
-    def started(self):
-        return self.session is not None
-
-    def start(self, backend):
-        if self.started:
-            self.session.stop()
-        if backend == 'matlab':
-            self.session = pymatbridge.Matlab()
-        else:
-            self.session = pymatbridge.Octave()
-        self.session.start()
-        self.backend = backend
-
-    def run_code(self, code):
-        response = self.session.run_code('rehash; %s' % code)
-        response['content']['stdout'] = TERMINAL_CRUFT.sub(
-            '', response['content']['stdout'])
-        return response
-
-
-session = Session()
-def get_matlab_session():
-    backend = ide.settings.get('backend')
-    if not session.started or session.backend != backend:
-        session.start(backend)
-    return session
-
-
 @app.route('/project/<project:project>/init-session', methods=['POST'])
 def initialize_session(project):
-    get_matlab_session().run_code('cd %s;' % project.path(''))
+    ide.session.run('cd %s;' % project.path(''))
     return json.dumps({'status': 'OK'})
 
 
@@ -112,7 +76,7 @@ def project(project):
 
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    return json.dumps(get_matlab_session().run_code(request.data))
+    return json.dumps(ide.session.run(request.data))
 
 
 @app.route('/figure', methods=['GET'])
