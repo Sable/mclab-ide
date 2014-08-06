@@ -8,6 +8,7 @@ import ide.settings
 
 Event = collections.namedtuple('Event', 'type location')
 
+
 def trace_to_edgelist(trace):
     edgelist = set()
     last_event = Event('<dummy>', None)
