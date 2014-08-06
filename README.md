@@ -28,11 +28,6 @@ Once these are taken care of, you can run `bootstrap.sh`. Among other things
 this installs some python packages, so you may want to run it inside a
 virtualenv.
 
-### Running
-
-There are two servers you need to bring up -- `python run.py`, and
-`python support/app.py`.
-
 ### License
 
 Apache

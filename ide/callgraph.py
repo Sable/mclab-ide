@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import collections
-import os
-import pprint
-import sys
 
-import sh
+from ide.common import shell_out
+import ide.settings
 
-this_dir = os.path.dirname(__file__)
 Event = collections.namedtuple('Event', 'type location')
 
 def trace_to_edgelist(trace):
@@ -22,14 +19,12 @@ def trace_to_edgelist(trace):
         last_event = event
     return edgelist
 
-def get_callgraph(project_dir, matlab_expression, backend):
-    trace = sh.Command(os.path.join(this_dir, 'trace.sh'))
-    call_trace = trace(project_dir, matlab_expression, backend).stdout
+def get(project_dir, matlab_expression):
+    backend = ide.settings.get('backend')
+    call_trace = shell_out('trace.sh', project_dir, matlab_expression,
+                           backend).stdout
     edges = trace_to_edgelist(call_trace.splitlines())
     grouped = collections.defaultdict(list)
     for site, target in edges:
         grouped[site].append(target)
     return grouped
-
-if __name__ == '__main__':
-    pprint.pprint(get_callgraph(sys.argv[1], sys.argv[2]))

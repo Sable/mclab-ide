@@ -3,14 +3,16 @@ import json
 from flask import (render_template, request, abort, flash, redirect, url_for,
                    send_file)
 import requests
+import sh
 from werkzeug.routing import BaseConverter
 
+import ide.callgraph
+from ide.common import shell_out
+import ide.parser
 import ide.settings
 import ide.session
 from ide import app
 from ide.projects import get_all_projects, Project
-
-MCLABAAS_URL = 'http://localhost:4242'
 
 
 @app.route('/')
@@ -20,7 +22,12 @@ def index():
 
 @app.route('/parse', methods=['POST'])
 def parse():
-    return requests.post(MCLABAAS_URL + '/json-ast', data=request.data).text
+    response = {}
+    try:
+        response['ast'] = ide.parser.parse_matlab_code(request.data)
+    except ide.parser.SyntaxError as e:
+        response['errors'] = e.errors
+    return json.dumps(response)
 
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -121,44 +128,39 @@ def rename_file(project):
 
 @app.route('/project/<project:project>/callgraph', methods=['POST'])
 def callgraph(project):
-    params = {'project': project.root,
-              'expression': request.form['expression'],
-              'backend': ide.settings.get('backend')}
-    return requests.post(MCLABAAS_URL + '/callgraph', data=params).text
+    call_graph = ide.callgraph.get(project.root, request.form['expression'])
+    return json.dumps({'callgraph': call_graph})
 
 
 @app.route('/project/<project:project>/refactor/extract-function', methods=['GET'])
 def extract_function(project):
-    params = {
-        'path': project.path(request.args['path']),
-        'selection': request.args['selection'],
-        'newName': request.args['newName']
-    }
-    return requests.get(MCLABAAS_URL + '/refactor/extract-function', params=params).text
+    return shell_out('refactor.sh',
+        'ExtractFunction',
+        project.path(request.args['path']),
+        request.args['selection'],
+        request.args['newName']).stdout
 
 
 @app.route('/project/<project:project>/refactor/extract-variable', methods=['GET'])
 def extract_variable(project):
-    params = {
-        'path': project.path(request.args['path']),
-        'selection': request.args['selection'],
-        'newName': request.args['newName']
-    }
-    return requests.get(MCLABAAS_URL + '/refactor/extract-variable', params=params).text
+    return shell_out('refactor.sh',
+        'ExtractVariable',
+        project.path(request.args['path']),
+        request.args['selection'],
+        request.args['newName']).stdout
 
 
 @app.route('/project/<project:project>/refactor/inline-variable', methods=['GET'])
 def inline_variable(project):
-    params = {
-        'path': project.path(request.args['path']),
-        'selection': request.args['selection'],
-    }
-    return requests.get(MCLABAAS_URL + '/refactor/inline-variable', params=params).text
+    return shell_out('refactor.sh',
+        'InlineVariable',
+        project.path(request.args['path']),
+        request.args['selection']).stdout
 
 
 @app.route('/project/<project:project>/refactor/inline-script', methods=['GET'])
 def inline_script(project):
-    params = {
-        'path': project.path(request.args['path']),
-    }
-    return requests.get(MCLABAAS_URL + '/refactor/inline-script', params=params).text
+    return shell_out('refactor.sh',
+        'InlineScript',
+        project.path(request.args['path']),
+        '1,1-1,1').stdout

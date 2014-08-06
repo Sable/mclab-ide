@@ -2,11 +2,7 @@ import os
 import re
 import tempfile
 
-import sh
-
-this_dir = os.path.dirname(__file__)
-
-matlab2json = sh.Command(os.path.join(this_dir, 'matlab2json'))
+from ide.common import shell_out
 
 
 class SyntaxError(Exception):
@@ -19,16 +15,12 @@ class SyntaxError(Exception):
         ]
 
 
-def matlab(code):
-    return get_command_output_or_throw(matlab2json, code)
-
-
-def get_command_output_or_throw(command, code):
+def parse_matlab_code(code):
     with tempfile.NamedTemporaryFile('w') as f:
         f.write(code)
         f.flush()
 
-        output = command(f.name, _ok_code=[0,1])
+        output = shell_out('matlab2json', f.name, _ok_code=[0,1])
         if output.exit_code == 0:
             return output.stdout
         raise SyntaxError(output.stdout)
