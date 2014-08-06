@@ -14,19 +14,45 @@ this to work).
 
 ### Installation
 
-This has quite a few dependencies. An install script (`bootstrap.sh`) is
-provided, but you first need some preliminaries:
+A `Vagrantfile` is provided, which provisions a Ubuntu 14.04 VM with
+everything required (but not MATLAB; Octave is used instead). If you have
+[vagrant][] installed, then running the app should be as simple as:
 
-* python 2.7.x
-* JDK 8
+```
+$ vagrant up
+# This might take a while...
+$ vagrant ssh -c "cd /vagrant && python run.py"
+* Running on http://0.0.0.0:5000/
+* Restarting with reloader
+```
+
+and navigating to `http://localhost:5000`.
+
+### Manual installation
+
+This has been tested on OS X (10.9) and various flavors of Linux. It hasn't
+been tested on Windows -- feel free to try it out and let me know what issues
+you run into. As preliminaries, you'll need:
+
+* python 2.7.x (including development headers)
+* pip
+* jdk8
 * ant
 * npm
+* MATLAB (recentish) or Octave (at least 3.8)
 * libzmq (required by [python-matlab-bridge][] -- see its README for
-instructions)
+instructions). Note if you're using Octave, you'll want to follow
+[the instructions here also][messenger].
 
 Once these are taken care of, you can run `bootstrap.sh`. Among other things
 this installs some python packages, so you may want to run it inside a
 virtualenv.
+
+Finally, you'll want to place the `support/callgraph-runtime` directory
+somewhere on the runtime path. There are various ways to do this. For MATLAB,
+you can set the `MATLABPATH` environment variable, which is similar to the
+system `PATH`. For Octave, you can put a call to `addpath` inside
+`~/.octaverc`.
 
 ### License
 
@@ -34,3 +60,5 @@ Apache
 
 [mclab]: http://www.sable.mcgill.ca/mclab
 [python-matlab-bridge]: https://github.com/arokem/python-matlab-bridge
+[vagrant]: http://www.vagrantup.com/
+[messenger]: https://github.com/arokem/python-matlab-bridge#octave-support--caveats
