@@ -6,6 +6,7 @@ WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
 
 
 def get_all_projects():
+    mkdir_p(WORKSPACE_DIR)
     return map(Project, os.listdir(WORKSPACE_DIR))
 
 
