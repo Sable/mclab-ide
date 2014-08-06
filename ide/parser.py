@@ -2,7 +2,7 @@ import os
 import re
 import tempfile
 
-from ide.common import shell_out
+from ide.util import shell_out
 
 
 class SyntaxError(Exception):

@@ -7,7 +7,7 @@ import sh
 from werkzeug.routing import BaseConverter
 
 import ide.callgraph
-from ide.common import shell_out
+from ide.util import shell_out
 import ide.parser
 import ide.settings
 import ide.session
