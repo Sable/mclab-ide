@@ -2,7 +2,7 @@ import os
 import re
 import tempfile
 
-from ide.util import shell_out
+from ide.util import shell_out, root_relative_path
 
 
 class SyntaxError(Exception):
@@ -20,7 +20,8 @@ def parse_matlab_code(code):
         f.write(code)
         f.flush()
 
-        output = shell_out('matlab2json', f.name, _ok_code=[0,1])
+        output = shell_out(root_relative_path('support', 'matlab2json'),
+                           f.name, _ok_code=[0,1])
         if output.exit_code == 0:
             return output.stdout
         raise SyntaxError(output.stdout)

@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-npm install -g less bower
+npm install
 pip install -r requirements.txt
-(cd ide/static && bower install)
-git submodule init
-git submodule update
+git submodule update --init
 (cd support/mclab/languages/Natlab && ant jar)
 (cd support/java && ant)

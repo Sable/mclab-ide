@@ -7,7 +7,7 @@ import sh
 from werkzeug.routing import BaseConverter
 
 import ide.callgraph
-from ide.util import shell_out
+from ide.util import shell_out, root_relative_path
 import ide.parser
 import ide.settings
 import ide.session
@@ -131,10 +131,13 @@ def callgraph(project):
     return json.dumps({'callgraph': ide.callgraph.get(project)})
 
 
+def refactoring(*args):
+    return shell_out(root_relative_path('support', 'refactor.sh'), *args)
+
+
 @app.route('/project/<project:project>/refactor/extract-function', methods=['GET'])
 def extract_function(project):
-    return shell_out('refactor.sh',
-        'ExtractFunction',
+    return refactoring('ExtractFunction',
         project.path(request.args['path']),
         request.args['selection'],
         request.args['newName']).stdout
@@ -142,8 +145,7 @@ def extract_function(project):
 
 @app.route('/project/<project:project>/refactor/extract-variable', methods=['GET'])
 def extract_variable(project):
-    return shell_out('refactor.sh',
-        'ExtractVariable',
+    return refactoring('ExtractVariable',
         project.path(request.args['path']),
         request.args['selection'],
         request.args['newName']).stdout
@@ -151,15 +153,13 @@ def extract_variable(project):
 
 @app.route('/project/<project:project>/refactor/inline-variable', methods=['GET'])
 def inline_variable(project):
-    return shell_out('refactor.sh',
-        'InlineVariable',
+    return refactoring('InlineVariable',
         project.path(request.args['path']),
         request.args['selection']).stdout
 
 
 @app.route('/project/<project:project>/refactor/inline-script', methods=['GET'])
 def inline_script(project):
-    return shell_out('refactor.sh',
-        'InlineScript',
+    return refactoring('InlineScript',
         project.path(request.args['path']),
         '1,1-1,1').stdout

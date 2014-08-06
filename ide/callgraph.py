@@ -2,7 +2,7 @@
 import collections
 import tempfile
 
-from ide.util import shell_out
+from ide.util import shell_out, root_relative_path
 import ide.session
 import ide.settings
 
@@ -24,7 +24,8 @@ def trace_to_edgelist(trace):
 
 def get(project):
     target_dir = tempfile.mkdtemp()
-    shell_out('instrument.sh', project.root, target_dir)
+    shell_out(root_relative_path('support', 'instrument.sh'),
+              project.root, target_dir)
     with tempfile.NamedTemporaryFile(delete=False) as log_file:
         response = ide.session.run('; '.join([
             'mclab_callgraph_old_pwd = pwd()',

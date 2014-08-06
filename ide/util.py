@@ -2,9 +2,12 @@ import os
 
 import sh
 
-this_dir = os.path.dirname(__file__)
-support_dir = os.path.join(this_dir, '..', 'support')
+root_dir = os.path.dirname(os.path.dirname(__file__))
+
+
+def root_relative_path(*parts):
+    return os.path.join(root_dir, *parts)
+
 
 def shell_out(program, *args, **kwargs):
-    command = sh.Command(os.path.join(support_dir, program))
-    return command(*args, **kwargs)
+    return sh.Command(program)(*args, **kwargs)
