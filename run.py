@@ -1,3 +1,3 @@
 from ide import app
 
-app.run(threaded=True)
+app.run(host='0.0.0.0', threaded=True)
