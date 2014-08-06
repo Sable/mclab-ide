@@ -62,16 +62,10 @@ ide.ajax = (function() {
     get_json('files', {}, callback);
   };
 
-  var getCallGraph = function(expression, callback) {
-     $.ajax({
-      url: 'callgraph',
-      method: 'post',
-      data: {expression: expression},
-      dataType: 'json',
-      success: function (data) {
-        if ('callgraph' in data) {
-          callback(data.callgraph);
-        }
+  var getCallGraph = function(callback) {
+    get_json('callgraph', {}, function (data) {
+      if ('callgraph' in data) {
+        callback(data.callgraph);
       }
     });
   };

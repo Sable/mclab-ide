@@ -70,7 +70,7 @@ def create_project():
 
 @app.route('/project/<project:project>/init-session', methods=['POST'])
 def initialize_session(project):
-    ide.session.run('cd %s;' % project.path(''))
+    ide.session.run('cd %s;' % project.root)
     return json.dumps({'status': 'OK'})
 
 
@@ -126,10 +126,9 @@ def rename_file(project):
     return json.dumps({'status': 'OK'})
 
 
-@app.route('/project/<project:project>/callgraph', methods=['POST'])
+@app.route('/project/<project:project>/callgraph', methods=['GET'])
 def callgraph(project):
-    call_graph = ide.callgraph.get(project.root, request.form['expression'])
-    return json.dumps({'callgraph': call_graph})
+    return json.dumps({'callgraph': ide.callgraph.get(project)})
 
 
 @app.route('/project/<project:project>/refactor/extract-function', methods=['GET'])

@@ -44,8 +44,7 @@ ide.ViewModel = function(settings) {
     });
   };
 
-  var callgraph = new ide.callgraph.CallGraph(
-      ide.ajax.readFile.bind(null, 'ide_entry_point.m'));
+  var callgraph = new ide.callgraph.CallGraph();
   // TODO(isbadawi): This is too strong.
   self.editor.editor.on('change', callgraph.invalidate.bind(callgraph));
 

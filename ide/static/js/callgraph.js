@@ -20,16 +20,7 @@ ide.callgraph = (function() {
     };
   };
 
-  var computeCallGraph = function(code, callback) {
-    console.log('Computing callgraph from "' + code + '"...');
-    ide.ajax.getCallGraph(code, function (graph) {
-      console.log('Got the callgraph: ' + JSON.stringify(graph));
-      callback(graph);
-    });
-  };
-
-  var CallGraph = function(codeSource) {
-    this.codeSource = codeSource;
+  var CallGraph = function() {
     this.invalidate();
   };
 
@@ -43,11 +34,9 @@ ide.callgraph = (function() {
       callback(this.graph);
       return;
     }
-    this.codeSource(function (code) {
-      computeCallGraph(code, function (graph) {
-        this.graph = graph;
-        callback(graph);
-      }.bind(this));
+    ide.ajax.getCallGraph(function (graph) {
+      this.graph = graph;
+      callback(graph);
     }.bind(this));
   };
 
