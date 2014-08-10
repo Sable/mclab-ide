@@ -37,10 +37,7 @@ ide.ajax = (function() {
     });
   };
 
-  var initializeMatlabSession = function(callback) {
-    post('init-session', {}, callback);
-  };
-
+  var initializeMatlabSession = post.bind(this, 'init-session', {});
 
   var readFile = function(path, callback) {
     get('read-file', {path: path}, callback);
@@ -58,9 +55,7 @@ ide.ajax = (function() {
     post('delete-file', {path: path}, callback);
   };
 
-  var getFiles = function(callback) {
-    get_json('files', {}, callback);
-  };
+  var getFiles = get_json.bind(this, 'files', {});
 
   var getCallGraph = function(callback) {
     get_json('callgraph', {}, function (data) {
@@ -98,13 +93,8 @@ ide.ajax = (function() {
     refactoring(url, params, success, error);
   };
 
-  var extractFunction = function(path, selection, newName, success, error) {
-    extractBase('extract-function', path, selection, newName, success, error);
-  };
-
-  var extractVariable = function(path, selection, newName, success, error) {
-    extractBase('extract-variable', path, selection, newName, success, error);
-  };
+  var extractFunction = extractBase.bind(this, 'extract-function');
+  var extractVariable = extractBase.bind(this, 'extract-variable');
 
   var inlineVariable = function(path, selection, success, error) {
     var params = { path: path, selection: serializeSelection(selection) };

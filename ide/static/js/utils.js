@@ -2,23 +2,12 @@ ide.utils = (function() {
   PNotify.prototype.options.styling = 'bootstrap3';
   PNotify.prototype.options.history = false;
 
-  var flashSuccess = function(text) {
-    flashNotification('success', 'Success!', text);
-  };
-
-  var flashError = function(text) {
-    flashNotification('error', 'Something went wrong.', text);
-  };
-
   var flashNotification = function(type, title, text) {
-    new PNotify({
-      title: title,
-      text: text,
-      type: type,
-      delay: 2000
-    });
+    new PNotify({ title: title, text: text, type: type, delay: 2000 });
   };
 
+  var flashSuccess = flashNotification.bind(this, 'success', 'Success!');
+  var flashError = flashNotification.bind(this, 'error', 'Something went wrong.');
 
   var prompt = function(message, callback) {
     bootbox.prompt(message, function (text) {

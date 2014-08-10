@@ -23,9 +23,8 @@ ide.ViewModel = function(settings) {
 
 
   self.matlabSessionReady = ko.observable(false);
-  ide.ajax.initializeMatlabSession(function () {
-    self.matlabSessionReady(true);
-  });
+  ide.ajax.initializeMatlabSession(
+      self.matlabSessionReady.bind(self.matlabRessionReady, true));
 
   self.onCommand = function(command, terminal) {
     terminal.pause();
@@ -142,9 +141,7 @@ ide.ViewModel = function(settings) {
   };
 
   self.explorer = new ide.explorer.ProjectExplorer()
-    .on('file_selected', function (path) {
-      self.editor.openFile(path);
-    })
+    .on('file_selected', self.editor.openFile.bind(self.editor))
     .on('file_renamed', function (oldPath, newPath, doRename) {
       if (self.editor.hasDirtyTab(oldPath)) {
         ide.utils.flashError('This file has unsaved changes. ' +

@@ -12,9 +12,7 @@ ide.explorer = (function() {
 
   TreeNode.fromFiles = function(files) {
     var root = new TreeNode('<dummy');
-    files.forEach(function (file) {
-      root.add(file);
-    });
+    files.forEach(root.add.bind(root));
     return root;
   }
 

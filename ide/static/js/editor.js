@@ -10,12 +10,11 @@ ide.editor = (function() {
       this.tabs.tabs().forEach(this.saveFile.bind(this));
     }.bind(this));
 
+    this.visible = ko.observable(false);
     this.sessions = {};
     this.asts = {};
     this.tabs = new ide.tabs.TabsViewModel()
-      .on('all_tabs_closed', function() {
-        this.visible(false);
-      }.bind(this))
+      .on('all_tabs_closed', this.visible.bind(this.visible, false))
       .on('tab_select', this.selectFile.bind(this))
       .on('tab_save', this.saveFile.bind(this));
 
@@ -38,8 +37,6 @@ ide.editor = (function() {
         this.trigger('function_call_clicked', token);
       }
     }.bind(this));
-
-    this.visible = ko.observable(false);
   };
 
   var createAceEditor = function(el, settings) {

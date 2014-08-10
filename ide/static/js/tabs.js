@@ -45,10 +45,7 @@ ide.tabs = (function() {
         return;
       }
       ide.utils.confirm('This file has unsaved changes. Really close?',
-        function() {
-          self.forceCloseTab(tab);
-        }
-      );
+          self.forceCloseTab.bind(self, tab));
     };
 
     self.forceCloseTab = function(tab) {
