@@ -15,7 +15,7 @@ def trace_to_edgelist(trace):
     for line in trace:
         line = line.strip()
         event = Event(*line.split(' ', 1))
-        if event.type not in ('call', 'enter'):
+        if event.type not in ('call', 'enter', 'builtin'):
             raise ValueError('unrecognized event type: %s', type)
         if event.type == 'enter' and last_event.type == 'call':
             edgelist.add((last_event.location, event.location))
@@ -28,7 +28,7 @@ def get(project):
     shell_out(root_relative_path('support', 'instrument.sh'),
               project.root, target_dir)
     with tempfile.NamedTemporaryFile(delete=False) as log_file:
-        response = ide.session.run('; '.join([
+        ide.session.run('; '.join([
             'mclab_callgraph_old_pwd = pwd()',
             "cd('%s')" % target_dir,
             "mclab_callgraph_init('%s')" % log_file.name,
