@@ -28,7 +28,13 @@ class Project(object):
 
     def create(self):
         mkdir_p(self.root)
-        self.write_file('ide_entry_point.m', '')
+        self.write_file('ide_entry_point.m', '''
+function ide_entry_point()
+  % This function is used as an entry point for profiling runs, which
+  % provide the data powering features such as jump-to-definition and
+  % find callers. You should fill it in with code that exercises as
+  % much of your project as possible.
+end'''[1:])
 
     def delete(self):
         shutil.rmtree(self.root)
