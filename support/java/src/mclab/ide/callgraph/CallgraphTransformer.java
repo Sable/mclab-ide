@@ -108,7 +108,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
         new NameExpr(new Name("mclab_callgraph_log_then_run")),
         concat(
           new ast.List<Expr>()
-            .add(new StringLiteralExpr("call " + identifier(target) + "\\n"))
+            .add(new StringLiteralExpr("call " + identifier(target)))
             .add(isVar ?
                 new NameExpr(new Name(target.getID())) :
                 new FunctionHandleExpr(new Name(target.getID()))),
@@ -122,7 +122,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
         new ParameterizedExpr(
             new NameExpr(new Name("mclab_callgraph_log")),
             new ast.List<Expr>()
-                .add(new StringLiteralExpr("enter " + identifier + "\\n"))
+                .add(new StringLiteralExpr("enter " + identifier))
         )
     );
   }
@@ -149,7 +149,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
         new ParameterizedExpr(
             new NameExpr(new Name("mclab_callgraph_log_then_run")),
             new ast.List<Expr>()
-                .add(new StringLiteralExpr("enter " + identifier(e, "<lambda>") + "\\n"))
+                .add(new StringLiteralExpr("enter " + identifier(e, "<lambda>")))
                 .add(new LambdaExpr(new ast.List<>(), (Expr) e.getBody().fullCopy()))));
   }
 

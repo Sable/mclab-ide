@@ -10,10 +10,10 @@ function varargout = mclab_callgraph_log_then_run(s, f, varargin)
   end
 
   if builtin
-    mclab_callgraph_log('builtin start\n');
+    mclab_callgraph_log('builtin start');
   end
   [varargout{1:nargout}] = f(varargin{:});
   if builtin
-    mclab_callgraph_log('builtin end\n');
+    mclab_callgraph_log('builtin end');
   end
 end
