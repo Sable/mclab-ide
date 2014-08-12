@@ -20,6 +20,7 @@ echo "export LD_LIBRARY_PATH=/usr/local/lib" >> .bashrc
 apt-get install octave liboctave-dev -y
 apt-get install python-dev -y
 apt-get install ant npm python-pip git -y
+ln -s /usr/bin/nodejs /usr/bin/node
 
 # app
 (cd /vagrant && ./bootstrap.sh)
