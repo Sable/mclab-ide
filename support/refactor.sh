@@ -14,9 +14,8 @@ args         Any extra required params (e.g. newName for extract function)
 
 function main {
   this_dir=$(cd "$(dirname "$0")" && pwd)
-  natlabjar=$this_dir/mclab/languages/Natlab/Natlab.jar
-  refactoringbin=$this_dir/java/build
-  java -cp $natlabjar:$refactoringbin "mclab.ide.refactoring.$1Tool" "${@:2}"
+  classpath=$this_dir/mclab/languages/Natlab/Natlab.jar:$this_dir/java/build
+  java -cp $classpath "mclab.ide.refactoring.$1Tool" "${@:2}"
 }
 
 main "$@"
