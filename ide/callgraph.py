@@ -9,8 +9,8 @@ import ide.settings
 Event = collections.namedtuple('Event', 'type location')
 
 
-def trace_to_edgelist(trace):
-    edgelist = set()
+def trace_to_callgraph(trace):
+    edges = set()
     last_event = Event('<dummy>', None)
     for line in trace:
         line = line.strip()
@@ -18,9 +18,12 @@ def trace_to_edgelist(trace):
         if event.type not in ('call', 'enter', 'builtin'):
             raise ValueError('unrecognized event type: %s', type)
         if event.type == 'enter' and last_event.type == 'call':
-            edgelist.add((last_event.location, event.location))
+            edges.add((last_event.location, event.location))
         last_event = event
-    return edgelist
+    graph = collections.defaultdict(list)
+    for site, target in edges:
+        graph[site].append(target)
+    return graph
 
 
 def get(project):
@@ -38,8 +41,4 @@ def get(project):
             'mclab_callgraph_cleanup()',
         ]))
         call_trace = log_file.readlines()
-    edges = trace_to_edgelist(call_trace)
-    grouped = collections.defaultdict(list)
-    for site, target in edges:
-        grouped[site].append(target)
-    return grouped
+    return trace_to_callgraph(call_trace)
