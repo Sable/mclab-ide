@@ -9,7 +9,7 @@ target-dir      Directory in which to place instrumented code.
 "
 
 function main {
-  if [ "$#" -ne "2" ] || [ ! -d "$1"] || [ ! -d "$2" ]; then
+  if [ "$#" -ne "2" ] || [ ! -d "$1" ] || [ ! -d "$2" ]; then
     echo "$USAGE"
     exit 1
   fi
