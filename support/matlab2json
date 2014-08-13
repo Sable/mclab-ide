@@ -1,9 +1,9 @@
 #!/bin/bash
 
 this_dir=$(cd "$(dirname "$0")" && pwd)
-natlab="$this_dir/mclab/languages/Natlab/Natlab.sh"
+natlab_jar="$this_dir/mclab/languages/Natlab/Natlab.jar"
 
-$natlab -json -quiet "$@" >/tmp/stdout 2>/tmp/stderr
+java -jar $natlab_jar -json -quiet "$@" >/tmp/stdout 2>/tmp/stderr
 if [[ -s /tmp/stderr ]]; then
   cat /tmp/stderr
   exit 1
