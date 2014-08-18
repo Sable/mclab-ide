@@ -42,7 +42,8 @@ end'''[1:])
     def files(self):
         for dirpath, _, paths in os.walk(self.root):
             for path in paths:
-                yield os.path.join(dirpath, path)[len(self.root) + 1:]
+                if not path.startswith('.'):
+                    yield os.path.join(dirpath, path)[len(self.root) + 1:]
 
     def path(self, file):
         return os.path.join(self.root, file)

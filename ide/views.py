@@ -70,7 +70,11 @@ def create_project():
 
 @app.route('/project/<project:project>/init-session', methods=['POST'])
 def initialize_session(project):
-    ide.session.run('cd %s;' % project.root)
+    ide.session.run(';'.join([
+        'cd %s' % project.root,
+        'clear',
+        "if exist('./.session.mat') == 2, load('./.session.mat'), end"
+    ]))
     return json.dumps({'status': 'OK'})
 
 
@@ -83,7 +87,12 @@ def project(project):
 
 @app.route('/project/<project:project>/run', methods=['POST'])
 def run(project):
-    return json.dumps(ide.session.run(request.data))
+    session_path = project.path('.session.mat')
+    response = ide.session.run(','.join([
+        request.data,
+        "save('-v7', '%s');" % session_path
+    ]))
+    return json.dumps(response)
 
 
 @app.route('/figure', methods=['GET'])
