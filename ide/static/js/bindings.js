@@ -45,6 +45,15 @@
         terminal.echo('Preparing interpreter...');
       }
       $(element).data('terminal', terminal);
+
+      // This fixes a problem where the terminal keeps stealing keystrokes when
+      // a context menu spawns a modal, even though it doesn't have focus
+      // anymore. See https://github.com/jcubic/jquery.terminal/issues/169.
+      $(document).on('show.bs.context', function () {
+        if (terminal.enabled()) {
+          terminal.disable();
+        }
+      });
     },
 
     update: function (element, valueAccessor) {
