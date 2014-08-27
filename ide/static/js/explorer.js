@@ -11,7 +11,7 @@ ide.explorer = (function() {
   };
 
   TreeNode.fromFiles = function(files) {
-    var root = new TreeNode('<dummy');
+    var root = new TreeNode('<dummy>');
     files.forEach(root.add.bind(root));
     return root;
   }
@@ -88,21 +88,13 @@ ide.explorer = (function() {
 
   var ProjectExplorer = function() {
     this.files = ko.observableArray([]);
-    this.root = new TreeNode('<dummy>');
-
-    ide.ajax.getFiles(function (files) {
-      this.files(files);
-      this.root.children(TreeNode.fromFiles(files).children());
-      this.root.children().forEach(function (node) {
-        node.parent = this.root;
-      }.bind(this));
-    }.bind(this));
+    this.root = ko.observable(new TreeNode('<dummy>'));
 
     // Define event handlers here -- otherwise we can't use 'this' to access
     // the current object. (I guess).
     var self = this;
 
-    ProjectExplorer.prototype.newFile = function(form) {
+    this.newFile = function(form) {
       var path = form.path.value;
       if (self.checkFilename(path)) {
         self.createFile(path);
@@ -127,6 +119,11 @@ ide.explorer = (function() {
     };
   };
 
+  ProjectExplorer.prototype.setFiles = function(files) {
+    this.files(files);
+    this.root(TreeNode.fromFiles(files));
+  };
+
   ProjectExplorer.prototype.checkFilename = function(path) {
     if (!/[^\s].m$/.test(path)) {
       ide.utils.flashError('Please enter a file name that ends in .m.');
@@ -141,7 +138,7 @@ ide.explorer = (function() {
 
   ProjectExplorer.prototype.createFile = function(path) {
     ide.ajax.writeFile(path, '', function() {
-      this.root.add(path).ensureVisible();
+      this.root().add(path).ensureVisible();
       this.trigger('file_selected', path);
     }.bind(this));
   };
@@ -159,8 +156,8 @@ ide.explorer = (function() {
         ide.ajax.renameFile(name, newName, function() {
           this.files.remove(name);
           this.files.push(newName);
-          this.root.getByPath(name).remove();
-          this.root.add(newName).ensureVisible();
+          this.root().getByPath(name).remove();
+          this.root().add(newName).ensureVisible();
         }.bind(this));
       }.bind(this));
     }.bind(this));
@@ -176,7 +173,7 @@ ide.explorer = (function() {
         this.trigger('file_deleted', name, function() {
           ide.ajax.deleteFile(name, function() {
             this.files.remove(name);
-            this.root.getByPath(name).remove();
+            this.root().getByPath(name).remove();
           }.bind(this));
         }.bind(this));
       }.bind(this));

@@ -159,4 +159,6 @@ ide.ViewModel = function(settings) {
       callgraph.invalidate();
       doDelete();
     });
+
+  ide.ajax.getFiles(self.explorer.setFiles.bind(self.explorer));
 };

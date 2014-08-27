@@ -1,20 +1,7 @@
 describe('ProjectExplorer', function() {
   beforeEach(function() {
-    spyOn(ide.ajax, 'getFiles').andCallFake(function (cb) {
-      cb([
-        'lib/nested/f.m',
-        'lib/one.m',
-        'lib/two.m',
-        'test/one_test.m',
-        'test/two_test.m'
-      ]);
-    });
-
     this.explorer = new ide.explorer.ProjectExplorer();
-  });
-
-  it('gets the project files from the server', function() {
-    expect(this.explorer.files()).toEqual([
+    this.explorer.setFiles([
       'lib/nested/f.m',
       'lib/one.m',
       'lib/two.m',
@@ -33,7 +20,7 @@ describe('ProjectExplorer', function() {
 
   it('organizes the files into a tree', function() {
     var node = ide.explorer.TreeNode;
-    expectTreesEqual(this.explorer.root,
+    expectTreesEqual(this.explorer.root(),
       new node('<dummy>', [
         new node('lib', [
           new node('nested', [
@@ -53,7 +40,7 @@ describe('ProjectExplorer', function() {
   it('emits a file_selected event when a file is selected', function() {
     var callback = jasmine.createSpy('callback');
     this.explorer.on('file_selected', callback);
-    this.explorer.select(this.explorer.root.getByPath('lib/one.m'));
+    this.explorer.select(this.explorer.root().getByPath('lib/one.m'));
     expect(callback).toHaveBeenCalledWith('lib/one.m');
   });
 
@@ -73,13 +60,13 @@ describe('ProjectExplorer', function() {
     });
 
     it('reflects the rename in the file tree', function() {
-      expect(this.explorer.root.getByPath('lib/one.m').fullPath()).toEqual('lib/one.m');
+      expect(this.explorer.root().getByPath('lib/one.m').fullPath()).toEqual('lib/one.m');
       this.explorer.on('file_renamed', function(_, _, doIt) {
         doIt();
       });
       this.tryToRename('lib/one.m', 'lib/three.m', true);
-      expect(this.explorer.root.getByPath('lib/one.m')).toBeFalsy();
-      expect(this.explorer.root.getByPath('lib/three.m').fullPath()).toEqual('lib/three.m');
+      expect(this.explorer.root().getByPath('lib/one.m')).toBeFalsy();
+      expect(this.explorer.root().getByPath('lib/three.m').fullPath()).toEqual('lib/three.m');
     });
 
     it('emits a file_renamed event before renaming', function() {
