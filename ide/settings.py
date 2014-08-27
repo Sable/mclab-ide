@@ -1,7 +1,6 @@
 import json
 import os
-
-import sh
+import shutil
 
 AVAILABLE_THEMES = (
     ('monokai', 'Monokai (Sublime Text)'),
@@ -10,13 +9,12 @@ AVAILABLE_THEMES = (
     ('solarized_dark', 'Solarized (dark)'),
 )
 
-
 DEFAULT_SETTINGS = dict(
     theme='solarized_dark',
     keybindings='default',
     expand_tabs=True,
     tab_width=2,
-    backend='matlab' if sh.which('matlab') is not None else 'octave'
+    backend='matlab' if shutil.which('matlab') is not None else 'octave'
 )
 
 SETTINGS_PATH = os.path.join(os.path.expanduser('~'), '.mclabrc')

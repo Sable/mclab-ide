@@ -1,13 +1,13 @@
-import os
+import pathlib
 
 import sh
 
-root_dir = os.path.dirname(os.path.dirname(__file__))
+root_dir = pathlib.Path(__file__).parent.parent
 
 
 def root_relative_path(*parts):
-    return os.path.join(root_dir, *parts)
+    return root_dir.joinpath(*parts)
 
 
 def shell_out(program, *args, **kwargs):
-    return sh.Command(program)(*args, **kwargs)
+    return sh.Command(str(program))(*args, **kwargs)

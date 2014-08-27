@@ -1,30 +1,28 @@
-import errno
+import contextlib
 import os
+import pathlib
 import shutil
 
-WORKSPACE_DIR = os.path.expanduser('~/mclab-ide-projects')
+WORKSPACE_DIR = pathlib.Path(os.path.expanduser('~/mclab-ide-projects'))
+
+
+def mkdir_p(path):
+    with contextlib.suppress(FileExistsError):
+        path.mkdir(parents=True)
 
 
 def get_all_projects():
     mkdir_p(WORKSPACE_DIR)
-    return map(Project, os.listdir(WORKSPACE_DIR))
-
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        if e.errno != errno.EEXIST or not os.path.isdir(path):
-            raise
+    return (Project(path.name) for path in WORKSPACE_DIR.iterdir())
 
 
 class Project(object):
     def __init__(self, name):
         self.name = name
-        self.root = os.path.join(WORKSPACE_DIR, self.name)
+        self.root = WORKSPACE_DIR / self.name
 
     def exists(self):
-        return os.path.exists(self.root)
+        return self.root.exists()
 
     def create(self):
         mkdir_p(self.root)
@@ -37,35 +35,33 @@ function ide_entry_point()
 end'''[1:])
 
     def delete(self):
-        shutil.rmtree(self.root)
+        shutil.rmtree(str(self.root))
 
     def files(self):
-        for dirpath, _, paths in os.walk(self.root):
-            for path in paths:
-                if not path.startswith('.'):
-                    yield os.path.join(dirpath, path)[len(self.root) + 1:]
+        return [path.relative_to(self.root) for path in self.root.rglob('*')
+                if not path.name.startswith('.')]
 
     def path(self, file):
-        return os.path.join(self.root, file)
+        return self.root / file
 
     def read_file(self, file):
-        with open(self.path(file)) as f:
+        with self.path(file).open() as f:
             return f.read()
 
     def write_file(self, file, contents):
         path = self.path(file)
-        mkdir_p(os.path.dirname(path))
-        with open(path, 'w') as f:
+        mkdir_p(path.parent)
+        with path.open('w') as f:
             f.write(contents)
 
     def delete_file(self, file):
         path = self.path(file)
-        if os.path.isdir(path):
-            shutil.rmtree(path)
+        if path.is_dir():
+            shutil.rmtree(str(path))
         else:
-            os.remove(path)
+            path.unlink()
 
     def rename_file(self, src, dest):
         src, dest = self.path(src), self.path(dest)
-        mkdir_p(os.path.dirname(dest))
-        shutil.move(src, dest)
+        mkdir_p(dest.parent)
+        src.rename(dest)
