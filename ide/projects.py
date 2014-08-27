@@ -59,7 +59,11 @@ end'''[1:])
             f.write(contents)
 
     def delete_file(self, file):
-        os.remove(self.path(file))
+        path = self.path(file)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
 
     def rename_file(self, src, dest):
         src, dest = self.path(src), self.path(dest)
