@@ -24,5 +24,8 @@
     "pnotify": "~2.0.0",
     "bootstrap-contextmenu": "~0.2.0",
     "jquery.terminal": "~0.8.8"
+  },
+  "devDependencies": {
+    "jasmine": "~2.0.3"
   }
 }

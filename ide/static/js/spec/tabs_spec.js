@@ -77,7 +77,7 @@ describe('TabsViewModel', function() {
 
         // Cancel first time, confirm second time
         var first = true;
-        spyOn(ide.utils, 'confirm').andCallFake(function(message, cb) {
+        spyOn(ide.utils, 'confirm').and.callFake(function(message, cb) {
           if (first) {
             first = false;
           } else {

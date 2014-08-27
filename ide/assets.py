@@ -43,15 +43,32 @@ js_app = Bundle(
 
 js_all = Bundle(js_ace, js_libs, js_app)
 
-css = Bundle(
+css_app = Bundle(
     'bower_components/pnotify/pnotify.core.css',
     'bower_components/jquery.terminal/css/jquery.terminal.css',
     Bundle('less/style.less', filters='less', output='gen/style.css'),
     filters='cssmin',
     output='gen/packed.css')
 
+css_specs = Bundle(
+    'bower_components/jasmine/lib/jasmine-core/jasmine.css',
+    filters='cssmin',
+    output='gen/jasmine.css')
+
+js_specs = Bundle(
+    'bower_components/jasmine/lib/jasmine-core/jasmine.js',
+    'bower_components/jasmine/lib/jasmine-core/jasmine-html.js',
+    'bower_components/jasmine/lib/jasmine-core/boot.js',
+    'js/spec/explorer_spec.js',
+    'js/spec/tabs_spec.js',
+    filters='jsmin',
+    output='gen/specs.js'
+)
+
 assets.register('js_all', js_all)
 assets.register('js_ace', js_ace)
 assets.register('js_libs', js_libs)
 assets.register('js_app', js_app)
-assets.register('css_all', css)
+assets.register('css_app', css_app)
+assets.register('css_specs', css_specs)
+assets.register('js_specs', js_specs)

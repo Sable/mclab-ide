@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block css %}
+  {% assets 'css_specs' %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet">
+  {% endassets %}
+{% endblock %}
+
+{% block js %}
+  {% assets 'js_app', 'js_specs' %}
+  <script src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}

@@ -47,12 +47,12 @@ describe('ProjectExplorer', function() {
   describe('renaming files', function() {
     beforeEach(function() {
       this.tryToRename = function(from, to, fs) {
-        spyOn(ide.ajax, 'renameFile').andCallFake(function(from, to, done) {
+        spyOn(ide.ajax, 'renameFile').and.callFake(function(from, to, done) {
           if (fs) {
             done();
           }
         });
-        spyOn(ide.utils, 'prompt').andCallFake(function(message, cb) {
+        spyOn(ide.utils, 'prompt').and.callFake(function(message, cb) {
           cb(to);
         });
         this.explorer.doRename(from);
@@ -109,7 +109,7 @@ describe('ProjectExplorer', function() {
   describe('deleting files', function() {
     beforeEach(function() {
       spyOn(ide.ajax, 'deleteFile');
-      spyOn(ide.utils, 'confirm').andCallFake(function(message, cb) { cb() });
+      spyOn(ide.utils, 'confirm').and.callFake(function(message, cb) { cb() });
     });
 
     it('asks for confirmation', function() {

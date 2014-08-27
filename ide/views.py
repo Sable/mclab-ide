@@ -20,6 +20,11 @@ def index():
     return render_template('index.html', projects=get_all_projects())
 
 
+@app.route('/runtests', methods=['GET'])
+def run_tests():
+    return render_template('run_tests.html')
+
+
 @app.route('/parse', methods=['POST'])
 def parse():
     response = {}

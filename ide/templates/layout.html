@@ -9,9 +9,10 @@
 
   <title>McLab IDE</title>
 
-  {% assets 'css_all' %}
+  {% assets 'css_app' %}
   <link href="{{ ASSET_URL }}" rel="stylesheet">
   {% endassets %}
+  {% block css %}{% endblock %}
 </head>
 
 <body>
