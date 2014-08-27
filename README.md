@@ -21,7 +21,7 @@ everything required (but not MATLAB; Octave is used instead). If you have
 ```
 $ vagrant up
 # This might take a while...
-$ vagrant ssh -c "cd /vagrant && python run.py"
+$ vagrant ssh -c "cd /vagrant && python3 run.py"
 * Running on http://0.0.0.0:5000/
 * Restarting with reloader
 ```
@@ -34,7 +34,7 @@ This has been tested on OS X (10.9) and various flavors of Linux. It hasn't
 been tested on Windows -- feel free to try it out and let me know what issues
 you run into. As preliminaries, you'll need:
 
-* python 2.7.x (including development headers)
+* python 3.4.x (including development headers)
 * pip
 * jdk8
 * ant

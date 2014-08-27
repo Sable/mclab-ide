@@ -13,7 +13,7 @@ def trace_to_callgraph(trace):
     edges = set()
     last_event = Event('<dummy>', None)
     for line in trace:
-        line = line.strip()
+        line = line.strip().decode('utf-8')
         event = Event(*line.split(' ', 1))
         if event.type not in ('call', 'enter', 'builtin'):
             raise ValueError('unrecognized event type: %s', type)

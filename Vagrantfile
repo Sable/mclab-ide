@@ -18,11 +18,12 @@ tar -xzf zeromq-4.0.4.tar.gz
 echo "export LD_LIBRARY_PATH=/usr/local/lib" >> .bashrc
 
 apt-get install octave liboctave-dev -y
-apt-get install python-dev -y
-apt-get install ant npm python-pip git -y
+apt-get install ant npm python3-pip git -y
 ln -s /usr/bin/nodejs /usr/bin/node
 
 # app
+function pip { pip3 "$@" }
+export -f pip
 (cd /vagrant && ./bootstrap.sh)
 mkdir messenger
 wget https://raw.githubusercontent.com/arokem/python-matlab-bridge/master/messenger/src/messenger.c

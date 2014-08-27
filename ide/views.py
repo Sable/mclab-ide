@@ -29,7 +29,7 @@ def run_tests():
 def parse():
     response = {}
     try:
-        response['ast'] = ide.parser.parse_matlab_code(request.data)
+        response['ast'] = ide.parser.parse_matlab_code(request.data.decode('utf-8'))
     except ide.parser.SyntaxError as e:
         response['errors'] = e.errors
     return json.dumps(response)
@@ -94,7 +94,7 @@ def project(project):
 def run(project):
     session_path = project.path('.session.mat')
     response = ide.session.run(','.join([
-        request.data,
+        request.data.decode('utf-8'),
         "save('-v7', '%s');" % session_path
     ]))
     return json.dumps(response)

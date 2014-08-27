@@ -24,5 +24,5 @@ def parse_matlab_code(code):
         output = shell_out(root_relative_path('support', 'matlab2json'),
                            f.name, _ok_code=[0, 1])
         if output.exit_code == 0:
-            return output.stdout
-        raise SyntaxError(output.stdout)
+            return output.stdout.decode('utf-8')
+        raise SyntaxError(output.stdout.decode('utf-8'))
