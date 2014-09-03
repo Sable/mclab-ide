@@ -22,7 +22,7 @@ apt-get install ant npm python3-pip git -y
 ln -s /usr/bin/nodejs /usr/bin/node
 
 # app
-function pip { pip3 "$@" }
+function pip { pip3 "$@"; }
 export -f pip
 (cd /vagrant && ./bootstrap.sh)
 mkdir messenger
