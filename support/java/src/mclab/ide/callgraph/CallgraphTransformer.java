@@ -21,31 +21,14 @@ import ast.StringLiteralExpr;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
-import natlab.LookupFile;
 import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
-import natlab.toolkits.filehandling.FunctionOrScriptQuery;
-import natlab.toolkits.path.FileEnvironment;
 import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
   private static List<String> REFLECTIVE_FUNCTION_NAMES = Arrays.asList(
       "nargin", "nargout", "nargchk", "narginchk", "inputname");
-  private static FunctionOrScriptQuery BASELINE_QUERY = LookupFile.getFunctionOrScriptQueryObject();
-  private static FunctionOrScriptQuery getKindAnalysisEnvironment(Program node) {
-    final FunctionOrScriptQuery env = new FileEnvironment(node.getFile())
-        .getFunctionOrScriptQuery(node.getFile());
-    return new FunctionOrScriptQuery() {
-      @Override public boolean isFunctionOrScript(String name) {
-        return env.isFunctionOrScript(name) || BASELINE_QUERY.isFunctionOrScript(name);
-      }
-
-      @Override public boolean isPackage(String name) {
-        return env.isPackage(name) || BASELINE_QUERY.isPackage(name);
-      }
-    };
-  }
 
   public static void instrument(Project project) {
     project.getMatlabPrograms().forEach(CallgraphTransformer::instrument);
@@ -53,7 +36,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   public static void instrument(MatlabProgram program) {
     Program node = program.parse();
-    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node, getKindAnalysisEnvironment(node));
+    VFAnalysis kindAnalysis = new VFPreorderAnalysis(node);
     kindAnalysis.analyze();
     node.analyze(new CallgraphTransformer(kindAnalysis, program.getPath().toString()));
   }
