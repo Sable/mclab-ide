@@ -76,7 +76,7 @@ def create_project():
 @app.route('/project/<project:project>/init-session', methods=['POST'])
 def initialize_session(project):
     ide.session.run(';'.join([
-        'cd %s' % project.root,
+        "cd '%s'" % project.root,
         'clear',
         "if exist('./.session.mat') == 2, load('./.session.mat'), end"
     ]))
