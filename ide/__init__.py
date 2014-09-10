@@ -8,7 +8,7 @@ app.config.from_object('ide.secret')
 app.config.update({
     'DEBUG': True,
     'ASSETS_DEBUG': True,
-    'LESS_BIN': root_relative_path('node_modules', 'less', 'bin', 'lessc'),
+    'LESS_BIN': str(root_relative_path('node_modules', 'less', 'bin', 'lessc')),
 })
 assets.init_app(app)
 
