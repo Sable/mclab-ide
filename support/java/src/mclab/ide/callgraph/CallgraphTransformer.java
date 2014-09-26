@@ -7,9 +7,7 @@ import ast.ASTNode;
 import ast.AssignStmt;
 import ast.ColonExpr;
 import ast.Expr;
-import ast.ExprStmt;
 import ast.Function;
-import ast.FunctionHandleExpr;
 import ast.LambdaExpr;
 import ast.Name;
 import ast.NameExpr;
@@ -17,7 +15,6 @@ import ast.ParameterizedExpr;
 import ast.Program;
 import ast.Script;
 import ast.Stmt;
-import ast.StringLiteralExpr;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
@@ -25,6 +22,13 @@ import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
 import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
+
+import static natlab.utils.Asts.args;
+import static natlab.utils.Asts.call;
+import static natlab.utils.Asts.handleTo;
+import static natlab.utils.Asts.stmt;
+import static natlab.utils.Asts.string;
+import static natlab.utils.Asts.var;
 
 public class CallgraphTransformer extends AbstractNodeCaseHandler {
   private static List<String> REFLECTIVE_FUNCTION_NAMES = Arrays.asList(
@@ -87,27 +91,17 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   private Expr wrapWithTraceCall(ParameterizedExpr call, boolean isVar) {
     Name target = ((NameExpr) call.getTarget()).getName();
-    return new ParameterizedExpr(
-        new NameExpr(new Name("mclab_callgraph_log_then_run")),
-        concat(
-          new ast.List<Expr>()
-            .add(new StringLiteralExpr("call " + identifier(target)))
-            .add(isVar ?
-                new NameExpr(new Name(target.getID())) :
-                new FunctionHandleExpr(new Name(target.getID()))),
-          call.getArgs()
-        )
-    );
+    return call("mclab_callgraph_log_then_run", concat(
+        args(
+            string("call " + identifier(target)),
+            isVar ? var(target.getID()) : handleTo(target.getID())
+        ),
+        call.getArgs()
+    ));
   }
 
   private Stmt entryPointLogStmt(String identifier) {
-    return new ExprStmt(
-        new ParameterizedExpr(
-            new NameExpr(new Name("mclab_callgraph_log")),
-            new ast.List<Expr>()
-                .add(new StringLiteralExpr("enter " + identifier))
-        )
-    );
+    return stmt(call("mclab_callgraph_log", args(string("enter " + identifier))));
   }
 
   @Override public void caseASTNode(ASTNode node) {
@@ -129,11 +123,10 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   @Override public void caseLambdaExpr(LambdaExpr e) {
     caseASTNode(e);
     AstUtil.replace(e.getBody(),
-        new ParameterizedExpr(
-            new NameExpr(new Name("mclab_callgraph_log_then_run")),
-            new ast.List<Expr>()
-                .add(new StringLiteralExpr("enter " + identifier(e, "<lambda>")))
-                .add(new LambdaExpr(new ast.List<>(), e.getBody().fullCopy()))));
+        call("mclab_callgraph_log_then_run", args(
+            string("enter " + identifier(e, "<lambda>")),
+            new LambdaExpr(new ast.List<>(), e.getBody().fullCopy())
+        )));
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
@@ -144,7 +137,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
       // Replace any colons with colon string literals; passing literal
       // colons to functions seems to confuse MATLAB.
       NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
-          node -> AstUtil.replace(node, new StringLiteralExpr(":"))
+          node -> AstUtil.replace(node, string(":"))
       );
       AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
     }
@@ -152,8 +145,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   @Override public void caseNameExpr(NameExpr e) {
     if (isCall(e)) {
-      AstUtil.replace(e, wrapWithTraceCall(
-          new ParameterizedExpr(e.fullCopy(), new ast.List<>()), false /* isVar */));
+      AstUtil.replace(e, wrapWithTraceCall(call(e.fullCopy(), args()), false /* isVar */));
     }
   }
 }
