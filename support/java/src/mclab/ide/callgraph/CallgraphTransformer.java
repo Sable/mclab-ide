@@ -133,7 +133,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
             new NameExpr(new Name("mclab_callgraph_log_then_run")),
             new ast.List<Expr>()
                 .add(new StringLiteralExpr("enter " + identifier(e, "<lambda>")))
-                .add(new LambdaExpr(new ast.List<>(), (Expr) e.getBody().fullCopy()))));
+                .add(new LambdaExpr(new ast.List<>(), e.getBody().fullCopy()))));
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
