@@ -1,4 +1,5 @@
 *.pyc
+.vagrant
 bower_components
 .webassets-cache
 gen
