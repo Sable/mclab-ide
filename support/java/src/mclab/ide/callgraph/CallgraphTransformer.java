@@ -19,6 +19,7 @@ import ast.Stmt;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
+import natlab.tame.builtin.Builtin;
 import natlab.toolkits.analysis.handlepropagation.HandleFlowset;
 import natlab.toolkits.analysis.handlepropagation.HandlePropagationAnalysis;
 import natlab.toolkits.analysis.handlepropagation.handlevalues.AbstractValue;
@@ -83,6 +84,16 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   private boolean isCall(ParameterizedExpr call) {
     return call.getTarget() instanceof NameExpr && isCall((NameExpr) call.getTarget());
+  }
+
+  private static boolean callsBuiltin(ParameterizedExpr call) {
+    return callsBuiltin((NameExpr) call.getTarget());
+  }
+
+  private static boolean callsBuiltin(NameExpr call) {
+    // TODO(isbadawi): Check for user-defined specializations of builtins?
+    // TODO(isbadawi): Maybe use LookupFile's database instead of Builtin's?
+    return Builtin.getBuiltinQuery().isBuiltin(call.getName().getID());
   }
 
   private boolean isVar(ParameterizedExpr call) {
@@ -152,7 +163,9 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
     e.getArgs().analyze(this);
     if (isCall(e)) {
-      AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
+      if (!callsBuiltin(e)) {
+        AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
+      }
     } else if (isVar(e) && mightBeFunctionHandle(e)) {
       // Replace any colons with colon string literals; passing literal
       // colons to functions seems to confuse MATLAB.
@@ -164,7 +177,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   @Override public void caseNameExpr(NameExpr e) {
-    if (isCall(e)) {
+    if (isCall(e) && !callsBuiltin(e)) {
       AstUtil.replace(e, wrapWithTraceCall(call(e.fullCopy(), args()), false /* isVar */));
     }
   }
