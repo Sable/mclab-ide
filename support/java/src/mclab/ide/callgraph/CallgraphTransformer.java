@@ -2,6 +2,7 @@ package mclab.ide.callgraph;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 
 import ast.ASTNode;
 import ast.AssignStmt;
@@ -18,6 +19,10 @@ import ast.Stmt;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
+import natlab.toolkits.analysis.handlepropagation.HandleFlowset;
+import natlab.toolkits.analysis.handlepropagation.HandlePropagationAnalysis;
+import natlab.toolkits.analysis.handlepropagation.handlevalues.AbstractValue;
+import natlab.toolkits.analysis.handlepropagation.handlevalues.Value;
 import natlab.toolkits.analysis.varorfun.VFAnalysis;
 import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
 import natlab.utils.NodeFinder;
@@ -42,14 +47,21 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     Program node = program.parse();
     VFAnalysis kindAnalysis = new VFPreorderAnalysis(node);
     kindAnalysis.analyze();
-    node.analyze(new CallgraphTransformer(kindAnalysis, program.getPath().toString()));
+    HandlePropagationAnalysis handleAnalysis = new HandlePropagationAnalysis(node);
+    handleAnalysis.analyze();
+    node.analyze(new CallgraphTransformer(kindAnalysis, handleAnalysis, program.getPath().toString()));
   }
 
   private VFAnalysis kindAnalysis;
+  private HandlePropagationAnalysis handleAnalysis;
   private String relativePath;
 
-  private CallgraphTransformer(VFAnalysis kindAnalysis, String relativePath) {
+  private CallgraphTransformer(
+      VFAnalysis kindAnalysis,
+      HandlePropagationAnalysis handleAnalysis,
+      String relativePath) {
     this.kindAnalysis = kindAnalysis;
+    this.handleAnalysis = handleAnalysis;
     this.relativePath = relativePath;
   }
 
@@ -77,6 +89,14 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     return call.getTarget() instanceof NameExpr &&
         kindAnalysis.getResult(((NameExpr) call.getTarget()).getName()).isVariable() &&
         !(call.getParent() instanceof AssignStmt && ((AssignStmt) call.getParent()).getLHS() == call);
+  }
+
+  private boolean mightBeFunctionHandle(ParameterizedExpr e) {
+    Stmt parentStmt = NodeFinder.findParent(Stmt.class, e);
+    String target = ((NameExpr) e.getTarget()).getName().getID();
+    HandleFlowset stmtHandleInfo = handleAnalysis.getInFlowSets().get(parentStmt);
+    TreeSet<Value> targetHandleInfo = stmtHandleInfo.getOrDefault(target, new TreeSet<>());
+    return !targetHandleInfo.contains(AbstractValue.newDataOnly());
   }
 
   private boolean isCall(NameExpr call) {
@@ -133,7 +153,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     e.getArgs().analyze(this);
     if (isCall(e)) {
       AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
-    } else if (isVar(e)) {
+    } else if (isVar(e) && mightBeFunctionHandle(e)) {
       // Replace any colons with colon string literals; passing literal
       // colons to functions seems to confuse MATLAB.
       NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
