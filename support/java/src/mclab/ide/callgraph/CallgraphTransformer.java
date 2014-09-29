@@ -156,7 +156,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     AstUtil.replace(e.getBody(),
         call("mclab_callgraph_log_then_run", args(
             string("enter " + identifier(e, "<lambda>")),
-            new LambdaExpr(new ast.List<>(), e.getBody().fullCopy())
+            new LambdaExpr(new ast.List<>(), e.getBody().treeCopy())
         )));
   }
 
@@ -178,7 +178,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   @Override public void caseNameExpr(NameExpr e) {
     if (isCall(e) && !callsBuiltin(e)) {
-      AstUtil.replace(e, wrapWithTraceCall(call(e.fullCopy(), args()), false /* isVar */));
+      AstUtil.replace(e, wrapWithTraceCall(call(e.treeCopy(), args()), false /* isVar */));
     }
   }
 }
