@@ -1,25 +1,34 @@
 package mclab.ide.callgraph;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import ast.ASTNode;
 import ast.AssignStmt;
 import ast.ColonExpr;
+import ast.ElseBlock;
 import ast.Expr;
 import ast.Function;
+import ast.IfBlock;
+import ast.IfStmt;
 import ast.LambdaExpr;
+import ast.MatrixExpr;
 import ast.Name;
 import ast.NameExpr;
 import ast.ParameterizedExpr;
 import ast.Program;
 import ast.Script;
+import ast.ShortCircuitOrExpr;
 import ast.Stmt;
 import mclint.MatlabProgram;
 import mclint.Project;
 import mclint.util.AstUtil;
 import natlab.tame.builtin.Builtin;
+import natlab.toolkits.analysis.core.ReachingDefs;
+import natlab.toolkits.analysis.core.UseDefDefUseChain;
 import natlab.toolkits.analysis.handlepropagation.HandleFlowset;
 import natlab.toolkits.analysis.handlepropagation.HandlePropagationAnalysis;
 import natlab.toolkits.analysis.handlepropagation.handlevalues.AbstractValue;
@@ -97,9 +106,19 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   private boolean isVar(ParameterizedExpr call) {
-    return call.getTarget() instanceof NameExpr &&
-        kindAnalysis.getResult(((NameExpr) call.getTarget()).getName()).isVariable() &&
-        !(call.getParent() instanceof AssignStmt && ((AssignStmt) call.getParent()).getLHS() == call);
+    if (!(call.getTarget() instanceof NameExpr &&
+        kindAnalysis.getResult(((NameExpr) call.getTarget()).getName()).isVariable())) {
+      return false;
+    }
+    AssignStmt assign = NodeFinder.findParent(AssignStmt.class, call);
+    if (assign == null) {
+      return true;
+    }
+    return !(assign.getLHS() == call || (
+        assign.getLHS() instanceof MatrixExpr &&
+        ((MatrixExpr) assign.getLHS()).getRow(0).getElements().stream().anyMatch(p -> p == call)
+      )
+    );
   }
 
   private boolean mightBeFunctionHandle(ParameterizedExpr e) {
@@ -141,8 +160,47 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     }
   }
 
+  private static UseDefDefUseChain getUseDefDefUseChain(Function f) {
+    ReachingDefs reachingDefs = new ReachingDefs(f);
+    reachingDefs.analyze();
+    return UseDefDefUseChain.fromReachingDefs(reachingDefs);
+  }
+
+  private Set<Name> skipInstrumenting = new HashSet<>();
+  private boolean safeToSkip(ParameterizedExpr e) {
+    return skipInstrumenting.contains(((NameExpr) e.getTarget()).getName());
+  }
+
   @Override public void caseFunction(Function f) {
-    caseASTNode(f);
+    if (f.getInputParams().getNumChild() == 0) {
+      caseASTNode(f.getStmts());
+    } else {
+      // Version where we don't instrument params
+      UseDefDefUseChain udduChain = getUseDefDefUseChain(f);
+      f.getInputParams().stream()
+          .flatMap(n -> udduChain.getUses(n).stream())
+          .forEach(skipInstrumenting::add);
+      caseASTNode(f.getStmts());
+      skipInstrumenting.clear();
+
+      ast.List<Stmt> paramsUninstrumentedVersion = f.getStmts().treeCopy();
+
+      f.getInputParams().stream()
+          .flatMap(n -> udduChain.getUses(n).stream())
+          .filter(n -> n.getParent().getParent() instanceof ParameterizedExpr)
+          .map(n -> (ParameterizedExpr) n.getParent().getParent())
+          .filter(this::isVar)
+          .forEach(this::instrumentVar);
+
+      Expr guard = f.getInputParams().stream()
+          .<Expr>map(name -> call("isa", args(var(name.getID()), string("function_handle"))))
+          .reduce(ShortCircuitOrExpr::new)
+          .get();
+      f.setStmtList(new ast.List<Stmt>()
+          .add(new IfStmt(
+              new ast.List<IfBlock>().add(new IfBlock(guard, f.getStmts())),
+              new ast.Opt<>(new ElseBlock(paramsUninstrumentedVersion)))));
+    }
     f.getStmts().insertChild(entryPointLogStmt(identifier(f)), 0);
   }
 
@@ -160,19 +218,23 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
         )));
   }
 
+  private void instrumentVar(ParameterizedExpr e) {
+    // Replace any colons with colon string literals; passing literal
+    // colons to functions seems to confuse MATLAB.
+    NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
+        node -> AstUtil.replace(node, string(":"))
+    );
+    AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
+  }
+
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
     e.getArgs().analyze(this);
     if (isCall(e)) {
       if (!callsBuiltin(e)) {
         AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
       }
-    } else if (isVar(e) && mightBeFunctionHandle(e)) {
-      // Replace any colons with colon string literals; passing literal
-      // colons to functions seems to confuse MATLAB.
-      NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
-          node -> AstUtil.replace(node, string(":"))
-      );
-      AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
+    } else if (isVar(e) && mightBeFunctionHandle(e) && !safeToSkip(e)) {
+      instrumentVar(e);
     }
   }
 
