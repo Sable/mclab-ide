@@ -102,7 +102,8 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   private static boolean callsBuiltin(NameExpr call) {
     // TODO(isbadawi): Check for user-defined specializations of builtins?
     // TODO(isbadawi): Maybe use LookupFile's database instead of Builtin's?
-    return Builtin.getBuiltinQuery().isBuiltin(call.getName().getID());
+    String target = call.getName().getID();
+    return !target.equals("feval") && Builtin.getBuiltinQuery().isBuiltin(target);
   }
 
   private boolean isVar(ParameterizedExpr call) {
