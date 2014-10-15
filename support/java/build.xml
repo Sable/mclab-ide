@@ -16,6 +16,15 @@
     </copy>
   </target>
 
+  <target name="jar" depends="compile" description="create instrumentation jar">
+    <jar destfile="instrument.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="mclab.ide.callgraph.Instrument" />
+      </manifest>
+      <zipgroupfileset dir="../mclab/languages/Natlab" includes="Natlab.jar" />
+    </jar>
+  </target>
+
   <target name="clean" description="clean up">
     <delete dir="${build}" />
   </target>
