@@ -125,9 +125,13 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   private boolean mightBeFunctionHandle(ParameterizedExpr e) {
     Stmt parentStmt = NodeFinder.findParent(Stmt.class, e);
     String target = ((NameExpr) e.getTarget()).getName().getID();
-    HandleFlowset stmtHandleInfo = handleAnalysis.getInFlowSets().get(parentStmt);
+    HandleFlowset stmtHandleInfo = handleAnalysis.getOutFlowSets().get(parentStmt);
     TreeSet<Value> targetHandleInfo = stmtHandleInfo.getOrDefault(target, new TreeSet<>());
-    return !targetHandleInfo.contains(AbstractValue.newDataOnly());
+    return targetHandleInfo.stream().anyMatch(Value::isHandle);
+  }
+
+  private boolean shouldInstrument(ParameterizedExpr e) {
+    return isVar(e) && mightBeFunctionHandle(e);
   }
 
   private boolean isCall(NameExpr call) {
@@ -190,7 +194,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
           .flatMap(n -> udduChain.getUses(n).stream())
           .filter(n -> n.getParent().getParent() instanceof ParameterizedExpr)
           .map(n -> (ParameterizedExpr) n.getParent().getParent())
-          .filter(this::isVar)
+          .filter(this::shouldInstrument)
           .forEach(this::instrumentVar);
 
       Expr guard = f.getInputParams().stream()
@@ -234,7 +238,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
       if (!callsBuiltin(e)) {
         AstUtil.replace(e, wrapWithTraceCall(e, false /* isVar */));
       }
-    } else if (isVar(e) && mightBeFunctionHandle(e) && !safeToSkip(e)) {
+    } else if (shouldInstrument(e) && !safeToSkip(e)) {
       instrumentVar(e);
     }
   }
