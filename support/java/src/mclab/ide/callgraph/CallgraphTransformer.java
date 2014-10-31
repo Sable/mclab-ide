@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import ast.ASTNode;
 import ast.AssignStmt;
@@ -177,34 +178,59 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   @Override public void caseFunction(Function f) {
+    // This method is pretty hairy. The idea is that since the handle
+    // propagation analysis is intraprocedural, the result for parameters
+    // is typically top, which means that if we pass an array as a parameter
+    // we'd end up instrumenting each of its uses. Instead we have two
+    // instrumented versions -- one where we don't instrument any uses of
+    // parameters, and one where we instrument all of them. We then wrap the
+    // whole function in a runtime check that checks whether any of the
+    // parameters are function handles -- if so, use the fully instrumented
+    // version, otherwise, use the optimized version.
+
     if (f.getInputParams().getNumChild() == 0) {
       caseASTNode(f.getStmts());
     } else {
-      // Version where we don't instrument params
+      // Mark uses of function parameters as skippable
       UseDefDefUseChain udduChain = getUseDefDefUseChain(f);
       f.getInputParams().stream()
           .flatMap(n -> udduChain.getUses(n).stream())
           .forEach(skipInstrumenting::add);
-      caseASTNode(f.getStmts());
-      skipInstrumenting.clear();
 
+      // Create the optimized version and make a copy of it
+      caseASTNode(f.getStmts());
       ast.List<Stmt> paramsUninstrumentedVersion = f.getStmts().treeCopy();
 
-      f.getInputParams().stream()
-          .flatMap(n -> udduChain.getUses(n).stream())
+      // Of the expressions we skipped, decide which require instrumentation
+      List<ParameterizedExpr> newlyInstrumented = skipInstrumenting.stream()
           .filter(n -> n.getParent().getParent() instanceof ParameterizedExpr)
           .map(n -> (ParameterizedExpr) n.getParent().getParent())
           .filter(this::shouldInstrument)
-          .forEach(this::instrumentVar);
+          .collect(Collectors.toList());
+      skipInstrumenting.clear();
 
-      Expr guard = f.getInputParams().stream()
-          .<Expr>map(name -> call("isa", args(var(name.getID()), string("function_handle"))))
-          .reduce(ShortCircuitOrExpr::new)
-          .get();
-      f.setStmtList(new ast.List<Stmt>()
-          .add(new IfStmt(
-              new ast.List<IfBlock>().add(new IfBlock(guard, f.getStmts())),
-              new ast.Opt<>(new ElseBlock(paramsUninstrumentedVersion)))));
+      // Create the fully instrumented version
+      newlyInstrumented.forEach(this::instrumentVar);
+
+      // Figure out which input parameters we ended up instrumenting
+      List<String> requireGuard = newlyInstrumented.stream()
+          .map(p -> ((NameExpr) p.getTarget()).getName().getID())
+          .distinct()
+          .collect(Collectors.toList());
+
+      // Insert the runtime check
+      // Don't check each parameter; just the ones with instrumented uses
+      // And if the versions are the same, then don't add the check at all.
+      if (!requireGuard.isEmpty()) {
+        Expr guard = requireGuard.stream()
+            .<Expr>map(name -> call("isa", args(var(name), string("function_handle"))))
+            .reduce(ShortCircuitOrExpr::new)
+            .get();
+        f.setStmtList(new ast.List<Stmt>()
+            .add(new IfStmt(
+                new ast.List<IfBlock>().add(new IfBlock(guard, f.getStmts())),
+                new ast.Opt<>(new ElseBlock(paramsUninstrumentedVersion)))));
+      }
     }
     f.getStmts().insertChild(entryPointLogStmt(identifier(f)), 0);
   }
