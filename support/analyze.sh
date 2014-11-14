@@ -2,7 +2,7 @@
 set -e
 
 USAGE="
-usage: eval project-dir
+usage: analyze project-dir
 
 project-dir     Top level project directory to search.
 "

@@ -114,6 +114,9 @@ public class RemoveRedundantEval extends Refactoring {
       expanded = expandSprintf(arg.getArgs());
     }
     Stmt replacement = ((Script) Parsing.string(expanded)).getStmt(0);
-    transformer.replace(callToEval, replacement);
+    // This makes the layout preservation engine consider this node synthetic,
+    // even though it's the result of parsing. :\
+    replacement.setStartLine(0);
+    transformer.replace(stmt, replacement);
   }
 }

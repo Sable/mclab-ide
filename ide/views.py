@@ -6,6 +6,7 @@ import requests
 import sh
 from werkzeug.routing import BaseConverter
 
+import ide.analyzer
 import ide.callgraph
 from ide.util import shell_out, root_relative_path
 import ide.parser
@@ -29,8 +30,20 @@ def run_tests():
 def parse():
     response = {}
     try:
-        response['ast'] = ide.parser.parse_matlab_code(request.data.decode('utf-8'))
+        code = request.data.decode('utf-8')
+        response['ast'] = ide.parser.parse_matlab_code(code)
     except ide.parser.SyntaxError as e:
+        response['errors'] = e.errors
+    return json.dumps(response)
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    response = {}
+    try:
+        code = request.data.decode('utf-8')
+        response['warnings'] = ide.analyzer.analyze_matlab_code(code)
+    except ide.analyzer.AnalyzerError as e:
         response['errors'] = e.errors
     return json.dumps(response)
 
@@ -177,3 +190,10 @@ def inline_script(project):
     return refactoring('InlineScript',
         project.path(request.args['path']),
         '1,1-1,1').stdout
+
+@app.route('/project/<project:project>/refactor/remove-redundant-eval', methods=['GET'])
+def remove_redundant_eval(project):
+    return refactoring('RemoveRedundantEval',
+        project.path(request.args['path']),
+        request.args['selection']).stdout
+

@@ -102,31 +102,41 @@ ide.ViewModel = function(settings) {
     });
   };
 
+  self.doSingleFileRefactoring = function (name, action, params) {
+    params = params || [];
+    self.doRefactoring(name, action, params, function (modifiedFiles) {
+      self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
+      self.editor.editor.clearSelection();
+    });
+  };
+
+  self.doMultiFileRefactoring = function (name, action, params) {
+    params = params || [];
+    self.doRefactoring(name, action, params, function (modifiedFiles) {
+      _(modifiedFiles).each(function (newText, filename) {
+        self.editor.openFile(filename, function () {
+          self.editor.sessions[filename].setValue(newText);
+        });
+      });
+    });
+  };
+
   self.onContextMenuItem = function (action, element, event) {
     switch (action) {
     case 'Extract function':
-      self.doExtractRefactoring('Extract function', ide.ajax.extractFunction);
+      self.doExtractRefactoring(action, ide.ajax.extractFunction);
       break;
     case 'Extract variable':
-      self.doExtractRefactoring('Extract variable', ide.ajax.extractVariable);
+      self.doExtractRefactoring(action, ide.ajax.extractVariable);
       break;
     case 'Inline variable':
-      self.doRefactoring('Inline variable', ide.ajax.inlineVariable, [],
-          function (modifiedFiles) {
-            self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
-            self.editor.editor.clearSelection();
-          });
+      self.doSingleFileRefactoring(action, ide.ajax.inlineVariable);
       break;
     case 'Inline script':
-      self.doRefactoring('Inline script', ide.ajax.inlineScript, [],
-          function (modifiedFiles) {
-            _(modifiedFiles).each(function (newText, filename) {
-              self.editor.openFile(filename, function () {
-                self.editor.sessions[filename].setValue(newText);
-              });
-            });
-          });
+      self.doMultiFileRefactoring(action, ide.ajax.inlineScript);
       break;
+    case 'Remove redundant eval':
+      self.doSingleFileRefactoring(action, ide.ajax.removeRedundantEval);
     case 'Jump to declaration':
       var token = self.editor.getTokenFromMouseEvent(event);
       if (self.editor.isFunctionCall(token)) {

@@ -9,6 +9,16 @@ ide.ast = (function() {
     });
   };
 
+  var analyze = function(code, callback, err) {
+    ide.ajax.analyzeCode(code, function (data) {
+      if (data.warnings) {
+        callback(data.warnings);
+      } else if (err) {
+        err(data.errors);
+      }
+    });
+  };
+
   var Ast = function(ast) {
     this.ast = ast;
   };
@@ -62,6 +72,7 @@ ide.ast = (function() {
   };
 
   return {
-    parse: parse
+    parse: parse,
+    analyze: analyze
   };
 })();

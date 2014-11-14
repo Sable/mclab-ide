@@ -213,11 +213,25 @@ ide.editor = (function() {
     );
   };
 
+  Editor.prototype.overlayWarnings = function(warnings) {
+    this.editor.getSession().setAnnotations(
+      warnings.map(function (err) {
+        return {
+          row: err.line - 1,
+          column: err.col - 1,
+          text: err.message,
+          type: 'warning'
+        };
+      })
+    );
+  };
+
   Editor.prototype.tryParse = function() {
     ide.ast.parse(this.editor.getValue(),
       function (ast) {
         this.overlayErrors([]);
         this.asts[this.tabs.selectedTab().name()] = ast;
+        ide.ast.analyze(this.editor.getValue(), this.overlayWarnings.bind(this));
       }.bind(this),
       function (errors) {
         this.overlayErrors(errors);

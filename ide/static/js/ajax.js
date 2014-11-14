@@ -21,6 +21,17 @@ ide.ajax = (function() {
     });
   };
 
+  var analyzeCode = function(code, callback) {
+    $.ajax({
+      url: '/analyze',
+      method: 'post',
+      contentType: 'text/plain',
+      data: code,
+      dataType: 'json',
+      success: callback,
+    });
+  };
+
   var get = function(url, params, callback) {
     $.get(url + '?' + $.param(params), callback);
   };
@@ -106,9 +117,15 @@ ide.ajax = (function() {
     refactoring('inline-script', params, success, error);
   };
 
+  var removeRedundantEval = function(path, selection, success, error) {
+    var params = { path: path, selection: serializeSelection(selection) };
+    refactoring('remove-redundant-eval', params, success, error);
+  };
+
   return {
     runCode: runCode,
     parseCode: parseCode,
+    analyzeCode: analyzeCode,
     initializeMatlabSession: initializeMatlabSession,
     readFile: readFile,
     writeFile: writeFile,
@@ -119,6 +136,7 @@ ide.ajax = (function() {
     extractFunction: extractFunction,
     extractVariable: extractVariable,
     inlineVariable: inlineVariable,
-    inlineScript: inlineScript
+    inlineScript: inlineScript,
+    removeRedundantEval: removeRedundantEval
   };
 })();

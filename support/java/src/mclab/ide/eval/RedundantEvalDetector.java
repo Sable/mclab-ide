@@ -17,6 +17,7 @@ import ast.ParameterizedExpr;
 import ast.StringLiteralExpr;
 import mclint.MatlabProgram;
 import mclint.Project;
+import natlab.CompilationProblem;
 import natlab.toolkits.analysis.core.UseDefDefUseChain;
 import natlab.utils.NodeFinder;
 import nodecases.AbstractNodeCaseHandler;
@@ -72,7 +73,7 @@ public class RedundantEvalDetector extends AbstractNodeCaseHandler {
     }
     e.getArgs().analyze(this);
     if (isCallToEval(e) && usesLoopVariable(e)) {
-      System.out.println("possible redundant eval at " + location(e));
+      System.out.println(new CompilationProblem(e.getStartLine(), e.getStartColumn(), "Possible redundant eval"));
     }
   }
 
