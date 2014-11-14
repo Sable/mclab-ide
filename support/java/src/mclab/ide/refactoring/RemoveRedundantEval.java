@@ -20,7 +20,10 @@ import ast.StringLiteralExpr;
 import mclint.refactoring.Refactoring;
 import mclint.refactoring.RefactoringContext;
 import mclint.transform.Transformer;
+import mclint.util.AstUtil;
 import mclint.util.Parsing;
+
+import natlab.utils.NodeFinder;
 
 public class RemoveRedundantEval extends Refactoring {
   private ExprStmt stmt;
@@ -62,7 +65,6 @@ public class RemoveRedundantEval extends Refactoring {
       if (e instanceof StringLiteralExpr) {
         return ((StringLiteralExpr) e).getValue();
       } else if (e instanceof ParameterizedExpr) {
-        // TODO(isbadawi): multiple loop variables?
         ParameterizedExpr arg = (ParameterizedExpr) e;
         ensure(arg.getTarget() instanceof NameExpr);
         String target = ((NameExpr) arg.getTarget()).getName().getID();
@@ -71,7 +73,7 @@ public class RemoveRedundantEval extends Refactoring {
         ensure(arg.getArg(0) instanceof NameExpr);
         String var = ((NameExpr) arg.getArg(0)).getName().getID();
         ensure(loopVariables.contains(var));
-        return "(" + var + ")";
+        return "a__" + var + "__a";
       } else {
         ensure(false);
         return "";
@@ -86,12 +88,11 @@ public class RemoveRedundantEval extends Refactoring {
     ensure(exprs.getNumChild() - 1 == format.length() - format.replace("%", "").length());
     int argIndex = 1;
     while (format.contains("%d")) {
-      // TODO(isbadawi): multiple loop variables?
       ensure(exprs.getChild(argIndex) instanceof NameExpr);
       String var = ((NameExpr) exprs.getChild(argIndex)).getName().getID();
       ensure(loopVariables.contains(var));
       argIndex++;
-      format = format.replaceFirst("%d", "(" + var + ")");
+      format = format.replaceFirst("%d", "a__" + var + "__a");
     }
     return format;
   }
@@ -114,6 +115,14 @@ public class RemoveRedundantEval extends Refactoring {
       expanded = expandSprintf(arg.getArgs());
     }
     Stmt replacement = ((Script) Parsing.string(expanded)).getStmt(0);
+    NodeFinder.find(NameExpr.class, replacement).forEach(node -> {
+      String code = node.getName().getID()
+        .replaceAll("__aa__", ", ")
+        .replaceFirst("a__", "(")
+        .replaceFirst("__a", ")");
+      Expr expr = ((ExprStmt) ((Script) Parsing.string(code)).getStmt(0)).getExpr();
+      AstUtil.replace(node, expr);
+    });
     // This makes the layout preservation engine consider this node synthetic,
     // even though it's the result of parsing. :\
     replacement.setStartLine(0);
