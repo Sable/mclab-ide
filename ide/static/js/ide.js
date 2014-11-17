@@ -137,6 +137,7 @@ ide.ViewModel = function(settings) {
       break;
     case 'Remove redundant eval':
       self.doSingleFileRefactoring(action, ide.ajax.removeRedundantEval);
+      break;
     case 'Jump to declaration':
       var token = self.editor.getTokenFromMouseEvent(event);
       if (self.editor.isFunctionCall(token)) {
