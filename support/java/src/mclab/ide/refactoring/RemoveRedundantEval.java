@@ -118,8 +118,8 @@ public class RemoveRedundantEval extends Refactoring {
     NodeFinder.find(NameExpr.class, replacement).forEach(node -> {
       String code = node.getName().getID()
         .replaceAll("__aa__", ", ")
-        .replaceFirst("a__", "(")
-        .replaceFirst("__a", ")");
+        .replaceFirst("a__", "{")
+        .replaceFirst("__a", "}");
       Expr expr = ((ExprStmt) ((Script) Parsing.string(code)).getStmt(0)).getExpr();
       AstUtil.replace(node, expr);
     });
