@@ -186,6 +186,16 @@ ide.editor = (function() {
     };
   };
 
+  Editor.prototype.setText = function(text) {
+    var scrollTop = this.editor.renderer.getScrollTop();
+    var selection = this.editor.getSelection().toJSON();
+
+    this.editor.setValue(text);
+
+    this.editor.renderer.scrollToY(scrollTop);
+    this.editor.getSelection().fromJSON(selection);
+  };
+
   Editor.prototype.isFunctionCall = function(token) {
     return this.getAst()
       .findAtPosition('NameExpr', token)

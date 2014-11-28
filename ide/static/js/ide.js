@@ -93,11 +93,7 @@ ide.ViewModel = function(settings) {
       }
       self.doRefactoring(name, action, [newName], function (modifiedFiles) {
         console.log(name, 'successful.');
-        // TODO(isbadawi): Avoid rewriting the whole file?
-        // The server could send a patch, or something.
-        var selection_start_line = self.editor.getSelectionRange().startLine;
-        self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
-        self.editor.selectLine(selection_start_line);
+        self.editor.setText(modifiedFiles[self.editor.tabs.selectedTab().name()]);
       });
     });
   };
@@ -105,8 +101,7 @@ ide.ViewModel = function(settings) {
   self.doSingleFileRefactoring = function (name, action, params) {
     params = params || [];
     self.doRefactoring(name, action, params, function (modifiedFiles) {
-      self.editor.editor.setValue(modifiedFiles[self.editor.tabs.selectedTab().name()]);
-      self.editor.editor.clearSelection();
+      self.editor.setText(modifiedFiles[self.editor.tabs.selectedTab().name()]);
     });
   };
 
