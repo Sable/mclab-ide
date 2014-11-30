@@ -107,20 +107,14 @@ ide.ajax = (function() {
   var extractFunction = extractBase.bind(this, 'extract-function');
   var extractVariable = extractBase.bind(this, 'extract-variable');
 
-  var inlineVariable = function(path, selection, success, error) {
+  var simpleRefactoring = function(which, path, selection, success, error) {
     var params = { path: path, selection: serializeSelection(selection) };
-    refactoring('inline-variable', params, success, error);
+    refactoring(which, params, success, error);
   };
 
-  var inlineScript = function(path, _, success, error) {
-    var params = { path: path };
-    refactoring('inline-script', params, success, error);
-  };
-
-  var removeRedundantEval = function(path, selection, success, error) {
-    var params = { path: path, selection: serializeSelection(selection) };
-    refactoring('remove-redundant-eval', params, success, error);
-  };
+  var inlineVariable = simpleRefactoring.bind(this, 'inline-variable');
+  var inlineScript = simpleRefactoring.bind(this, 'inline-script');
+  var removeRedundantEval = simpleRefactoring.bind(this, 'remove-redundant-eval');
 
   return {
     runCode: runCode,

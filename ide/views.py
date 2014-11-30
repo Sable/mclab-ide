@@ -189,7 +189,7 @@ def inline_variable(project):
 def inline_script(project):
     return refactoring('InlineScript',
         project.path(request.args['path']),
-        '1,1-1,1').stdout
+        request.args['selection']).stdout
 
 @app.route('/project/<project:project>/refactor/remove-redundant-eval', methods=['GET'])
 def remove_redundant_eval(project):
