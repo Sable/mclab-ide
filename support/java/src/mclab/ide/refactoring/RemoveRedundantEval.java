@@ -1,17 +1,24 @@
 package mclab.ide.refactoring;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ast.ASTNode;
+import ast.CellIndexExpr;
 import ast.Expr;
 import ast.ExprStmt;
 import ast.ForStmt;
 import ast.MatrixExpr;
+import ast.Name;
 import ast.NameExpr;
 import ast.ParameterizedExpr;
+import ast.Program;
 import ast.Script;
 import ast.Stmt;
 import ast.StringLiteralExpr;
@@ -26,25 +33,56 @@ import natlab.refactoring.Exceptions;
 import natlab.utils.NodeFinder;
 
 public class RemoveRedundantEval extends Refactoring {
-  private ForStmt loop;
   private List<ExprStmt> callsToEval;
+
+  private Set<String> allNames;
+  private Map<String, String> nonClashingNameCache = new HashMap<>();
 
   private ExprStmt currentCall;
   private Set<String> currentLoopVariables;
 
+  private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("a__([a-zA-Z]\\w{0,62})__a");
+
   public RemoveRedundantEval(RefactoringContext context, ForStmt loop) {
     super(context);
-    this.loop = loop;
+
+    Program program = NodeFinder.findParent(Program.class, loop);
+    this.allNames = NodeFinder.find(Name.class, program)
+        .map(Name::getID)
+        .collect(Collectors.toSet());
+
+    this.callsToEval = NodeFinder.find(ExprStmt.class, loop)
+        .filter(this::isArrayLikeEval)
+        .collect(Collectors.toList());
+  }
+
+  private String nonClashingVariableName(String name) {
+    if (!nonClashingNameCache.containsKey(name)) {
+      String newName = name;
+      while (allNames.contains(newName)) {
+        newName += "_";
+      }
+      nonClashingNameCache.put(name, newName);
+    }
+    return nonClashingNameCache.get(name);
+  }
+
+  private String getLoopVariable(ForStmt node) {
+    return ((NameExpr) node.getAssignStmt().getLHS()).getName().getID();
   }
 
   private Set<String> enclosingLoopVariables(ParameterizedExpr call) {
     Set<String> loopVariables = new HashSet<>();
     for (ASTNode<?> node = call.getParent(); node != null; node = node.getParent()) {
       if (node instanceof ForStmt) {
-        loopVariables.add(((NameExpr) ((ForStmt) node).getAssignStmt().getLHS()).getName().getID());
+        loopVariables.add(getLoopVariable((ForStmt) node));
       }
     }
     return loopVariables;
+  }
+
+  private String getTarget(ParameterizedExpr call) {
+    return ((NameExpr) call.getTarget()).getName().getID();
   }
 
   private boolean isArrayLikeEval(ExprStmt stmt) {
@@ -54,15 +92,12 @@ public class RemoveRedundantEval extends Refactoring {
     ParameterizedExpr call = (ParameterizedExpr) stmt.getExpr();
 
     return call.getTarget() instanceof NameExpr &&
-      ((NameExpr) call.getTarget()).getName().getID().equals("eval") &&
+      getTarget(call).equals("eval") &&
       call.getArgs().getNumChild() == 1 &&
       !enclosingLoopVariables(call).isEmpty();
   }
 
   @Override public boolean checkPreconditions() {
-    callsToEval = NodeFinder.find(ExprStmt.class, loop)
-        .filter(this::isArrayLikeEval)
-        .collect(Collectors.toList());
     return !callsToEval.isEmpty();
   }
 
@@ -122,10 +157,6 @@ public class RemoveRedundantEval extends Refactoring {
 
   private void eliminateCallToEval(ExprStmt stmt) {
     Transformer transformer = context.getTransformer(stmt);
-
-
-    // eval(['a', num2str(i), ' = ', num2str(i)])
-    // eval(sprintf('a%d = %d', i, i))
     ParameterizedExpr callToEval = (ParameterizedExpr) stmt.getExpr();
 
     currentCall = stmt;
@@ -135,20 +166,26 @@ public class RemoveRedundantEval extends Refactoring {
     if (callToEval.getArg(0) instanceof MatrixExpr) {
       MatrixExpr arg = (MatrixExpr) callToEval.getArg(0);
       ensure(arg.getNumRow() == 1);
-      expanded = expandStringConcat(((MatrixExpr) arg).getRow(0).getElements());
+      expanded = expandStringConcat(arg.getRow(0).getElements());
     } else if (callToEval.getArg(0) instanceof ParameterizedExpr) {
       ParameterizedExpr arg = (ParameterizedExpr) callToEval.getArg(0);
-      ensure(arg.getTarget() instanceof NameExpr);
-      ensure(((NameExpr) arg.getTarget()).getName().getID().equals("sprintf"));
+      ensure(arg.getTarget() instanceof NameExpr && getTarget(arg).equals("sprintf"));
       expanded = expandSprintf(arg.getArgs());
     }
     Stmt replacement = ((Script) Parsing.string(expanded)).getStmt(0);
     NodeFinder.find(NameExpr.class, replacement).forEach(node -> {
-      String code = node.getName().getID()
-          .replaceAll("__aa__", ", ")
-          .replaceFirst("a__", "{")
-          .replaceFirst("__a", "}");
-      Expr expr = ((ExprStmt) ((Script) Parsing.string(code)).getStmt(0)).getExpr();
+      Matcher matcher = PLACEHOLDER_PATTERN.matcher(node.getName().getID());
+      if (!matcher.find()) {
+        return;
+      }
+      String target = nonClashingVariableName(matcher.replaceAll(""));
+      matcher.reset();
+
+      CellIndexExpr expr = new CellIndexExpr();
+      expr.setTarget(new NameExpr(new Name(target)));
+      while (matcher.find()) {
+        expr.addArg(new NameExpr(new Name(matcher.group(1))));
+      }
       AstUtil.replace(node, expr);
     });
     // This makes the layout preservation engine consider this node synthetic,
@@ -165,5 +202,6 @@ public class RemoveRedundantEval extends Refactoring {
         addError(e);
       }
     });
+    // TODO(isbadawi): Wrap the loop in a try-catch with a warning
   }
 }
