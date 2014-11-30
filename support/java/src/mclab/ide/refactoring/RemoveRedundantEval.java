@@ -43,15 +43,14 @@ public class RemoveRedundantEval extends Refactoring {
 
   private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("a__([a-zA-Z]\\w{0,62})__a");
 
-  public RemoveRedundantEval(RefactoringContext context, ForStmt loop) {
+  public RemoveRedundantEval(RefactoringContext context, Program program) {
     super(context);
 
-    Program program = NodeFinder.findParent(Program.class, loop);
     this.allNames = NodeFinder.find(Name.class, program)
         .map(Name::getID)
         .collect(Collectors.toSet());
 
-    this.callsToEval = NodeFinder.find(ExprStmt.class, loop)
+    this.callsToEval = NodeFinder.find(ExprStmt.class, program)
         .filter(this::isArrayLikeEval)
         .collect(Collectors.toList());
   }
