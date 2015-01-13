@@ -78,7 +78,11 @@ app.url_map.converters['project'] = ProjectConverter
 
 @app.route('/project/', methods=['POST'])
 def create_project():
-    project = Project(request.form['name'])
+    project_name = request.form['name']
+    if not project_name:
+        flash('Please specify a project name.', 'error')
+        return redirect(url_for('index'))
+    project = Project(project_name)
     if project.exists():
         flash('A project called %s already exists.' % project.name, 'error')
         return redirect(url_for('index'))
