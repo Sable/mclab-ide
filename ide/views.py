@@ -2,7 +2,6 @@ import json
 
 from flask import (render_template, request, abort, flash, redirect, url_for,
                    send_file)
-import requests
 import sh
 from werkzeug.routing import BaseConverter
 
