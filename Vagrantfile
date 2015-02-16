@@ -17,7 +17,7 @@ tar -xzf zeromq-4.0.4.tar.gz
 (cd zeromq-4.0.4 && ./configure && make && make install && ldconfig)
 echo "export LD_LIBRARY_PATH=/usr/local/lib" >> .bashrc
 
-apt-get install octave liboctave-dev -y
+apt-get install octave -y
 apt-get install ant npm python3-pip git -y
 ln -s /usr/bin/nodejs /usr/bin/node
 
@@ -25,11 +25,7 @@ ln -s /usr/bin/nodejs /usr/bin/node
 function pip { pip3 "$@"; }
 export -f pip
 (cd /vagrant && ./bootstrap.sh)
-mkdir messenger
-wget https://raw.githubusercontent.com/arokem/python-matlab-bridge/master/messenger/src/messenger.c
-mkoctfile --mex -lzmq -o messenger/messenger.mex messenger.c
 echo "addpath('/vagrant/support/callgraph-runtime', '-begin')" > .octaverc
-echo "addpath('~/messenger', '-begin')" >> .octaverc
 SCRIPT
 
 VAGRANTFILE_API_VERSION = "2"

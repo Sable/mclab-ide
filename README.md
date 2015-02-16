@@ -41,8 +41,7 @@ you run into. As preliminaries, you'll need:
 * npm
 * MATLAB (recentish) or Octave (at least 3.8)
 * libzmq (required by [python-matlab-bridge][] -- see its README for
-instructions). Note if you're using Octave, you'll want to follow
-[the instructions here also][messenger].
+instructions).
 
 Once these are taken care of, you can run `bootstrap.sh`. Among other things
 this installs some python packages, so you may want to run it inside a
@@ -61,4 +60,3 @@ Apache
 [mclab]: http://www.sable.mcgill.ca/mclab
 [python-matlab-bridge]: https://github.com/arokem/python-matlab-bridge
 [vagrant]: http://www.vagrantup.com/
-[messenger]: https://github.com/arokem/python-matlab-bridge#octave-support--caveats
