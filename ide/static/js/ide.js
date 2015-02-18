@@ -30,7 +30,7 @@ ide.ViewModel = function(settings) {
     terminal.pause();
     ide.ajax.runCode(command, function (response) {
       terminal.resume();
-      if (response.success === "true") {
+      if (response.success) {
         if (response.content.stdout.trim().length !== 0) {
           terminal.echo(response.content.stdout);
         }
