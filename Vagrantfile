@@ -1,37 +1,68 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$script = <<SCRIPT
-# jdk8
-add-apt-repository ppa:webupd8team/java -y
-apt-get update
-# this accepts the license noninteractively
-echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
-apt-get install oracle-java8-installer -y
-ln -s /usr/lib/jvm/java-8-oracle /usr/lib/jvm/default-java
+def add_pkg_source(ppa)
+  ["add-apt-repository ppa:#{ppa} -y", 'apt-get update']
+end
 
-# zmq (version in apt is out of date)
-apt-get install g++ -y
-wget http://download.zeromq.org/zeromq-4.0.4.tar.gz
-tar -xzf zeromq-4.0.4.tar.gz
-(cd zeromq-4.0.4 && ./configure && make && make install && ldconfig)
-echo "export LD_LIBRARY_PATH=/usr/local/lib" >> .bashrc
+def accept_oracle_license
+  'echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections'
+end
 
-apt-get install octave -y
-apt-get install ant npm python3-pip git -y
-ln -s /usr/bin/nodejs /usr/bin/node
+def install_pkgs(packages)
+  "apt-get install #{packages.join(' ')} -y"
+end
 
-# app
-function pip { pip3 "$@"; }
-export -f pip
-(cd /vagrant && ./bootstrap.sh)
-echo "addpath('/vagrant/support/callgraph-runtime', '-begin')" > .octaverc
-SCRIPT
+def symlink(source, dest)
+  "ln -s #{source} #{dest}"
+end
+
+def write_file(filename, contents)
+  "echo \"#{contents}\" > #{filename}"
+end
+
+def install_jdk8
+  [
+    add_pkg_source('webupd8team/java'),
+    accept_oracle_license,
+    install_pkgs(['oracle-java8-installer']),
+    symlink('/usr/lib/jvm/java-8-oracle', '/usr/lib/jvm/default-java')
+  ]
+end
+
+def install_system_dependencies
+  [
+    install_jdk8,
+    install_pkgs(%w{libzmq3 libzmq3-dev octave ant npm python3-pip git}),
+    symlink('/usr/bin/nodejs', '/usr/bin/node')
+  ]
+end
+
+def using_pip3
+  ['function pip { pip3 "$@"; }', 'export -f pip']
+end
+
+def install_app_dependencies
+  [using_pip3, '(cd /vagrant && ./bootstrap.sh)']
+end
+
+def adjust_octave_runtime_path
+  write_file('.octaverc',
+             "addpath('/vagrant/support/callgraph-runtime', '-begin')")
+end
+
+def install_app
+  [
+    install_system_dependencies,
+    install_app_dependencies,
+    adjust_octave_runtime_path
+  ].flatten.join("\n") + "\n"
+end
 
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.network "forwarded_port", guest: 5000, host: 5000
-  config.vm.provision :shell, inline: $script
+  config.vm.provision :shell, inline: install_app
 end
