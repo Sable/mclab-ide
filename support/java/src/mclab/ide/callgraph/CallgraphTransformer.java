@@ -255,7 +255,14 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
     NodeFinder.find(ColonExpr.class, e.getArgs()).forEach(
         node -> AstUtil.replace(node, string(":"))
     );
-    AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
+    // TODO(isbadawi): Something fishy going on here!
+    // For some reason, sometimes we get here the second time around and e has
+    // already been replaced. Its parent pointer is stale, and AstUtil.replace
+    // throws an exception. This check is a quick workaround, but there is
+    // something deeper going on.
+    if (e.getParent().getIndexOfChild(e) != -1) {
+      AstUtil.replace(e, wrapWithTraceCall(e, true /* isVar */));
+    }
   }
 
   @Override public void caseParameterizedExpr(ParameterizedExpr e) {
