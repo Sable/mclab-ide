@@ -39,6 +39,13 @@ ide.utils = (function() {
     return !_(MATLAB_KEYWORDS).contains(name) && MATLAB_IDENTIFIER.test(name);
   };
 
+  var toMfile = function(path) {
+    if (!/.m$/.test(path)) {
+      path += '.m';
+    }
+    return path;
+  };
+
   var EventsMixin = {
     on: function (event, callback) {
       this.callbacks = this.callbacks || {};
@@ -61,5 +68,6 @@ ide.utils = (function() {
     prompt: prompt,
     confirm: confirm,
     isMatlabIdentifier: isMatlabIdentifier,
+    toMfile: toMfile,
   };
 })();

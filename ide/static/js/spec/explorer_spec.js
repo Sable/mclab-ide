@@ -91,11 +91,11 @@ describe('ProjectExplorer', function() {
       expect(ide.ajax.renameFile).not.toHaveBeenCalled();
     });
 
-    it('rejects names without a .m extension', function() {
+    it('adds a .m extension if missing', function() {
       var callback = jasmine.createSpy('callback');
       this.explorer.on('file_renamed', callback);
       this.tryToRename('lib/one.m', 'lib/f.xxx');
-      expect(callback).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith('lib/one.m', 'lib/f.xxx.m', jasmine.any(Function));
     });
 
     it('rejects names already in the project', function() {

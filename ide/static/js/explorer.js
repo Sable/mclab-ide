@@ -95,11 +95,13 @@ ide.explorer = (function() {
     var self = this;
 
     this.newFile = function(form) {
-      var path = form.path.value;
-      if (self.checkFilename(path)) {
+      var path = ide.utils.toMfile(form.path.value);
+      if (self.fileExists(path)) {
+        self.select(self.root().getByPath(path));
+      } else {
         self.createFile(path);
-        form.reset();
       }
+      form.reset();
     };
 
     this.select = function(file) {
@@ -124,20 +126,13 @@ ide.explorer = (function() {
     this.root(TreeNode.fromFiles(files));
   };
 
-  ProjectExplorer.prototype.checkFilename = function(path) {
-    if (!/[^\s].m$/.test(path)) {
-      ide.utils.flashError('Please enter a file name that ends in .m.');
-      return false;
-    }
-    if (_(this.files()).contains(path)) {
-      ide.utils.flashError('A file with that name already exists.');
-      return false;
-    }
-    return true;
-  };
+  ProjectExplorer.prototype.fileExists = function(path) {
+    return _(this.files()).contains(path);
+  }
 
   ProjectExplorer.prototype.createFile = function(path) {
     ide.ajax.writeFile(path, '', function() {
+      this.files.push(path);
       this.root().add(path).ensureVisible();
       this.trigger('file_selected', path);
     }.bind(this));
@@ -149,7 +144,9 @@ ide.explorer = (function() {
       return;
     }
     ide.utils.prompt('New name for ' + name + '?', function (newName) {
-      if (!this.checkFilename(newName)) {
+      newName = ide.utils.toMfile(newName);
+      if (this.fileExists(newName)) {
+        ide.utils.flashError("'" + newName + "' already exists.");
         return;
       }
       this.trigger('file_renamed', name, newName, function() {
