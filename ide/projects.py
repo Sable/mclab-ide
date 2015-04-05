@@ -39,7 +39,7 @@ end'''[1:])
 
     def files(self):
         return [path.relative_to(self.root) for path in self.root.rglob('*')
-                if not path.name.startswith('.')]
+                if path.name.endswith('.m') and not path.name.startswith('.')]
 
     def path(self, file):
         return self.root / file
