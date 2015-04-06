@@ -62,7 +62,7 @@ ide.explorer = (function() {
 
   TreeNode.prototype.ensureVisible = function() {
     var node = this;
-    while (!node.expanded() && node.parent) {
+    while (node.parent) {
       node.expanded(true);
       node = node.parent;
     }
