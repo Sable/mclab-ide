@@ -89,6 +89,7 @@ ide.editor = (function() {
   Editor.prototype.openFile = function(path, callback) {
     if (_(this.sessions).has(path)) {
       this.tabs.openTab(path);
+      this.editor.focus();
       if (callback) {
         callback();
       }
@@ -97,6 +98,7 @@ ide.editor = (function() {
     ide.ajax.readFile(path, function (contents) {
       this.createSession(path, contents);
       this.tabs.openTab(path);
+      this.editor.focus();
       this.tryParse();
       if (callback) {
         callback();
