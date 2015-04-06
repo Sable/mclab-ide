@@ -106,6 +106,7 @@ ide.explorer = (function() {
 
     this.select = function(file) {
       if (file.leaf()) {
+        file.ensureVisible();
         self.trigger('file_selected', file.fullPath());
       }
     };
@@ -133,8 +134,7 @@ ide.explorer = (function() {
   ProjectExplorer.prototype.createFile = function(path) {
     ide.ajax.writeFile(path, '', function() {
       this.files.push(path);
-      this.root().add(path).ensureVisible();
-      this.trigger('file_selected', path);
+      this.select(this.root().add(path));
     }.bind(this));
   };
 
