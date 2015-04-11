@@ -47,7 +47,7 @@ Once these are taken care of, you can run `bootstrap.sh`. Among other things
 this installs some python packages, so you may want to run it inside a
 virtualenv.
 
-Finally, you'll want to place the `support/callgraph-runtime` directory
+Finally, you'll want to place the `support/runtime` directory
 somewhere on the runtime path. There are various ways to do this. For MATLAB,
 you can set the `MATLABPATH` environment variable, which is similar to the
 system `PATH`. For Octave, you can put a call to `addpath` inside

@@ -48,7 +48,7 @@ end
 
 def adjust_octave_runtime_path
   write_file('.octaverc',
-             "addpath('/vagrant/support/callgraph-runtime', '-begin')")
+             "addpath('/vagrant/support/runtime', '-begin')")
 end
 
 def install_app
