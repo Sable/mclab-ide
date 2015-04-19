@@ -1,6 +1,6 @@
-function varargout = mclab_callgraph_log_then_run(s, f, varargin)
+function varargout = mclab_runtime_log_then_run(s, f, varargin)
   if isa(f, 'function_handle')
-    mclab_callgraph_log(s);
+    mclab_runtime_log(s);
     info = functions(f);
     % empty in Octave, 'MATLAB built-in function' in MATLAB
     builtin = strcmp(info.type, 'simple') && ...
@@ -10,10 +10,11 @@ function varargout = mclab_callgraph_log_then_run(s, f, varargin)
   end
 
   if builtin
-    mclab_callgraph_log('builtin start');
+    mclab_runtime_log('builtin start');
   end
+  % TODO(isbadawi): need evalin caller here?
   [varargout{1:nargout}] = f(varargin{:});
   if builtin
-    mclab_callgraph_log('builtin end');
+    mclab_runtime_log('builtin end');
   end
 end

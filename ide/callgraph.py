@@ -29,16 +29,16 @@ def trace_to_callgraph(trace):
 def get(project):
     target_dir = tempfile.mkdtemp()
     shell_out(root_relative_path('support', 'instrument.sh'),
-              project.root, target_dir)
+              'callgraph', project.root, target_dir)
     with tempfile.NamedTemporaryFile(delete=False) as log_file:
         ide.session.run('; '.join([
-            'mclab_callgraph_old_pwd = pwd()',
+            'mclab_runtime_old_pwd = pwd()',
             "cd('%s')" % target_dir,
-            "mclab_callgraph_init('%s')" % log_file.name,
+            "mclab_runtime_init('%s')" % log_file.name,
             'ide_entry_point',
-            'cd(mclab_callgraph_old_pwd)',
-            'clear mclab_callgraph_old_pwd',
-            'mclab_callgraph_cleanup()',
+            'cd(mclab_runtime_old_pwd)',
+            'clear mclab_runtime_old_pwd',
+            'mclab_runtime_cleanup()',
         ]))
         call_trace = log_file.readlines()
     return trace_to_callgraph(call_trace)

@@ -147,7 +147,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
 
   private Expr wrapWithTraceCall(ParameterizedExpr call, boolean isVar) {
     Name target = ((NameExpr) call.getTarget()).getName();
-    return call("mclab_callgraph_log_then_run", concat(
+    return call("mclab_runtime_log_then_run", concat(
         args(
             string("call " + identifier(target)),
             isVar ? var(target.getID()) : handleTo(target.getID())
@@ -157,7 +157,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   }
 
   private Stmt entryPointLogStmt(String identifier) {
-    return stmt(call("mclab_callgraph_log", args(string("enter " + identifier))));
+    return stmt(call("mclab_runtime_log", args(string("enter " + identifier))));
   }
 
   @Override public void caseASTNode(ASTNode node) {
@@ -243,7 +243,7 @@ public class CallgraphTransformer extends AbstractNodeCaseHandler {
   @Override public void caseLambdaExpr(LambdaExpr e) {
     caseASTNode(e);
     AstUtil.replace(e.getBody(),
-        call("mclab_callgraph_log_then_run", args(
+        call("mclab_runtime_log_then_run", args(
             string("enter " + identifier(e, "<lambda>")),
             new LambdaExpr(new ast.List<>(), e.getBody().treeCopy())
         )));
