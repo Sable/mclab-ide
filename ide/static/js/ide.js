@@ -21,7 +21,6 @@ ide.ViewModel = function(settings) {
     }
   }).resize();
 
-
   self.matlabSessionReady = ko.observable(false);
   ide.ajax.initializeMatlabSession(
       self.matlabSessionReady.bind(self.matlabRessionReady, true));
@@ -46,6 +45,18 @@ ide.ViewModel = function(settings) {
   var callgraph = new ide.callgraph.CallGraph();
   // TODO(isbadawi): This is too strong.
   self.editor.editor.on('change', callgraph.invalidate.bind(callgraph));
+
+  self.refreshCallGraph = function() {
+    callgraph.get(function () {
+      ide.utils.flashSuccess("Call graph up-to-date.");
+    });
+  };
+
+  self.refreshEvalProfile = function() {
+    ide.ajax.getEvalProfile(function () {
+      ide.utils.flashSuccess("Got eval profile.");
+    });
+  }
 
   self.jumpToDeclaration = function (token) {
     callgraph.getTargets(token, function (targets) {

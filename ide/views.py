@@ -1,4 +1,5 @@
 import json
+import pprint
 
 from flask import (render_template, request, abort, flash, redirect, url_for,
                    send_file)
@@ -6,6 +7,7 @@ from werkzeug.routing import BaseConverter
 
 import ide.analyzer
 import ide.callgraph
+import ide.eval
 from ide.util import shell_out, root_relative_path
 import ide.parser
 import ide.settings
@@ -158,6 +160,12 @@ def rename_file(project):
 @app.route('/project/<project:project>/callgraph', methods=['GET'])
 def callgraph(project):
     return json.dumps({'callgraph': ide.callgraph.get(project)})
+
+
+@app.route('/project/<project:project>/eval-profile', methods=['GET'])
+def eval_profile(project):
+    pprint.pprint(ide.eval.get_profile(project))
+    return json.dumps({'status': 'OK'})
 
 
 def refactoring(*args):

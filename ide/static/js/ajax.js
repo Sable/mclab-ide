@@ -76,6 +76,10 @@ ide.ajax = (function() {
     });
   };
 
+  var getEvalProfile = function(callback) {
+    get('eval-profile', {}, callback);
+  }
+
   var refactoring = function(which, params, success, error) {
     get_json('refactor/' + which, params, function (data) {
       if (data.errors.length !== 0 || data.exception) {
@@ -127,6 +131,7 @@ ide.ajax = (function() {
     deleteFile: deleteFile,
     getFiles: getFiles,
     getCallGraph: getCallGraph,
+    getEvalProfile: getEvalProfile,
     extractFunction: extractFunction,
     extractVariable: extractVariable,
     inlineVariable: inlineVariable,

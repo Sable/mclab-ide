@@ -26,8 +26,14 @@
       <ul class="nav navbar-nav">
         <li><a href="{{ url_for('settings') }}">Settings</a></li>
       </ul>
+
+      <div id="extranav" class="pull-right">
+        {% block extranav %}{% endblock %}
+      </div>
     </div>
+
   </div>
+
   </nav>
 
   {% with messages = get_flashed_messages(with_categories=True) %}

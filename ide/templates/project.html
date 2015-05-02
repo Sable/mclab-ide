@@ -1,5 +1,16 @@
 {% extends "layout.html" %}
 
+{% block extranav %}
+  <button type="button" class="btn btn-danger btn-lg"
+          data-bind="click: refreshCallGraph">
+    Refresh callgraph
+  </button>
+  <button type="button" class="btn btn-danger btn-lg"
+          data-bind="click: refreshEvalProfile">
+    Refresh eval profile
+  </button>
+{% endblock %}
+
 {% block content %}
 <div id="wrapper" data-bind="beforeUnloadText: editor.tabs.beforeUnloadText">
 
