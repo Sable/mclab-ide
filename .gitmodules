@@ -1,4 +1,4 @@
 [submodule "support/mclab"]
 	path = support/mclab
-	url = https://github.com/Sable/mclab
-	branch = develop
+	url = https://github.com/Sable/mclab-core
+	branch = master

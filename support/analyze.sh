@@ -14,7 +14,7 @@ function main {
   fi
 
   this_dir=$(cd "$(dirname "$0")" && pwd)
-  classpath=$this_dir/mclab/languages/Natlab/Natlab.jar:$this_dir/java/build
+  classpath=$this_dir/mclab/languages/Natlab/McLabCore.jar:$this_dir/java/build
   java -cp $classpath mclab.ide.eval.RedundantEvalDetector "$1"
 }
 
