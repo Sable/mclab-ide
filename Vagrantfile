@@ -51,11 +51,17 @@ def adjust_octave_runtime_path
              "addpath('/vagrant/support/runtime', '-begin')")
 end
 
+def apply_liboctinterp_hack
+  liboctinterp = '/usr/lib/x86_64-linux-gnu/liboctinterp.so'
+  symlink(liboctinterp + '.2', liboctinterp + '.3')
+end
+
 def install_app
   [
     install_system_dependencies,
     install_app_dependencies,
-    adjust_octave_runtime_path
+    adjust_octave_runtime_path,
+    apply_liboctinterp_hack
   ].flatten.join("\n") + "\n"
 end
 
