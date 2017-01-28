@@ -3,7 +3,7 @@
 this_dir=$(cd "$(dirname "$0")" && pwd)
 natlab_jar="$this_dir/mclab/languages/Natlab/McLabCore.jar"
 
-java -jar $natlab_jar -json -quiet "$@" >/tmp/stdout 2>/tmp/stderr
+java -jar $natlab_jar --json --quiet "$@" >/tmp/stdout 2>/tmp/stderr
 if [[ -s /tmp/stderr ]]; then
   cat /tmp/stderr
   exit 1
